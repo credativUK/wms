@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+  <data>
+
+    <menuitem id="menu_highjump_root"
+        parent="connector.menu_connector_root"
+        name="High Jump"
+        sequence="10"
+        groups="connector.group_connector_manager"/>
+
+    <menuitem id="menu_highjump_backend"
+        name="Backends"
+        parent="menu_highjump_root"
+        action="action_highjump_backend"/>
+
+    <menuitem id="menu_highjump_warehouse"
+        name="Warehouses"
+        parent="menu_highjump_root"
+        sequence="20"
+        action="action_highjump_warehouse"/>
+
+  </data>
+</openerp>

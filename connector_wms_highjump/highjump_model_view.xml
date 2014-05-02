@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="view_highjump_backend_form" model="ir.ui.view">
+            <field name="name">highjump.backend.form</field>
+            <field name="model">highjump.backend</field>
+            <field name="arch" type="xml">
+                <form string="High Jump Backend" version="7.0">
+                    <header>
+                    </header>
+                    <sheet>
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" class="oe_inline" />
+                        </h1>
+                        <group name="highjump" string="High Jump Configuration">
+                            <group colspan="4" col="4">
+                                <field name="version" colspan="4"/>
+                                <field name="location" placeholder="e.g. https://webservices.myseko.com/" colspan="4"/>
+                                <field name="username" colspan="2"/>
+                            </group>
+                        </group>
+                        <group name="main_configuration" string="Main Configuration">
+                            <field name="warehouse_ids"/>
+                        </group>
+                        <notebook>
+                            <page name="import" string="Imports">
+                                <p class="oe_grey oe_inline">
+                                    By clicking on the buttons,
+                                    you will initiate the synchronizations
+                                    with High Jump.
+                                    Note that the import or exports
+                                    won't be done directly,
+                                    they will create 'Jobs'
+                                    executed as soon as possible.
+                                </p>
+                                <p class="oe_grey oe_inline">
+                                    Once imported,
+                                    some types of records,
+                                    like the stock levels,
+                                    need a manual review.
+                                    You will find the list
+                                    of the new records to review
+                                    in the menu 'Connectors > Checkpoint'.
+                                </p>
+
+                                <!--<group>
+                                    <label string="Import stock levels for all warehouses" class="oe_inline"/>
+                                    <button name="import_warehouse_stock_qty"
+                                        type="object"
+                                        class="oe_highlight"
+                                        string="Import"/>
+                                </group>-->
+
+                            </page>
+
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_highjump_backend_tree" model="ir.ui.view">
+            <field name="name">highjump.backend.tree</field>
+            <field name="model">highjump.backend</field>
+            <field name="arch" type="xml">
+                <tree string="High Jump Backend" version="7.0">
+                    <field name="name"/>
+                    <field name="location"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_highjump_backend" model="ir.actions.act_window">
+            <field name="name">High Jump Backends</field>
+            <field name="res_model">highjump.backend</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_highjump_backend_tree"/>
+        </record>
+
+
+        <record id="view_highjump_warehouse_form" model="ir.ui.view">
+            <field name="name">highjump.warehouse.form</field>
+            <field name="model">highjump.warehouse</field>
+            <field name="arch" type="xml">
+                <form string="High Jump Warehouse" version="7.0">
+                    <sheet>
+                        <h1>
+                            <field name="name" class="oe_inline"/>
+                        </h1>
+                        <group string="Informations">
+                            <field name="backend_id"/>
+                            <field name="highjump_id"/>
+                            <field name="warehouse_id"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_highjump_warehouse_tree" model="ir.ui.view">
+            <field name="name">highjump.warehouse.tree</field>
+            <field name="model">highjump.warehouse</field>
+            <field name="arch" type="xml">
+                <tree string="High Jump Warehouse" version="7.0">
+                    <field name="name"/>
+                    <field name="backend_id"/>
+                    <field name="highjump_id"/>
+                    <field name="warehouse_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_highjump_warehouse" model="ir.actions.act_window">
+            <field name="name">High Jump Warehouse</field>
+            <field name="res_model">highjump.warehouse</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_highjump_warehouse_tree"/>
+        </record>
+
+    </data>
+</openerp>
