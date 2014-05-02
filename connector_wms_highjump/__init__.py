@@ -18,6 +18,9 @@
 #
 ##############################################################################
 
-import backend
 import connector
+import backend
+
 import highjump_model
+import product
+import stock_warehouse

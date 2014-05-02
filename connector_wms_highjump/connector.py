@@ -59,7 +59,7 @@ def add_checkpoint(session, model_name, record_id, backend_id):
     :type model_name: str
     :param record_id: ID of the record to be reviewed
     :type record_id: int
-    :param backend_id: ID of the Magento Backend
+    :param backend_id: ID of the High Jump Backend
     :type backend_id: int
     """
     return checkpoint.add_checkpoint(session, model_name, record_id, 'highjump.backend', backend_id)

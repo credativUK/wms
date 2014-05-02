@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+        <record forcecreate="True" id="ir_cron_import_stock_levels" model="ir.cron">
+            <field name="name">High Jump - Import Stock Levels</field>
+            <field eval="False" name="active"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field eval="False" name="doall"/>
+            <field eval="'highjump.backend'" name="model"/>
+            <field eval="'_scheduler_import_warehouse_stock_qty'" name="function"/>
+            <field eval="'()'" name="args"/>
+        </record>
+
+        <record id="email_template_stock_difference" model="email.template">
+            <field name="name">High Jump - Stock Level Difference Email</field>
+            <field name="email_from">openerp@example.com</field>
+            <field name="subject">High Jump - Stock level difference found</field>
+            <field name="email_to">openerp@example.com</field>
+            <field name="model_id" ref="connector_wms_highjump.model_highjump_backend"/>
+            <field name="auto_delete" eval="False"/>
+            <field name="body_html"><![CDATA[
+<div style="font-family: 'Lucica Grande', Ubuntu, Arial, Verdana, sans-serif; font-size: 12px; color: rgb(34, 34, 34); background-color: #FFF; ">
+
+    <p>Dear Warehouse Team,</p>
+
+    <p>Stock differences have been found between OpenERP and the ${object.name} High Jump WMS.</p>
+
+    <p>It is important that these differences are checked as it may indicate: reception of a purchase order, completion of a manual move,
+        inventory lost or found, delivery orders completed at the warehouse which are not yet imported into OpenERP.</p>
+
+    <p>The list of differences follow:</p>
+
+    % for d in ctx.get('highjump_diff_qty', []):
+    <p style="border-left: 1px solid #8e0000; margin-left: 30px;">
+       &nbsp;&nbsp;Warehouse/ID: ${d['warehouse']} / ${d['warehouse_id'] or "None"}<br />
+       &nbsp;&nbsp;Product/ID: ${d['product']} / ${d['product_id'] or "None"}<br />
+       &nbsp;&nbsp;WMS Qty / OpenERP Qty: ${d['wms_qty']} / ${d['oe_qty']}<br />
+       &nbsp;&nbsp;Notes: ${d['message'] or "None"}<br />
+    </p>
+    % endfor
+
+</div>
+            ]]></field>
+        </record>
+
+    </data>
+</openerp>

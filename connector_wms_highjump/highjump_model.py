@@ -19,13 +19,16 @@
 ##############################################################################
 
 import logging
+from datetime import datetime
 from openerp.osv import fields, orm
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 import openerp.addons.connector as connector
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.connector import ConnectorUnit
 from openerp.addons.connector.unit.mapper import mapping, only_create, ImportMapper
 from .backend import highjump
 from .connector import add_checkpoint
+from .stock_warehouse import import_warehouse_stock_qty_batch
 
 _logger = logging.getLogger(__name__)
 
@@ -47,7 +50,7 @@ class highjump_backend(orm.Model):
             required=True),
         'location': fields.char('Location', required=True),
         'username': fields.char('Username'),
-        'warehouse_ids': fields.one2many('highjump.warehouse', 'backend_id', string='Warehouse Mapping', readonly=True),
+        'warehouse_ids': fields.one2many('highjump.warehouse', 'backend_id', string='Warehouse Mapping'),
         'default_lang_id': fields.many2one(
             'res.lang',
             'Default Language',
@@ -55,6 +58,27 @@ class highjump_backend(orm.Model):
                  "will be imported in the translation of this language.\n"
                  "Note that a similar configuration exists for each storeview."),
     }
+
+    def _highjump_backend(self, cr, uid, callback, domain=None, context=None):
+        if domain is None:
+            domain = []
+        ids = self.search(cr, uid, domain, context=context)
+        if ids:
+            callback(cr, uid, ids, context=context)
+
+    def import_warehouse_stock_qty(self, cr, uid, ids, context=None):
+        session = ConnectorSession(cr, uid, context=context)
+        import_start_time = datetime.now().strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+        for backend_id in ids:
+            import_warehouse_stock_qty_batch(
+                session,
+                'highjump.warehouse',
+                backend_id,
+                {'skus': 'ALL'})
+        return True
+
+    def _scheduler_import_warehouse_stock_qty(self, cr, uid, domain=None, context=None):
+        self._highjump_backend(cr, uid, self.import_warehouse_stock_qty, domain=domain, context=context)
 
 class highjump_warehouse(orm.Model):
     _name = 'highjump.warehouse'

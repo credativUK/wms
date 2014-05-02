@@ -45,13 +45,13 @@
                                     in the menu 'Connectors > Checkpoint'.
                                 </p>
 
-                                <!--<group>
+                                <group>
                                     <label string="Import stock levels for all warehouses" class="oe_inline"/>
                                     <button name="import_warehouse_stock_qty"
                                         type="object"
                                         class="oe_highlight"
                                         string="Import"/>
-                                </group>-->
+                                </group>
 
                             </page>
 

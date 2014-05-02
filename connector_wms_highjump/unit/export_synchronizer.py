@@ -18,29 +18,12 @@
 #
 ##############################################################################
 
-{'name': 'Connector for High Jump WMS API',
- 'version': '1.0.0',
- 'category': 'Connector',
- 'author': 'credativ Ltd',
- 'website': 'http://www.credativ.co.uk',
- 'license': 'AGPL-3',
- 'description': """
-Connector for High Jump WMS API
-===============================
+import logging
+from openerp.addons.connector.unit.synchronizer import ExportSynchronizer
+from ..backend import highjump
+from ..connector import get_environment, add_checkpoint
 
-This module provides a way for OpenERP to communicate with WMS
-systems which make use of the High Jump API. This is designed
-around Seko's implimentation, however may also work on other
-implimentations.
-""",
- 'depends': [
-     'connector_wms',
- ],
- 'data': [
-     'highjump_model_view.xml',
-     'highjump_menu.xml',
-     'highjump_data.xml',
-     'security/ir.model.access.csv',
- ],
- 'installable': True,
-}
+_logger = logging.getLogger(__name__)
+
+class HighJumpBaseExporter(ExportSynchronizer):
+    """ Base exporter for High Jump """
