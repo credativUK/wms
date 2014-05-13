@@ -40,6 +40,7 @@ implimentations.
      'highjump_model_view.xml',
      'highjump_menu.xml',
      'highjump_data.xml',
+     'stock_view.xml',
      'security/ir.model.access.csv',
  ],
  'installable': True,

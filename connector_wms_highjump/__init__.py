@@ -24,3 +24,4 @@ import backend
 import highjump_model
 import product
 import stock_warehouse
+import stock

@@ -67,7 +67,7 @@ class WarehouseAdapter(HighJumpCRUDAdapter):
             warehouse_map[warehouse] = warehouse_binder.to_openerp(warehouse)
             for product in products:
                 if product not in product_map:
-                    product_map[product] = warehouse_binder.to_openerp(product)
+                    product_map[product] = product_binder.to_openerp(product)
 
         # Read stock levels for all products from WMS
         stock_oe = {}

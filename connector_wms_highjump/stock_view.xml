@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="view_highjump_stock_picking_out_form" model="ir.ui.view">
+            <field name="name">highjump.stock.picking.out.form</field>
+            <field name="model">highjump.stock.picking.out</field>
+            <field name="arch" type="xml">
+                <form string="High Jump Delivery Order"
+                        create="false" delete="false" version="7.0">
+                    <group>
+                        <field name="backend_id"/>
+                        <field name="highjump_id"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_highjump_stock_picking_out_tree" model="ir.ui.view">
+            <field name="name">highjump.stock.picking.out.tree</field>
+            <field name="model">highjump.stock.picking.out</field>
+            <field name="arch" type="xml">
+                <tree string="High Jump Delivery Order"
+                        create="false" delete="false" version="7.0">
+                    <field name="backend_id"/>
+                    <field name="highjump_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_highjump_stock_picking_out_tracking" model="ir.ui.view">
+            <field name="name">Track from High Jump API</field>
+            <field name="model">highjump.stock.picking.out.tracking</field>
+            <field name="arch" type="xml">
+                <form string="Track from High Jump API" version="7.0">
+                    <separator colspan="4" string="Do you really want to download tracking information for the pickings?" />
+                    <footer>
+                        <button name="download_tracking" string="Download Tracking" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel" />
+                    </footer>
+               </form>
+            </field>
+        </record>
+
+        <record id="action_highjump_stock_picking_out_tracking" model="ir.actions.act_window">
+            <field name="name">Track from High Jump API</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">highjump.stock.picking.out.tracking</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_highjump_stock_picking_out_tracking"/>
+            <field name="target">new</field>
+            <field name="multi">True</field>
+        </record>
+
+        <record model="ir.values" id="highjump_stock_picking_out_tracking">
+            <field name="model_id" ref="stock.model_stock_picking" />
+            <field name="name">Track from High Jump API</field>
+            <field name="key2">client_action_multi</field>
+            <field name="value" eval="'ir.actions.act_window,' + str(ref('action_highjump_stock_picking_out_tracking'))" />
+            <field name="key">action</field>
+            <field name="model">stock.picking</field>
+        </record>
+
+    </data>
+</openerp>

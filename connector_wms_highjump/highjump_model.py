@@ -57,6 +57,17 @@ class highjump_backend(orm.Model):
             help="If a default language is selected, the records "
                  "will be imported in the translation of this language.\n"
                  "Note that a similar configuration exists for each storeview."),
+        'hj_order_prefix': fields.char('Order Number Prefix'),
+        'hj_shipper': fields.char('Default Shipper'),
+        'hj_priority': fields.char('Default Priority'),
+        'hj_service_level': fields.char('Default Service Level'),
+    }
+
+    _defaults = {
+        'hj_order_prefix': 'ZG',
+        'hj_shipper': 'HWD2',
+        'hj_priority': 'NORMAL',
+        'hj_service_level': 'SL_LOGISTICS',
     }
 
     def _highjump_backend(self, cr, uid, callback, domain=None, context=None):
