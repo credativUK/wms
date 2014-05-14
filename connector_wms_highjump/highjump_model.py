@@ -105,3 +105,18 @@ class highjump_warehouse(orm.Model):
         ('highjump_warehouse_uniq', 'unique(backend_id, highjump_id)',
          'A warehouse mapping with the same ID on High Jump already exists.'),
     ]
+
+class highjump_product(orm.Model):
+    _name = 'highjump.product'
+    _inherit = 'highjump.binding'
+    _description = 'High Jump Product Mapping'
+
+    _columns = {
+        'name': fields.char('Name', required=True),
+        'product_id': fields.many2one('product.product', 'Product', required=True),
+    }
+
+    _sql_constraints = [
+        ('highjump_product_uniq', 'unique(backend_id, highjump_id)',
+         'A product mapping with the same ID on High Jump already exists.'),
+    ]

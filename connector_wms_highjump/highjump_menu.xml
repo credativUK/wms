@@ -19,5 +19,11 @@
         sequence="20"
         action="action_highjump_warehouse"/>
 
+    <menuitem id="menu_highjump_product"
+        name="Products"
+        parent="menu_highjump_root"
+        sequence="20"
+        action="action_highjump_product"/>
+
   </data>
 </openerp>

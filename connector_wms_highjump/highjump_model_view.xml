@@ -121,5 +121,45 @@
             <field name="view_id" ref="view_highjump_warehouse_tree"/>
         </record>
 
+        <record id="view_highjump_product_form" model="ir.ui.view">
+            <field name="name">highjump.product.form</field>
+            <field name="model">highjump.product</field>
+            <field name="arch" type="xml">
+                <form string="High Jump Product" version="7.0">
+                    <sheet>
+                        <h1>
+                            <field name="name" class="oe_inline"/>
+                        </h1>
+                        <group string="Informations">
+                            <field name="backend_id"/>
+                            <field name="highjump_id"/>
+                            <field name="product_id"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_highjump_product_tree" model="ir.ui.view">
+            <field name="name">highjump.product.tree</field>
+            <field name="model">highjump.product</field>
+            <field name="arch" type="xml">
+                <tree string="High Jump Product" version="7.0">
+                    <field name="name"/>
+                    <field name="backend_id"/>
+                    <field name="highjump_id"/>
+                    <field name="product_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_highjump_product" model="ir.actions.act_window">
+            <field name="name">High Jump Product</field>
+            <field name="res_model">highjump.product</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_highjump_product_tree"/>
+        </record>
+
     </data>
 </openerp>

@@ -45,7 +45,16 @@ class HighJumpProductBinder(HighJumpBinder):
         ]
 
     def to_openerp(self, external_id, unwrap=False):
-        binding_ids = self.session.search('product.product', [('default_code', '=', str(external_id))])
+        '''Match the SKU from High Jump to the OpenERP product. Since the API does not
+        support product master sync we will attempt to match directly on SKU with overrides'''
+        # Attempt to get overriding mappings
+        hj_product_ids = self.session.search('highjump.product', [('highjump_id', '=', str(external_id)), ('backend_id', '=', self.backend_record.id)])
+        if hj_product_ids:
+            hj_product_data = self.session.read('highjump.product', hj_product_ids, ['product_id'])
+            binding_ids = [x['product_id'][0] for x in hj_product_data]
+        else:
+            # If no overriding mappings, try to match the SKU directly
+            binding_ids = self.session.search('product.product', [('default_code', '=', str(external_id))])
         if not binding_ids:
             return None
         assert len(binding_ids) == 1, "Several records found: %s" % binding_ids
@@ -56,8 +65,15 @@ class HighJumpProductBinder(HighJumpBinder):
             return binding_id
 
     def to_backend(self, record_id, wrap=False):
-        highjump_record = self.session.read("product.product", record_id, ['default_code'])
-        assert highjump_record
+        '''Export the SKU to High Jump from the OpenERP product. Since the API does not
+        support product master sync we will attempt to match directly on SKU with overrides'''
+
+        # Attempt to get overriding mappings
+        hj_product_ids = self.session.search('highjump.product', [('product_id', '=', record_id), ('backend_id', '=', self.backend_record.id)])
+        if hj_product_ids:
+            highjump_record = self.session.read('highjump.product', hj_product_ids[0], ['highjump_id'])['highjump_id']
+        else:
+            highjump_record = self.session.read("product.product", record_id, ['default_code'])['default_code']
         return highjump_record['default_code']
 
     def bind(self, external_id, binding_id):
