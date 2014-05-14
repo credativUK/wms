@@ -19,6 +19,9 @@
                                 <field name="version" colspan="4"/>
                                 <field name="location" placeholder="e.g. https://webservices.myseko.com/" colspan="4"/>
                                 <field name="username" colspan="2"/>
+                                <field name="hj_order_prefix" colspan="2"/>
+                                <field name="hj_priority" colspan="2"/>
+                                <field name="hj_service_level" colspan="2"/>
                             </group>
                         </group>
                         <group name="main_configuration" string="Main Configuration">

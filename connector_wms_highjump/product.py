@@ -57,7 +57,8 @@ class HighJumpProductBinder(HighJumpBinder):
             binding_ids = self.session.search('product.product', [('default_code', '=', str(external_id))])
         if not binding_ids:
             return None
-        assert len(binding_ids) == 1, "Several records found: %s" % binding_ids
+        if len(binding_ids) > 1:
+            _logger.warning('Found multiple OpenERP IDs for product with HighJump SKU %s' % (external_id,))
         binding_id = binding_ids[0]
         if unwrap:
             return self.session.read('product.product', binding_id, ['openerp_id'])['openerp_id'][0]

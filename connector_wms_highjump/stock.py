@@ -21,6 +21,7 @@
 import logging
 from openerp.osv import orm, fields
 from .unit.binder import HighJumpBinder
+from .unit.backend_adapter import HighJumpCRUDAdapter
 from .backend import highjump
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.event import on_record_create
@@ -140,9 +141,10 @@ class HighJumpStockPickingBinder(HighJumpBinder):
 class StockPickingAdapter(HighJumpCRUDAdapter):
     _model_name = 'highjump.stock.picking.out'
 
-    def create(self, picking_id):
+    def create(self, picking_id, warehouse_id):
         product_binder = self.get_binder_for_model('highjump.product.product')
         picking_obj = self.session.pool.get('stock.picking')
+        hj_warehouse_obj = session.pool.get('highjump.warehouse')
         wf_service = netsvc.LocalService("workflow")
 
         picking = picking_obj.browse(self.session.cr, self.session.uid, picking_id, context=self.session.context)
@@ -186,13 +188,14 @@ class StockPickingAdapter(HighJumpCRUDAdapter):
         else:
             wf_service.trg_validate(self.session.uid, 'stock.picking', picking_id, 'button_done', self.session.cr)
 
+        highjump_warehouse = hj_warehouse_obj.read(self.session.cr, self.session.uid, warehouse_id, ['name'])['name']
         highjump_id = '%s%s' % (self.highjump.hj_order_prefix, order_number,),
         data = {
                 'orderRequest': {
                         'ClientCode': self.highjump.username,
                         'OrderNumber': highjump_id,
                         'PO': highjump_id,
-                        'Shipper': self.highjump.hj_shipper,
+                        'Shipper': highjump_warehouse,
                         'ShipDate': datetime.now().strftime('%Y-%m-%d'),
                         'DeliveryDate': datetime.now().strftime('%Y-%m-%d'),
                         'Priority': self.highjump.hj_priority,
@@ -207,7 +210,7 @@ class StockPickingAdapter(HighJumpCRUDAdapter):
                                 'Zip': address.zip or '',
                                 'Country': address.country_id and address.country_id.code or '',
                                 'Phone': address.phone or '',
-                            }
+                            },
                         'SKUs': order_lines,
                     },
                 }
@@ -271,11 +274,12 @@ def picking_out_available(session, model_name, record_id):
     warehouse_ids = warehouse_obj.search(session.cr, session.uid, [('lot_stock_id', '=', picking.location_id)])
     hj_warehouse_ids = hj_warehouse_obj.search(session.cr, session.uid, [('warehouse_id', 'in', warehouse_ids)])
     hj_warehouse = hj_warehouse_obj.read(session.cr, session.uid, hj_warehouse_ids, ['backend_id'])
-    backend_ids = set([x['backend_id'][0] for x in hj_warehouse if x.get('backend_id')])
-    for backend_id in backend_ids:
+    for warehouse in hj_warehouse:
+        backend_id = warehouse['backend_id'][0]
         session.create('highjump.stock.picking.out',
-                       {'backend_id': backend_id,
-                        'openerp_id': picking.id)
+                        {'backend_id': backend_id,
+                        'openerp_id': picking.id,
+                        'warehouse_id': warehouse['id'],})
 
 @on_record_create(model_names='highjump.stock.picking.out')
 def delay_export_picking_available(session, model_name, record_id, vals):
