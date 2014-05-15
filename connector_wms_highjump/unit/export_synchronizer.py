@@ -20,8 +20,6 @@
 
 import logging
 from openerp.addons.connector.unit.synchronizer import ExportSynchronizer
-from ..backend import highjump
-from ..connector import get_environment, add_checkpoint
 
 _logger = logging.getLogger(__name__)
 

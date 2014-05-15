@@ -29,9 +29,12 @@ _logger = logging.getLogger(__name__)
 
 class HighJumpLocation(object):
 
-    def __init__(self, location, username):
+    def __init__(self, location, username, hj_order_prefix, hj_priority, hj_service_level):
         self.location = location
         self.username = username
+        self.hj_order_prefix = hj_order_prefix
+        self.hj_priority = hj_priority
+        self.hj_service_level = hj_service_level
 
 class HighJumpCRUDAdapter(CRUDAdapter):
     """ External Records Adapter for HighJump """
@@ -44,7 +47,10 @@ class HighJumpCRUDAdapter(CRUDAdapter):
         """
         super(HighJumpCRUDAdapter, self).__init__(environment)
         self.highjump = HighJumpLocation(self.backend_record.location,
-                                       self.backend_record.username)
+                                       self.backend_record.username,
+                                       self.backend_record.hj_order_prefix,
+                                       self.backend_record.hj_priority,
+                                       self.backend_record.hj_service_level)
 
     def _call(self, method, arguments):
         try:

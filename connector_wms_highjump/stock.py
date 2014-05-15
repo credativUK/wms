@@ -20,13 +20,14 @@
 
 import logging
 from openerp.osv import orm, fields
-from .unit.binder import HighJumpBinder
+from .unit.binder import HighJumpModelBinder
 from .unit.backend_adapter import HighJumpCRUDAdapter
 from .backend import highjump
+from .connector import get_environment
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.event import on_record_create
 from openerp.addons.connector_wms.event import on_picking_out_available
-from openerp.addons.connector.exception import MappingError, InvalidDataError
+from openerp.addons.connector.exception import MappingError, InvalidDataError, JobError
 from openerp.addons.connector.unit.synchronizer import (ImportSynchronizer,
                                                         ExportSynchronizer
                                                         )
@@ -129,10 +130,19 @@ class highjump_stock_picking(orm.Model):
                                       string='Stock Picking',
                                       required=True,
                                       ondelete='restrict'),
+        'warehouse_id': fields.many2one('highjump.warehouse',
+                                      string='High Jump Warehouse',
+                                      required=True,
+                                      ondelete='restrict'),
         }
 
+    _sql_constraints = [
+        ('highjump_picking_uniq', 'unique(backend_id, openerp_id)',
+         'A High Jump picking already exists for this picking for the same backend.'),
+    ]
+
 @highjump
-class HighJumpStockPickingBinder(HighJumpBinder):
+class HighJumpStockPickingBinder(HighJumpModelBinder):
     _model_name = [
             'highjump.stock.picking.out',
         ]
@@ -141,18 +151,23 @@ class HighJumpStockPickingBinder(HighJumpBinder):
 class StockPickingAdapter(HighJumpCRUDAdapter):
     _model_name = 'highjump.stock.picking.out'
 
-    def create(self, picking_id, warehouse_id):
+    def create(self, picking_id):
         product_binder = self.get_binder_for_model('highjump.product.product')
+        picking_binder = self.get_binder_for_model('highjump.stock.picking.out')
+        hj_picking_obj = self.session.pool.get('highjump.stock.picking.out')
         picking_obj = self.session.pool.get('stock.picking')
-        hj_warehouse_obj = session.pool.get('highjump.warehouse')
+        hj_warehouse_obj = self.session.pool.get('highjump.warehouse')
         wf_service = netsvc.LocalService("workflow")
 
-        picking = picking_obj.browse(self.session.cr, self.session.uid, picking_id, context=self.session.context)
+        picking = hj_picking_obj.browse(self.session.cr, self.session.uid, picking_id, context=self.session.context)
         order_number = picking.sale_id and picking.sale_id.name or picking.name
         address = picking.partner_id or picking.sale_id and picking.sale_id.partner_shipping_id
 
+        if picking.highjump_id:
+            raise JobError(_('The High Jump picking %s already has an external ID. Will not export again.') % (picking.id,))
+
         if not address:
-            raise MappingError(_('Missing address when attempting to export picking %s.') % (picking_id,))
+            raise MappingError(_('Missing address when attempting to export High Jump picking %s.') % (picking_id,))
 
         # Select which moves we will ship
         picking_complete = True
@@ -162,7 +177,7 @@ class StockPickingAdapter(HighJumpCRUDAdapter):
             if move.state != 'assigned':
                 picking_complete = False
                 continue
-            product_hjid = move.product_id and product_binder.to_highjump(move.product_id.id)
+            product_hjid = move.product_id and product_binder.to_backend(move.product_id.id)
             if not product_hjid:
                 picking_complete = False
                 continue
@@ -173,9 +188,14 @@ class StockPickingAdapter(HighJumpCRUDAdapter):
                     'prodlot_id': move.prodlot_id.id,
                 }
             order_lines.append({
-                    'OrderSKU': product_hjid,
-                    'Quantity': move.product_qty,
+                    'OrderSKU': {
+                        'PartNumber': product_hjid,
+                        'Quantity': int(move.product_qty),
+                    }
                 })
+
+        if not order_lines:
+            raise MappingError(_('Unable to export any order lines on export of High Jump picking %s.') % (picking_id,))
 
         # Split picking depending on order policy
         if not picking_complete:
@@ -183,13 +203,29 @@ class StockPickingAdapter(HighJumpCRUDAdapter):
             if picking_policy != 'direct':
                 raise InvalidDataError(_('Unable to export picking %s. Picking policy does not allow it to be split and is not fully complete or some products are not mapped for export.') % (picking_id,))
             # Split the picking
-            split = picking_obj.do_partial(self.session.cr, self.session.uid, [picking_id], moves_to_ship, context=self.session.context)
-            picking = split[picking_id].get('delivered_picking', picking)
+            split = picking_obj.do_partial(self.session.cr, self.session.uid, [picking.openerp_id.id], moves_to_ship, context=self.session.context)
+            picking.refresh()
+            if picking.openerp_id.backorder_id:
+                hj_picking_obj.write(self.session.cr, self.session.uid, picking.id, {'openerp_id': picking.openerp_id.backorder_id.id}, context=self.session.context)
         else:
-            wf_service.trg_validate(self.session.uid, 'stock.picking', picking_id, 'button_done', self.session.cr)
+            wf_service.trg_validate(self.session.uid, 'stock.picking', picking.openerp_id.id, 'button_done', self.session.cr)
 
-        highjump_warehouse = hj_warehouse_obj.read(self.session.cr, self.session.uid, warehouse_id, ['name'])['name']
-        highjump_id = '%s%s' % (self.highjump.hj_order_prefix, order_number,),
+        picking.refresh()
+        # Assert the picking we are about to export is now marked as done
+        if picking.state != 'done':
+            raise JobError(_('The High Jump picking %s was not able to be completed, cannot be exported.') % (picking_id,))
+
+        highjump_warehouse = hj_warehouse_obj.read(self.session.cr, self.session.uid, picking.warehouse_id.id, ['name'])['name']
+        highjump_id = '%s%s' % (self.highjump.hj_order_prefix, order_number,)
+        # Test if this ID is unique, if not increment it
+        suffix_counter = 0
+        existing_id = picking_binder.to_openerp(highjump_id)
+        orig_highjump_id = highjump_id
+        while existing_id:
+            suffix_counter += 1
+            highjump_id = "%s_%s" % (orig_highjump_id, suffix_counter)
+            existing_id = picking_binder.to_openerp(highjump_id)
+
         data = {
                 'orderRequest': {
                         'ClientCode': self.highjump.username,
@@ -215,7 +251,15 @@ class StockPickingAdapter(HighJumpCRUDAdapter):
                     },
                 }
         res = self._call('PlaceOrder', data)
-        raise NotImplementedError  # TODO: process results for errors
+        messages = 'Messages' in res and [x for x in res.Messages] or []
+        errors = 'ErrorMessages' in res and [x for x in res.ErrorMessages] or []
+        success = 'Success' in res and res.Success or False
+        if success:
+            log_level = errors and logging.ERROR or messages and logging.WARN or logging.INFO
+            _logger.log(log_level, _('Exported High Jump picking %s, order %s successfully: Messages: %s, Errors: %s') % (picking_id, highjump_id, messages, errors))
+        else:
+            _logger.error(_('Failed to export High Jump picking %s: Messages: %s, Errors: %s') % (picking_id, messages, errors))
+            raise JobError(_('Failed to export High Jump picking %s: Messages: %s, Errors: %s') % (picking_id, messages, errors))
         return highjump_id
 
     def get_tracking(self, binding_id):
@@ -227,9 +271,20 @@ class StockPickingAdapter(HighJumpCRUDAdapter):
                     },
                 }
         res = self._call('OrderStatus', data)
-        tracking = None
-        raise NotImplementedError # TODO: process results for tracking and errors
-        return tracking
+
+        status = 'Status' in res and res.Status or ""
+        carrier = 'Carrier' in res and res.Carrier or ""
+        service_level = 'ServiceLevel' in res and res.ServiceLevel or ""
+        tracking_number = 'TrackingNumber' in res and res.TrackingNumber or ""
+        error = 'Error' in res and res.Error or ""
+
+        if error:
+            _logger.error(_('Failed to import tracking for %s: %s') % (picking.highjump_id, error))
+            raise JobError(_('Failed to import tracking for %s: %s') % (picking.highjump_id, error))
+        else:
+            _logger.info(_('Imported order tracking successfully for %s: Status: %s, Carrier: %s, Service Level: %s, Tracking Number: %s, Error: %s') % (
+                highjump_id, status, carrier, service_level, tracking_number, error))
+        return status, carrier, service_level, tracking_number, error
 
 @highjump
 class HighJumpPickingExport(ExportSynchronizer):
@@ -239,12 +294,8 @@ class HighJumpPickingExport(ExportSynchronizer):
         """
         Export the picking to HighJump
         """
-        try:
-            highjump_id = self.backend_adapter.create(binding_id)
-        except Exception, e: # TODO: process specific errors
-            raise
-        else:
-            self.binder.bind(highjump_id, binding_id)
+        highjump_id = self.backend_adapter.create(binding_id)
+        self.binder.bind(highjump_id, binding_id)
 
 @highjump
 class HighJumpPickingImport(ImportSynchronizer):
@@ -252,15 +303,15 @@ class HighJumpPickingImport(ImportSynchronizer):
 
     def run(self, binding_id):
         """
-        Export the picking to HighJump
+        Import the picking tracking from HighJump
         """
-        try:
-            tracking = self.backend_adapter.get_tracking(binding_id)
-        except Exception, e: # TODO: process specific errors
-            raise
-        else:
-            if tracking:
-                picking = self.session.write(self.model._name, binding_id, {'carrier_tracking_ref': tracking})
+        status, carrier, service_level, tracking_number, error = self.backend_adapter.get_tracking(binding_id)
+        if tracking_number:
+            picking = self.session.write(self.model._name, binding_id, {'carrier_tracking_ref': tracking_number})
+        elif status != 'SHIPPED':
+            # Requeue the job, it is not yet shipped
+            _logger.info(_('Requeing tracking import for picking %s. No tracking reference and status is not shipped.') % (binding_id,))
+            import_picking_tracking.delay(session, 'highjump.stock.picking.out', binding_id, eta=12*60*60) # Delay tracking import by 12 hours
 
 @on_picking_out_available
 def picking_out_available(session, model_name, record_id):
@@ -271,7 +322,10 @@ def picking_out_available(session, model_name, record_id):
     picking = session.browse(model_name, record_id)
     if not picking.sale_id: # Handle only deliveries from SO, no manual moves
         return
-    warehouse_ids = warehouse_obj.search(session.cr, session.uid, [('lot_stock_id', '=', picking.location_id)])
+    if not picking.state == 'assigned': # Handle only deliveries which are assigned
+        return
+    location_id = picking.location_id.id or picking.move_lines and picking.move_lines[0].location_id.id
+    warehouse_ids = warehouse_obj.search(session.cr, session.uid, [('lot_stock_id', '=', location_id)])
     hj_warehouse_ids = hj_warehouse_obj.search(session.cr, session.uid, [('warehouse_id', 'in', warehouse_ids)])
     hj_warehouse = hj_warehouse_obj.read(session.cr, session.uid, hj_warehouse_ids, ['backend_id'])
     for warehouse in hj_warehouse:
@@ -283,7 +337,7 @@ def picking_out_available(session, model_name, record_id):
 
 @on_record_create(model_names='highjump.stock.picking.out')
 def delay_export_picking_available(session, model_name, record_id, vals):
-    export_picking_done.delay(session, model_name, record_id)
+    export_picking_available.delay(session, model_name, record_id)
 
 @job
 def export_picking_available(session, model_name, record_id):

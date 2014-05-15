@@ -26,13 +26,27 @@ from .event import on_picking_out_available
 class stock_picking(orm.Model):
     _inherit = 'stock.picking'
 
-    def action_assign(self, cr, uid, ids, *args):
-        res = super(stock_picking, self).action_assign(cr, uid, ids, *args)
+    def action_assign_wkf(self, cr, uid, ids, context=None):
+        res = super(stock_picking, self).action_assign_wkf(cr, uid, ids, context=context)
         if res:
             session = ConnectorSession(cr, uid, context=context)
             picking_records = self.read(cr, uid, ids,
                                     ['id', 'type'],
                                     context=context)
+            for picking_vals in picking_records:
+                if picking_vals['type'] != 'out':
+                    continue
+                on_picking_out_available.fire(session, self._name, picking_vals['id'])
+        return res
+
+
+    def action_assign(self, cr, uid, ids, *args):
+        res = super(stock_picking, self).action_assign(cr, uid, ids, *args)
+        if res:
+            session = ConnectorSession(cr, uid, context=None)
+            picking_records = self.read(cr, uid, ids,
+                                    ['id', 'type'],
+                                    context=None)
             for picking_vals in picking_records:
                 if picking_vals['type'] != 'out':
                     continue

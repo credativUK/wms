@@ -75,7 +75,7 @@ class HighJumpProductBinder(HighJumpBinder):
             highjump_record = self.session.read('highjump.product', hj_product_ids[0], ['highjump_id'])['highjump_id']
         else:
             highjump_record = self.session.read("product.product", record_id, ['default_code'])['default_code']
-        return highjump_record['default_code']
+        return highjump_record
 
     def bind(self, external_id, binding_id):
         raise NotImplementedError
