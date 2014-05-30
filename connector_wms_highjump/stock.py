@@ -100,8 +100,8 @@ class stock_move(orm.Model):
         self.highjump_test_exported(cr, uid, ids, doraise=True, context=context)
         return res
 
-    def action_scrap(self, cr, uid, ids, context=None):
-        res = super(stock_move, self).action_scrap(cr, uid, ids, context=context)
+    def action_scrap(self, cr, uid, ids, product_qty, location_id, context=None):
+        res = super(stock_move, self).action_scrap(cr, uid, ids, product_qty, location_id, context=context)
         self.highjump_test_exported(cr, uid, ids, doraise=True, context=context)
         return res
 
