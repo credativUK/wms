@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<WSO>
+
+	<WSO10R>
+
+		<Segment_Number>10</Segment_Number>
+
+		<Order_Type>O</Order_Type>
+
+		<Indicator_Transport>N</Indicator_Transport>
+
+		<Order_Reference>Order001</Order_Reference>
+
+		<Indicator_Labelling>N</Indicator_Labelling>
+
+		<Indicator_contact_cl>N</Indicator_contact_cl>
+
+		<Order_Category>N</Order_Category>
+
+		<Order_priority>0</Order_priority>
+
+		<Sales_Channel>C</Sales_Channel>
+
+		<WSO30R>
+
+			<Segment_Number>30</Segment_Number>
+
+			<Order_Party_Qual>CN</Order_Party_Qual>
+
+			<Party_External_Ref>CNREF1234</Party_External_Ref>
+
+			<Client_Ref_to_Order>Client Ref</Client_Ref_to_Order>
+
+			<WSO32R>
+
+				<Segment_Number>32</Segment_Number>
+
+				<Company_Name_1>Name_CNREF</Company_Name_1>
+
+				<Address_3>Address 3</Address_3>
+
+				<Postal_Code>PostalCode</Postal_Code>
+
+				<Place_Name>Plave Name</Place_Name>
+
+				<Country_Code>NL</Country_Code>
+
+				<Language_code>D</Language_code>
+
+				<Address_2>Address 2</Address_2>
+
+			</WSO32R>
+
+		</WSO30R>
+
+		<WSO40R>
+
+			<Segment_Number>40</Segment_Number>
+
+			<Orderline_ID>001</Orderline_ID>
+
+			<Article_Ref>123456</Article_Ref>
+
+			<SKU_Reference>123456</SKU_Reference>
+
+			<Type_of_package>EA</Type_of_package>
+
+			<Number_of_packages>10</Number_of_packages>
+
+			<Number_of_units_measure_unit_specifier>10</Number_of_units_measure_unit_specifier>
+
+			<Number_of_units_measure_unit_specifier_per_type_of_package>1</Number_of_units_measure_unit_specifier_per_type_of_package>
+
+		</WSO40R>
+
+	</WSO10R>
+
+</WSO>
+

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<SR>
+	<SR00R>
+		<Segment_number>00</Segment_number>
+		<Sender_Identification>999999</Sender_Identification>
+		<Message_Identification>SR_SR999999.O</Message_Identification>
+		<Message_date>20130319</Message_date>
+		<Message_time>1730</Message_time>
+		<Message_type-Identifier>846</Message_type-Identifier>
+	</SR00R>
+	<SR70R>
+		<Segment_number>70</Segment_number>
+		<Party_qualifier>WH</Party_qualifier>
+		<Party_external_reference>FLR</Party_external_reference>
+		<SR72R>
+			<Segment_number>72</Segment_number>
+			<Company_name_1>DSV Solutions Nederland BV</Company_name_1>
+			<Postal_code>4761 RL</Postal_code>
+			<Place_name>Zevenbergen</Place_name>
+			<Country_code>NL</Country_code>
+			<Language_code>D</Language_code>
+			<Telephone_number>(31)168-413000</Telephone_number>
+			<Telefax_number>(31)168-414000</Telefax_number>
+			<VAT-number>820221466B01</VAT-number>
+			<Address_2>Tradeboulevard 4 Haven 528</Address_2>
+		</SR72R>
+	</SR70R>
+	<SR8AR>
+		<Segment_number>8A</Segment_number>
+		<Lot_external_reference>Lot Ref 1</Lot_external_reference>
+		<Qualifier>S</Qualifier>
+		<Physical_stock_available>29</Physical_stock_available>
+		<Number_of_units_physical_stock_in_MUS>29</Number_of_units_physical_stock_in_MUS>
+		<Date_the_stock_was_determined>130319</Date_the_stock_was_determined>
+		<Time_the_stock_was_determined>200009</Time_the_stock_was_determined>
+		<Article_reference>Art Ref 1</Article_reference>
+		<Article_description>Description Lot Ref 1</Article_description>
+		<Article_Description_in_foreign_language>Descript Lot Ref 1</Article_Description_in_foreign_language>
+	</SR8AR>
+	<SR8AR>
+		<Segment_number>8A</Segment_number>
+		<Lot_external_reference>Lot Ref 2</Lot_external_reference>
+		<Qualifier>S</Qualifier>
+		<Physical_stock_available>92</Physical_stock_available>
+		<Number_of_units_physical_stock_in_MUS>92</Number_of_units_physical_stock_in_MUS>
+		<Date_the_stock_was_determined>130319</Date_the_stock_was_determined>
+		<Time_the_stock_was_determined>200009</Time_the_stock_was_determined>
+		<Article_reference>Art Ref 2</Article_reference>
+		<Article_description>Description Lot Ref 2</Article_description>
+		<Article_Description_in_foreign_language>Descript Lot Ref 2</Article_Description_in_foreign_language>
+	</SR8AR>
+	<SR99R>
+		<Segment_number>99</Segment_number>
+		<RecordType>70</RecordType>
+		<Total_Nbrs_of_Rec>1</Total_Nbrs_of_Rec>
+	</SR99R>
+	<SR99R>
+		<Segment_number>99</Segment_number>
+		<RecordType>72</RecordType>
+		<Total_Nbrs_of_Rec>1</Total_Nbrs_of_Rec>
+	</SR99R>
+	<SR99R>
+		<Segment_number>99</Segment_number>
+		<RecordType>8A</RecordType>
+		<Total_Nbrs_of_Rec>2</Total_Nbrs_of_Rec>
+	</SR99R>
+</SR>
