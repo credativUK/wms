@@ -20,7 +20,6 @@
 #
 ##############################################################################
 import connector
-import connector.session as session
 import connector.event as event
 import openerp.addons.connector
 import logging
