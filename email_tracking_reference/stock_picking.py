@@ -19,6 +19,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+import connector
 import openerp.addons.connector
 import logging
 from datetime import datetime
