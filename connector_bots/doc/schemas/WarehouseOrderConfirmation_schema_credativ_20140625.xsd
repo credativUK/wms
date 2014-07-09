@@ -40,7 +40,19 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="Field_AN9">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="8"/>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:simpleType name="Field_AN10">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="10"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN12">
         <xs:restriction base="xs:string">
             <xs:maxLength value="10"/>
         </xs:restriction>

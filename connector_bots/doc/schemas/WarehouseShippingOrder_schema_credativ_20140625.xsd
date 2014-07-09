@@ -22,6 +22,12 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="Field_AN4">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="3"/>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:simpleType name="Field_AN6">
         <xs:restriction base="xs:string">
             <xs:maxLength value="6"/>
@@ -34,15 +40,39 @@
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="Field_AN9">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="8"/>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:simpleType name="Field_AN10">
         <xs:restriction base="xs:string">
             <xs:maxLength value="10"/>
         </xs:restriction>
     </xs:simpleType>
 
+    <xs:simpleType name="Field_AN12">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="10"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN14">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="14"/>
+        </xs:restriction>
+    </xs:simpleType>
+
     <xs:simpleType name="Field_AN17">
         <xs:restriction base="xs:string">
             <xs:maxLength value="17"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN20">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="20"/>
         </xs:restriction>
     </xs:simpleType>
 
@@ -79,6 +109,12 @@
     <xs:simpleType name="Field_AN60">
         <xs:restriction base="xs:string">
             <xs:maxLength value="60"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN80">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="80"/>
         </xs:restriction>
     </xs:simpleType>
 
@@ -129,17 +165,17 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:simpleType name="Field_N4">
-        <xs:restriction base="xs:string">
-            <xs:pattern value="[0-9]*"/>
-            <xs:maxLength value="4"/>
-        </xs:restriction>
-    </xs:simpleType>
-
     <xs:simpleType name="Field_N3">
         <xs:restriction base="xs:string">
             <xs:pattern value="[0-9]*"/>
             <xs:maxLength value="3"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N4">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="4"/>
         </xs:restriction>
     </xs:simpleType>
 
@@ -175,6 +211,13 @@
         <xs:restriction base="xs:string">
             <xs:pattern value="[0-9]*"/>
             <xs:maxLength value="11"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N17">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="17"/>
         </xs:restriction>
     </xs:simpleType>
 
@@ -228,6 +271,13 @@
     </xs:simpleType>
 
     <xs:simpleType name="Field_N15_2">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,15}\.[0-9]{0,2}"/>
+            <xs:maxLength value="18"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N15_6">
         <xs:restriction base="xs:string">
             <xs:pattern value="[0-9]{0,15}\.[0-9]{0,2}"/>
             <xs:maxLength value="18"/>
@@ -314,23 +364,6 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:element name="Identification_Nbr">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:pattern value="[0-9]*"/>
-                <xs:maxLength value="6"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <xs:element name="File-Identifier">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:maxLength value="10"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
     <xs:element name="Principal_Off_code">
         <xs:simpleType>
             <xs:restriction base="xs:string">
@@ -351,8 +384,8 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="Segment_Number" type="Segment_Number00"/>
-                <xs:element ref="Identification_Nbr"/>
-                <xs:element ref="File-Identifier" minOccurs="0"/>
+                <xs:element name="Identification_Nbr" type="Field_AN6"/>
+                <xs:element name="File-Identifier" type="Field_AN10" minOccurs="0"/>
                 <xs:element ref="Principal_Off_code" minOccurs="0"/>
                 <xs:element name="Message_Date" type="Field_CCYYMMDD" minOccurs="0"/>
                 <xs:element name="Message_Time" type="Field_HHMM" minOccurs="0"/>
@@ -422,28 +455,12 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:element name="PO-Box_nr">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:maxLength value="12"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <xs:element name="Postal_Code_PO-box">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:maxLength value="9"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
     <xs:element name="WSO35R">
         <xs:complexType>
             <xs:sequence minOccurs="0">
                 <xs:element name="Segment_Number" type="Segment_Number35"/>
-                <xs:element ref="PO-Box_nr"/>
-                <xs:element ref="Postal_Code_PO-box" minOccurs="0"/>
+                <xs:element name="PO-Box_nr" type="Field_AN12"/>
+                <xs:element name="Postal_Code_PO-box" type="Field_AN9" minOccurs="0"/>
                 <xs:element name="Place_PO-box" type="Field_AN35"/>
                 <xs:element name="Country_code_PO-box" type="Field_AN2"/>
             </xs:sequence>
@@ -482,33 +499,17 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:element name="Contact_person_tel-nr">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:maxLength value="20"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <xs:element name="Contact_person_fax-nr">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:maxLength value="20"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
     <xs:element name="WSO34R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="unbounded">
                 <xs:element name="Segment_Number" type="Segment_Number34"/>
                 <xs:element name="Contact_person_name" type="Field_AN35"/>
                 <xs:element name="Contact_person_depar" type="Field_AN35" minOccurs="0"/>
-                <xs:element ref="Contact_person_tel-nr" minOccurs="0"/>
+                <xs:element name="Contact_person_tel-nr" type="Field_AN20" minOccurs="0"/>
                 <xs:element name="Contact_person_func" type="Field_AN2" minOccurs="0"/>
                 <xs:element name="Sex_code" type="Field_Gender" minOccurs="0"/>
                 <xs:element name="Name_abbrev_cont_per" type="Field_AN10U" minOccurs="0"/>
-                <xs:element ref="Contact_person_fax-nr" minOccurs="0"/>
+                <xs:element name="Contact_person_fax-nr" type="Field_AN20" minOccurs="0"/>
                 <xs:element name="Email_address" type="Field_AN35" minOccurs="0"/>
             </xs:sequence>
         </xs:complexType>
@@ -1081,7 +1082,7 @@
                 <xs:element name="Number_of_units_measure_unit_specifier" type="Field_N11" minOccurs="0"/>
                 <xs:element name="Number_of_units_measure_unit_specifier_per_type_of_package" type="Field_N6" minOccurs="0"/>
                 <xs:element name="Orderline_remarks" type="Field_AN35" minOccurs="0"/>
-                <xs:element name="Net_volume_per_unit_measure_unit_specifier" type="Field_N9_6" minOccurs="0"/>
+                <xs:element name="Net_volume_per_unit_measure_unit-specifier" type="Field_N9_6" minOccurs="0"/>
                 <xs:element name="Indicator_external_repackaging_department" type="Field_AN1" minOccurs="0"/>
                 <xs:element name="Principal_orderline_reference" type="Field_Order_Reference17" minOccurs="0"/>
                 <xs:element name="Measure_unit_specifier_factor" type="Field_N6" minOccurs="0"/>
@@ -1274,6 +1275,7 @@
                 <xs:enumeration value="35"/>
                 <xs:enumeration value="36"/>
                 <xs:enumeration value="40"/>
+                <xs:enumeration value="41"/>
                 <xs:enumeration value="42"/>
                 <xs:enumeration value="43"/>
                 <xs:enumeration value="45"/>

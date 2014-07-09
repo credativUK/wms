@@ -1,0 +1,118 @@
+WSO:
+- WSO10R:
+  - Segment_Number: '10'
+  - Order_Type: O
+  - Indicator_Transport: N
+  - Order_Reference: credativTest001
+  - Indicator_Labelling: N
+  - Indicator_contact_cl: N
+  - Order_Category: N
+  - Order_priority: '0'
+  - Sales_Channel: C
+  - WSO30R:
+    - Segment_Number: '30'
+    - Order_Party_Qual: CN
+    - Party_External_Ref: credativ
+    - Client_Ref_to_Order: ct001
+    - WSO32R:
+      - Segment_Number: '32'
+      - Company_Name_1: credativ
+      - Address_1: Suite 5, Bloxam Court
+      - Address_3: Rugby
+      - Postal_Code: CV21 2DU
+      - Place_Name: credativ Office
+      - Country_Code: GB
+      - Language_code: E
+  - WSO40R:
+    - Segment_Number: '40'
+    - Orderline_ID: '001'
+    - Article_Ref: 'ITEMA'
+    - SKU_Reference: 'ITEMA'
+    - Type_of_package: AA
+    - Number_of_packages: '10'
+    - Number_of_units_measure_unit_specifier: '10'
+    - Number_of_units_measure_unit_specifier_per_type_of_package: '1'
+    - Net_volume_per_unit_measure_unit-specifier: '5.3'
+    - WSO41R:
+      - Segment_Number: '41'
+      - Goods_invoice_amount: '123.00'
+      - Goods_inv_amoun_Qual: L
+  - WSO40R:
+    - Segment_Number: '40'
+    - Orderline_ID: '002'
+    - Article_Ref: 'ITEMB'
+    - SKU_Reference: 'ITEMB'
+    - Type_of_package: AA
+    - Number_of_packages: '25'
+    - Number_of_units_measure_unit_specifier: '5'
+    - Number_of_units_measure_unit_specifier_per_type_of_package: '5'
+    - Net_volume_per_unit_measure_unit-specifier: '2.1'
+    - WSO41R:
+      - Segment_Number: '41'
+      - Goods_invoice_amount: '500.00'
+      - Goods_inv_amoun_Qual: L
+- WSO10R:
+  - Segment_Number: '10'
+  - Order_Type: O
+  - Indicator_Transport: N
+  - Order_Reference: credativTest002
+  - Indicator_Labelling: N
+  - Indicator_contact_cl: N
+  - Order_Category: N
+  - Order_priority: '0'
+  - Sales_Channel: C
+  - WSO30R:
+    - Segment_Number: '30'
+    - Order_Party_Qual: CN
+    - Party_External_Ref: credativ
+    - Client_Ref_to_Order: ct002
+    - WSO32R:
+      - Segment_Number: '32'
+      - Company_Name_1: credativ
+      - Address_1: Suite 5, Bloxam Court
+      - Address_3: Rugby
+      - Postal_Code: CV21 2DU
+      - Place_Name: credativ Office
+      - Country_Code: GB
+      - Language_code: E
+  - WSO40R:
+    - Segment_Number: '40'
+    - Orderline_ID: '001'
+    - Article_Ref: 'ITEMC'
+    - SKU_Reference: 'ITEMC'
+    - Type_of_package: AA
+    - Number_of_packages: '5'
+    - Number_of_units_measure_unit_specifier: '5'
+    - Number_of_units_measure_unit_specifier_per_type_of_package: '1'
+    - Net_volume_per_unit_measure_unit-specifier: '3.1'
+    - WSO41R:
+      - Segment_Number: '41'
+      - Goods_invoice_amount: '50.25'
+      - Goods_inv_amoun_Qual: L
+  - WSO40R:
+    - Segment_Number: '40'
+    - Orderline_ID: '002'
+    - Article_Ref: 'ITEMD'
+    - SKU_Reference: 'ITEMD'
+    - Type_of_package: AA
+    - Number_of_packages: '1'
+    - Number_of_units_measure_unit_specifier: '1'
+    - Number_of_units_measure_unit_specifier_per_type_of_package: '1'
+    - Net_volume_per_unit_measure_unit-specifier: '0.25'
+    - WSO41R:
+      - Segment_Number: '41'
+      - Goods_invoice_amount: '10.00'
+      - Goods_inv_amoun_Qual: L
+- WSO99R:
+  - Segment_Number: '99'
+  - RecordType: '10'
+  - Total_Nbrs_of_Rec: '2'
+  - Segment_Number: '99'
+  - RecordType: '30'
+  - Total_Nbrs_of_Rec: '2'
+  - Segment_Number: '99'
+  - RecordType: '40'
+  - Total_Nbrs_of_Rec: '4'
+  - Segment_Number: '99'
+  - RecordType: '41'
+  - Total_Nbrs_of_Rec: '4'
