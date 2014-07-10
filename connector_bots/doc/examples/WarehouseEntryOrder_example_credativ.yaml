@@ -25,12 +25,13 @@ WEO:
     - WEO32R:
       - Segment_Number: '32'
       - Company_Name_1: credativ
-      - Address_1: Suite 5, Bloxam Court
       - Address_3: Rugby
       - Postal_Code: CV21 2DU
       - Place_Name: credativ Office
       - Country_Code: GB
       - Language_code: E
+      - Address_2: Suite 5, Bloxam Court
+      - Address_4: Warwickshire
     - WEO34R:
       - Segment_Number: '34'
       - Contact_Person_Name: The Manager

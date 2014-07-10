@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 
-#SCHEMA = "../schemas/StockReport_schema_credativ_20140625.xsd"
+#SCHEMA = "../schemas/StockReport_schema_credativ.xsd"
 #DATA = "../examples/StockReport_20140623145617941_NRI_corrected.yaml"
 #DATA = "../examples/StockReport_v1301_DSV.yaml"
 
-SCHEMA = "../schemas/WarehouseEntryOrder_schema_credativ_20140625.xsd"
-DATA = "../examples/WarehouseEntryOrder_example_credativ_20140708.yaml"
+#SCHEMA = "../schemas/WarehouseEntryOrder_schema_credativ.xsd"
+#DATA = "../examples/WarehouseEntryOrder_example_credativ.yaml"
 
-#SCHEMA = "../schemas/WarehouseOrderConfirmation_schema_credativ_20140625.xsd"
+#SCHEMA = "../schemas/WarehouseOrderConfirmation_schema_credativ.xsd"
 #DATA = "../examples/WarehouseOrderConfirmation_v1401_DSV.yaml"
 
-#SCHEMA = "../schemas/WarehouseShippingOrder_schema_credativ_20140625.xsd"
-#DATA = "../examples/WarehouseShippingOrder_example_credativ_20140707.yaml"
+SCHEMA = "../schemas/WarehouseShippingOrder_schema_credativ.xsd"
+DATA = "../examples/WarehouseShippingOrder_example_credativ.yaml"
 
 from lxml import etree
 import yaml

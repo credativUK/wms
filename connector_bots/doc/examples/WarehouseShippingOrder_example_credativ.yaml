@@ -17,12 +17,13 @@ WSO:
     - WSO32R:
       - Segment_Number: '32'
       - Company_Name_1: credativ
-      - Address_1: Suite 5, Bloxam Court
       - Address_3: Rugby
       - Postal_Code: CV21 2DU
       - Place_Name: credativ Office
       - Country_Code: GB
       - Language_code: E
+      - Address_2: Suite 5, Bloxam Court
+      - Address_4: Warwickshire
   - WSO40R:
     - Segment_Number: '40'
     - Orderline_ID: '001'
@@ -43,8 +44,8 @@ WSO:
     - Article_Ref: 'ITEMB'
     - SKU_Reference: 'ITEMB'
     - Type_of_package: AA
-    - Number_of_packages: '25'
-    - Number_of_units_measure_unit_specifier: '5'
+    - Number_of_packages: '5'
+    - Number_of_units_measure_unit_specifier: '25'
     - Number_of_units_measure_unit_specifier_per_type_of_package: '5'
     - Net_volume_per_unit_measure_unit-specifier: '2.1'
     - WSO41R:
@@ -69,12 +70,13 @@ WSO:
     - WSO32R:
       - Segment_Number: '32'
       - Company_Name_1: credativ
-      - Address_1: Suite 5, Bloxam Court
       - Address_3: Rugby
       - Postal_Code: CV21 2DU
       - Place_Name: credativ Office
       - Country_Code: GB
       - Language_code: E
+      - Address_2: Suite 5, Bloxam Court
+      - Address_4: Warwickshire
   - WSO40R:
     - Segment_Number: '40'
     - Orderline_ID: '001'

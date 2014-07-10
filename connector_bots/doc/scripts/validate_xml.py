@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
-#SCHEMA = "../schemas/StockReport_schema_credativ_20140625.xsd"
+#SCHEMA = "../schemas/StockReport_schema_credativ.xsd"
 #DATA = "../examples/StockReport_20140623145617941_NRI_corrected.xml"
 #DATA = "../examples/StockReport_v1301_DSV.xml"
 
-SCHEMA = "../schemas/WarehouseEntryOrder_schema_credativ_20140625.xsd"
+SCHEMA = "../schemas/WarehouseEntryOrder_schema_credativ.xsd"
 DATA = "../examples/WarehouseEntryOrder_v1401_DSV.xml"
 
-#SCHEMA = "../schemas/WarehouseOrderConfirmation_schema_credativ_20140625.xsd"
+#SCHEMA = "../schemas/WarehouseOrderConfirmation_schema_credativ.xsd"
 #DATA = "../examples/WarehouseOrderConfirmation_v1401_DSV.xml"
 
-#SCHEMA = "../schemas/WarehouseShippingOrder_schema_credativ_20140625.xsd"
+#SCHEMA = "../schemas/WarehouseShippingOrder_schema_credativ.xsd"
 #DATA = "../examples/WarehouseShippingOrder_v1401_DSV.xml"
 
 from lxml import etree
