@@ -85,7 +85,6 @@ def main(inn,out):
             lout.put({'BOTSID':'inventory'},{'BOTSID':'partner', 'phone': WH_ADD_PHONE})
             lout.put({'BOTSID':'inventory'},{'BOTSID':'partner', 'fax': WH_ADD_FAX})
             lout.put({'BOTSID':'inventory'},{'BOTSID':'partner', 'vat': WH_ADD_VAT})
-            break # We only want one record
 
         # == STOCK LEVELS - SR8AR ==
         for SL in BODY.get('SR8AR', []):

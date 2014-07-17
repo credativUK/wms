@@ -1,0 +1,1038 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- XSD File Created by credativ based on DSV Specifications -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <!-- Generic Types -->
+    <xs:simpleType name="Field_AN1">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN2">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN3">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="3"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN4">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="3"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN6">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="6"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN8">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="8"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN9">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="8"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN10">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="10"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN12">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="10"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN14">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="14"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN17">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="17"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN20">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="20"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN21">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="21"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN22">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="22"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN25">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="25"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN26">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="26"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN35">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="35"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN60">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="60"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN80">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="80"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN128">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="128"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN256">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="256"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN9U">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Z0-9 ]*"/>
+            <xs:maxLength value="9"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN10U">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Z0-9 ]*"/>
+            <xs:maxLength value="10"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN20U">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Z0-9 ]*"/>
+            <xs:maxLength value="20"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N1">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N2">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N4">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="4"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N3">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="3"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N5">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="5"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N6">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="6"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N7">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="7"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N8">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="8"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N11">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="11"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N17">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="17"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N5_2">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,5}\.[0-9]{0,2}"/>
+            <xs:maxLength value="8"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N6_4">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,6}\.[0-9]{0,4}"/>
+            <xs:maxLength value="11"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N9_3">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,9}\.[0-9]{0,3}"/>
+            <xs:maxLength value="13"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N9_6">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,9}\.[0-9]{0,6}"/>
+            <xs:maxLength value="16"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N11_3">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,11}\.[0-9]{0,3}"/>
+            <xs:maxLength value="15"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N11_6">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,11}\.[0-9]{0,6}"/>
+            <xs:maxLength value="18"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N14_6">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,14}\.[0-9]{0,6}"/>
+            <xs:maxLength value="21"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N15_2">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,15}\.[0-9]{0,2}"/>
+            <xs:maxLength value="18"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N15_6">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,15}\.[0-9]{0,2}"/>
+            <xs:maxLength value="18"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N19_8">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,19}\.[0-9]{0,8}"/>
+            <xs:maxLength value="28"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_CCYYMMDD">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{8}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_CC_YYMMDD">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="([0-9]{2})?[0-9]{6}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_YYMMDD">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{6}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_HHMMSS">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{6}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_HHMM">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{4}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_YN">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Y"/>
+            <xs:enumeration value="N"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_Gender">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="M"/>
+            <xs:enumeration value="F"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_Order_Reference16">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="16"/>
+            <xs:pattern value="[a-zA-Z0-9 ]*"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_Order_Reference17">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="17"/>
+            <xs:pattern value="[a-zA-Z0-9 ]*"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_Customs">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value=""/>
+            <xs:enumeration value="FR"/>
+            <xs:enumeration value="T1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Header Element -->
+    <xs:simpleType name="Segment_Number00">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="00"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Message_type">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value=""/>
+                <xs:enumeration value="P"/>
+                <xs:enumeration value="O"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Test_indicator">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value=""/>
+                <xs:enumeration value="1"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Message_type-ID">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="944"/> <!-- Entry Order Confirmation -->
+                <xs:enumeration value="945"/> <!-- Entry Shipping Confirmation -->
+                <xs:enumeration value="944 E"/> <!-- Entry Order Confirmation -->
+                <xs:enumeration value="945 E"/> <!-- Entry Shipping Confirmation -->
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="WOC00R">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Segment_number" type="Segment_Number00"/>
+                <xs:element name="Principal-ID" type="Field_N6"/>
+                <!-- FIXME: File-ID should have lenth 10, but to validate with DSV's examples 14 is used -->
+                <xs:element name="File-ID" type="Field_AN14" minOccurs="0"/>
+                <xs:element name="Principal_Off_code" type="Field_AN1" minOccurs="0"/>
+                <xs:element ref="Message_type" minOccurs="0"/>
+                <xs:element ref="Test_indicator" minOccurs="0"/>
+                <xs:element ref="Message_type-ID" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Order -->
+    <xs:simpleType name="Segment_Number50">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="50"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Order_type">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="I"/>
+                <xs:enumeration value="O"/>
+                <xs:enumeration value="S"/>
+                <xs:enumeration value="T"/>
+                <xs:enumeration value="X"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Order_category">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="B"/>
+                <xs:enumeration value="C"/>
+                <xs:enumeration value="G"/>
+                <xs:enumeration value="H"/>
+                <xs:enumeration value="N"/>
+                <xs:enumeration value="S"/>
+                <xs:enumeration value="E"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Code_delivery_date">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="O"/>
+                <xs:enumeration value="F"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Payment_term">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="B"/>
+                <xs:enumeration value="C"/>
+                <xs:enumeration value="F"/>
+                <xs:enumeration value="P"/>
+                <xs:enumeration value="R"/>
+                <xs:enumeration value="S"/>
+                <xs:enumeration value="T"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Sales_Channel">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="B"/>
+                <xs:enumeration value="C"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="WOC50R">
+        <xs:complexType>
+            <xs:sequence maxOccurs="999">
+                <xs:element name="Segment_number" type="Segment_Number50"/>
+                <xs:element ref="Order_type"/>
+                <xs:element name="Order_reference" type="Field_AN17"/>
+                <xs:element ref="Order_category"/>
+                <xs:element name="Ext_forw_service" type="Field_AN6" minOccurs="0"/>
+                <xs:element name="Order_remarks" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Message_reference" type="Field_AN14" minOccurs="0"/>
+                <xs:element name="Invoice_number" type="Field_AN8" minOccurs="0"/>
+                <xs:element name="Currency_of_order" type="Field_AN3" minOccurs="0"/>
+                <xs:element name="Mode_of_transport" type="Field_AN3" minOccurs="0"/>
+                <xs:element name="Shipped_on_this_date" type="Field_CCYYMMDD" minOccurs="0"/>
+                <xs:element name="Stock_movement_reason" type="Field_AN3" minOccurs="0"/>
+                <xs:element name="Voyage_id" type="Field_N6" minOccurs="0"/>
+                <xs:element name="Transportation_Means" type="Field_AN17" minOccurs="0"/>
+                <xs:element name="Carrier_code" type="Field_AN10" minOccurs="0"/>
+                <xs:element name="Indicator_Order_Executed" type="Field_YN" minOccurs="0"/>
+                <xs:element ref="Code_delivery_date"/>
+                <xs:element name="Delivery_date" type="Field_CCYYMMDD" minOccurs="0"/>
+                <xs:element name="Delivery_term" type="Field_AN3" minOccurs="0"/>
+                <xs:element ref="Payment_term"/>
+                <xs:element name="Unique_shipment_id" type="Field_AN8" minOccurs="0"/>
+                <xs:element name="Third_PL_Reason_Code_Description" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Principal_Reason_Code" type="Field_AN4" minOccurs="0"/>
+                <xs:element name="Principal_Reason_Code_Description" type="Field_AN80" minOccurs="0"/>
+                <xs:element name="Movement_Type" type="Field_AN4" minOccurs="0"/>
+                <xs:element name="Movement_Type_Description" type="Field_AN80" minOccurs="0"/>
+                <xs:element ref="Sales_Channel" minOccurs="0"/>
+                <xs:element ref="WOC51R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WOC52R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WOC54R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WOC56R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WOC59R" minOccurs="0"/>
+                <xs:element ref="WOC70R" maxOccurs="unbounded"/>
+                <xs:element ref="WOC80R" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Order Reference -->
+    <xs:simpleType name="Segment_Number51">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="51"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Reference_qualifier51">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="EPF"/>
+            <xs:enumeration value="CON"/>
+            <xs:enumeration value="ABO"/>
+            <xs:enumeration value="PO"/>
+            <xs:enumeration value="SI"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="WOC51R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="9">
+                <xs:element name="Segment_number" type="Segment_Number51"/>
+                <xs:element name="Reference_qualifier" type="Reference_qualifier51"/>
+                <xs:element name="Reference_number" type="Field_AN17" minOccurs="0"/>
+                <xs:element name="Free_form_descr" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Date" type="Field_CCYYMMDD" minOccurs="0"/>
+                <xs:element name="Time" type="Field_HHMM" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Order Totals -->
+    <xs:simpleType name="Segment_Number52">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="52"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Qualifier52">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="CTN"/>
+            <xs:enumeration value="GRW"/>
+            <xs:enumeration value="IN"/>
+            <xs:enumeration value="NTW"/>
+            <xs:enumeration value="MTQ"/>
+            <xs:enumeration value="F01"/>
+            <xs:enumeration value="PLT"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="WOC52R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="7">
+                <xs:element name="Segment_number" type="Segment_Number52"/>
+                <xs:element name="Qualifier" type="Qualifier52"/>
+                <xs:element name="Order_total" type="Field_N15_6"/>
+                <xs:element name="Currency_code" type="Field_AN3" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Order Pallet -->
+    <xs:simpleType name="Segment_Number54">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="54"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="WOC54R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="999">
+                <xs:element name="Segment_number" type="Segment_Number54"/>
+                <xs:element name="Pallet-identification_per_order" type="Field_N6" minOccurs="0"/>
+                <xs:element name="Order_total_nr_of_boxes_per_pallet" type="Field_N6"/>
+                <xs:element name="Pallet-identification" type="Field_N11" minOccurs="0"/>
+                <xs:element name="External_refernce" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Gross_Weight" type="Field_N14_6" minOccurs="0"/>
+                <xs:element name="Gross_Volume" type="Field_N9_3" minOccurs="0"/>
+                <xs:element name="Lenght" type="Field_N5" minOccurs="0"/>
+                <xs:element name="Width" type="Field_N5" minOccurs="0"/>
+                <xs:element name="Height" type="Field_N5" minOccurs="0"/>
+                <xs:element name="Ind_Stackable" type="Field_YN" minOccurs="0"/>
+                <xs:element name="Indication_Excessive" type="Field_YN" minOccurs="0"/>
+                <xs:element name="Pallet_internal_tracking_number" type="Field_AN17" minOccurs="0"/>
+                <xs:element name="Tare_Weight" type="Field_N9_3" minOccurs="0"/>
+                <xs:element name="Pallet_type" type="Field_AN17" minOccurs="0"/>
+                <xs:element name="GTIN_code" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Pallet_SSCC" type="Field_AN35" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Order Box -->
+    <xs:simpleType name="Segment_Number56">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="56"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="WOC56R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="999">
+                <xs:element name="Segment_number" type="Segment_Number56"/>
+                <xs:element name="External_box_refference" type="Field_N17" minOccurs="0"/>
+                <xs:element name="Gross_volume" type="Field_N9_3" minOccurs="0"/>
+                <xs:element name="Gross_weight" type="Field_N14_6" minOccurs="0"/>
+                <xs:element name="Box_sequence_number" type="Field_N4" minOccurs="0"/>
+                <xs:element name="External_box_reference" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Tare_Weight" type="Field_N9_3" minOccurs="0"/>
+                <xs:element name="Length" type="Field_N5" minOccurs="0"/>
+                <xs:element name="Width" type="Field_N5" minOccurs="0"/>
+                <xs:element name="Height" type="Field_N5" minOccurs="0"/>
+                <xs:element name="Pallet-identification" type="Field_N11" minOccurs="0"/>
+                <xs:element name="Box_internal_tracking_number" type="Field_AN17" minOccurs="0"/>
+                <xs:element name="Box_SCCC" type="Field_AN35" minOccurs="0"/>
+                <xs:element ref="WOC58R" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Order box contents -->
+    <xs:simpleType name="Segment_Number58">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="58"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Product_code_qualifier">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="EAN"/>
+                <xs:enumeration value="UPC"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="WOC58R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="999">
+                <xs:element name="Segment_number" type="Segment_Number58"/>
+                <xs:element name="SKU_reference" type="Field_AN35"/>
+                <xs:element name="Number_of_packages" type="Field_N6"/>
+                <xs:element name="Type_of_package" type="Field_AN4"/>
+                <xs:element name="Number_of_units_MUS" type="Field_N11"/>
+                <xs:element name="External_Type_of_package_code" type="Field_AN10" minOccurs="0"/>
+                <xs:element name="SKU_subinventory" type="Field_AN2" minOccurs="0"/>
+                <xs:element name="Our_order_line_number" type="Field_N3" minOccurs="0"/>
+                <xs:element ref="Product_code_qualifier"/>
+                <xs:element name="Product_code" type="Field_AN17"/>
+                <xs:element name="Date_executed_of_corresponding_line" type="Field_CCYYMMDD" minOccurs="0"/>
+                <xs:element name="Time_executed_of_the_corresponding_line" type="Field_HHMMSS"/>
+                <xs:element name="PO_reference_of_corresponding_line" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Article_reference" type="Field_AN17" minOccurs="0"/>
+                <xs:element name="Indicator_Expires" type="Field_YN" minOccurs="0"/>
+                <xs:element name="SKU_allocation_date" type="Field_CCYYMMDD" minOccurs="0"/>
+                <xs:element name="Principal_orderline_reference" type="Field_AN17" minOccurs="0"/>
+                <xs:element name="Article_Description" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Original_total_number_of_units_MUS" type="Field_N11" minOccurs="0"/>
+                <xs:element name="Gross_weight_per_type-1_in_kgm" type="Field_N14_6" minOccurs="0"/>
+                <xs:element ref="WOC5CR" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Serial Numbers -->
+    <xs:simpleType name="Segment_Number5C">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="5C"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="WOC5CR">
+        <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="99999">
+                <xs:element name="Segment_number" type="Segment_Number5C"/>
+                <xs:element name="Serial_number" type="Field_AN35"/>
+                <xs:element name="Identification_type_coded" type="Field_AN3"/>
+                <xs:element name="Group_sequence_number" type="Field_N6" minOccurs="0"/>
+                <xs:element name="Expiration_date" type="Field_CCYYMMDD" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Transport Service -->
+    <xs:simpleType name="Segment_Number59">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="59"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Carrier">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="[A-Z1-9()\- ]"/>
+                <xs:maxLength value="1"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="WOC59R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0">
+                <xs:element name="Segment_number" type="Segment_Number59"/>
+                <xs:element ref="Carrier"/>
+                <xs:element name="Service_Level_Code" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Consignment_number" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Service_Level_Description" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Service_Level_Description_Label" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Service_Level_Description_Text" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Service_Indicator_01" type="Field_AN3" minOccurs="0"/>
+                <xs:element name="Service_Indicator_02" type="Field_AN3" minOccurs="0"/>
+                <xs:element name="Service_Indicator_03" type="Field_AN3" minOccurs="0"/>
+                <xs:element name="Lead_package_tracking_number" type="Field_AN35" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Party Identification -->
+    <xs:simpleType name="Segment_Number70">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="70"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="WOC70R">
+        <xs:complexType>
+            <xs:sequence maxOccurs="10">
+                <xs:element name="Segment_number" type="Segment_Number70"/>
+                <xs:element name="Party_qualifier" type="Field_AN3"/>
+                <xs:element name="Party_external_reference" type="Field_AN17"/>
+                <xs:element name="Party_order_reference" type="Field_AN17" minOccurs="0"/>
+                <xs:element name="GLN_code" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="WOC72R" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Party Details -->
+    <xs:simpleType name="Segment_Number72">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="72"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="WOC72R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0">
+                <xs:element name="Segment_number" type="Segment_Number72"/>
+                <xs:element name="Company_name_1" type="Field_AN35"/>
+                <xs:element name="Company_name_2" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Address_1" type="Field_AN25" minOccurs="0"/>
+                <xs:element name="House_number" type="Field_N5" minOccurs="0"/>
+                <xs:element name="House_number_extension" type="Field_AN3" minOccurs="0"/>
+                <xs:element name="Address_3" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Postal_code" type="Field_AN10U"/>
+                <xs:element name="Place_name" type="Field_AN35"/>
+                <xs:element name="Country_code" type="Field_AN2"/>
+                <xs:element name="Language_code" type="Field_AN1"/>
+                <xs:element name="Telephone_number" type="Field_AN25" minOccurs="0"/>
+                <xs:element name="Telefax_number" type="Field_AN25" minOccurs="0"/>
+                <xs:element name="VAT-number" type="Field_AN20" minOccurs="0"/>
+                <xs:element name="Name_abbreviated" type="Field_AN10U" minOccurs="0"/>
+                <xs:element name="Address_2" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Address_4" type="Field_AN35" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Order Line -->
+    <xs:simpleType name="Segment_Number80">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="80"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Orderline-type">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="I"/>
+                <xs:enumeration value="O"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="WOC80R">
+        <xs:complexType>
+            <xs:sequence maxOccurs="999">
+                <xs:element name="Segment_number" type="Segment_Number80"/>
+                <xs:element ref="Orderline-type"/>
+                <xs:element name="SKU-reference" type="Field_AN35"/>
+                <xs:element name="Customs_status_from" type="Field_Customs"/>
+                <xs:element name="Customs_status_to" type="Field_Customs" minOccurs="0"/>
+                <xs:element name="Type_of_package" type="Field_AN10"/>
+                <xs:element name="Packages" type="Field_N6" minOccurs="0"/>
+                <xs:element name="Units_MUS" type="Field_N11" minOccurs="0"/>
+                <xs:element name="Date_executed" type="Field_CC_YYMMDD"/>
+                <xs:element name="Time_executed" type="Field_HHMMSS"/>
+                <xs:element name="Orderline_reference" type="Field_AN17" minOccurs="0"/>
+                <xs:element name="Picking_date" type="Field_YYMMDD" minOccurs="0"/>
+                <xs:element name="Picking_time" type="Field_HHMMSS" minOccurs="0"/>
+                <xs:element name="Invoice_number" type="Field_AN17" minOccurs="0"/>
+                <xs:element name="Goods_invoice_amount" type="Field_N15_2" minOccurs="0"/>
+                <xs:element name="FL_order_line_nr" type="Field_N6" minOccurs="0"/>
+                <xs:element name="Original_packages" type="Field_N6" minOccurs="0"/>
+                <xs:element name="Original_MUS" type="Field_N11" minOccurs="0"/>
+                <xs:element name="Date_executed" type="Field_CC_YYMMDD" minOccurs="0"/>
+                <xs:element name="Picking_date" type="Field_CC_YYMMDD" minOccurs="0"/>
+                <xs:element name="Line_item_sequence_number" type="Field_N3" minOccurs="0"/>
+                <xs:element name="Article_reference" type="Field_AN17" minOccurs="0"/>
+                <xs:element name="SKU_Status" type="Field_N1" minOccurs="0"/>
+                <xs:element name="Subinventory_code" type="Field_AN2" minOccurs="0"/>
+                <xs:element name="Ind_print_on_pack" type="Field_YN" minOccurs="0"/>
+                <xs:element name="SKU_allocation_date" type="Field_CCYYMMDD" minOccurs="0"/>
+                <xs:element name="Number_of_packages_damaged" type="Field_N6" minOccurs="0"/>
+                <xs:element name="Indicator_non_transportable" type="Field_YN" minOccurs="0"/>
+                <xs:element name="Stock_movement_reason" type="Field_AN1" minOccurs="0"/>
+                <xs:element name="Quantity" type="Field_N19_8" minOccurs="0"/>
+                <xs:element name="Unit_of_Measure" type="Field_AN3" minOccurs="0"/>
+                <xs:element name="Third_PL_Reason_Code_Description_Line" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Principal_Reason_Code_Line" type="Field_AN4" minOccurs="0"/>
+                <xs:element name="Principal_Reason_Code_Description_Line" type="Field_AN80" minOccurs="0"/>
+                <xs:element name="Movement_Type_Line" type="Field_AN4" minOccurs="0"/>
+                <xs:element name="Movement_Type_Description_Line" type="Field_AN80" minOccurs="0"/>
+                <xs:element ref="WOC81R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WOC82R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WOC83R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WOC84R" minOccurs="0"/>
+                <xs:element ref="WOC85R" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Order line reference -->
+    <xs:simpleType name="Segment_Number81">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="81"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Reference_qualifier81">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="EPF"/>
+            <xs:enumeration value="ABO"/>
+            <xs:enumeration value="BAT"/>
+            <xs:enumeration value="PO"/>
+            <xs:enumeration value="SO"/>
+            <xs:enumeration value="SI"/>
+            <xs:enumeration value="PBI"/>
+            <xs:enumeration value="PLN"/>
+            <xs:enumeration value="PPI"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="WOC81R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="9">
+                <xs:element name="Segment_number" type="Segment_Number81"/>
+                <xs:element name="Reference_qualifier" type="Reference_qualifier81"/>
+                <xs:element name="Reference_number" type="Field_AN35"/>
+                <xs:element name="Free_form_descr" type="Field_AN35" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Order line details -->
+    <xs:simpleType name="Segment_Number82">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="82"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="WOC82R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="5">
+                <xs:element name="Segment_number" type="Segment_Number82"/>
+                <xs:element name="Identification_nr" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Packages" type="Field_N6" minOccurs="0"/>
+                <xs:element name="Last_stock_of_pallet" type="Field_YN" minOccurs="0"/>
+                <xs:element name="Pallet-ID" type="Field_N6" minOccurs="0"/>
+                <xs:element name="Production_number" type="Field_AN10" minOccurs="0"/>
+                <xs:element name="Pallet_seq_nr" type="Field_N3" minOccurs="0"/>
+                <xs:element name="Ident_type__coded" type="Field_AN3" minOccurs="0"/>
+                <xs:element name="Group_seq_nr" type="Field_N6" minOccurs="0"/>
+                <xs:element name="Identification_Expiration_date" type="Field_CCYYMMDD" minOccurs="0"/>
+                <xs:element name="Pallet_number" type="Field_AN8" minOccurs="0"/>
+                <xs:element name="Box_number" type="Field_AN4" minOccurs="0"/>
+                <xs:element name="Pallet-description" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Quantity" type="Field_N19_8" minOccurs="0"/>
+                <xs:element name="Unit_of_Measure" type="Field_AN3" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- SKU Addtional Reference -->
+    <xs:simpleType name="Segment_Number83">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="83"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="SKU_ref_type__coded">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="MF"/>
+                <xs:enumeration value="CN"/>
+                <xs:enumeration value="2"/>
+                <xs:enumeration value="EAN"/>
+                <xs:enumeration value="AV1"/>
+                <xs:enumeration value="AV2"/>
+                <xs:enumeration value="AV3"/>
+                <xs:enumeration value="COM"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="WOC83R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="4">
+                <xs:element name="Segment_number" type="Segment_Number83"/>
+                <xs:element ref="SKU_ref_type__coded"/>
+                <xs:element name="SKU_reference" type="Field_AN35"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Article Measurement -->
+    <xs:simpleType name="Segment_Number84">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="84"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="WOC84R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0">
+                <xs:element name="Segment_number" type="Segment_Number84"/>
+                <xs:element name="Article_length" type="Field_N5"/>
+                <xs:element name="Article_width" type="Field_N5"/>
+                <xs:element name="Article_height" type="Field_N5"/>
+                <xs:element name="Article_gross_weight" type="Field_N14_6"/>
+                <xs:element name="Article_Description" type="Field_AN35" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Original Goods Receipt -->
+    <xs:simpleType name="Segment_Number85">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="85"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="WOC85R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="99">
+                <xs:element name="Segment_number" type="Segment_Number85"/>
+                <xs:element name="Order_reference" type="Field_AN17"/>
+                <xs:element name="Partner_line_id" type="Field_N3" minOccurs="0"/>
+                <xs:element name="Partner_line_ref" type="Field_AN17" minOccurs="0"/>
+                <xs:element name="Quantity" type="Field_N6"/>
+                <xs:element name="Type_of_package" type="Field_AN10"/>
+                <xs:element name="Quantity_in_type_1" type="Field_N11"/>
+                <xs:element name="Country_of_Origin" type="Field_AN2"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Footer Element -->
+    <xs:simpleType name="Segment_Number99">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="99"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="RecordType">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="00"/>
+                <xs:enumeration value="50"/>
+                <xs:enumeration value="51"/>
+                <xs:enumeration value="52"/>
+                <xs:enumeration value="54"/>
+                <xs:enumeration value="56"/>
+                <xs:enumeration value="58"/>
+                <xs:enumeration value="5C"/>
+                <xs:enumeration value="59"/>
+                <xs:enumeration value="70"/>
+                <xs:enumeration value="72"/>
+                <xs:enumeration value="80"/>
+                <xs:enumeration value="81"/>
+                <xs:enumeration value="82"/>
+                <xs:enumeration value="83"/>
+                <xs:enumeration value="84"/>
+                <xs:enumeration value="85"/>
+                <xs:enumeration value="99"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="WOC99R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="Segment_number" type="Segment_Number99"/>
+                <xs:element ref="RecordType"/>
+                <xs:element name="Total_Nbrs_of_Rec" type="Field_N6"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Main Element -->
+    <xs:element name="WOC">
+        <xs:complexType>
+            <xs:sequence>
+                <!-- FIXME: minOccurs should be default, but to validate with DSV's examples 0 is used -->
+                <xs:element ref="WOC00R" minOccurs="0"/>
+                <xs:element ref="WOC50R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WOC99R" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
+
