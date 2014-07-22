@@ -286,7 +286,7 @@
 
     <xs:simpleType name="Field_N19_8">
         <xs:restriction base="xs:string">
-            <xs:pattern value="[0-9]{0,19}\.[0-9]{0,8}"/>
+            <xs:pattern value="[0-9]{0,19}(\.[0-9]{0,8})?"/>
             <xs:maxLength value="28"/>
         </xs:restriction>
     </xs:simpleType>
@@ -493,10 +493,10 @@
                 <xs:element name="Transportation_Means" type="Field_AN17" minOccurs="0"/>
                 <xs:element name="Carrier_code" type="Field_AN10" minOccurs="0"/>
                 <xs:element name="Indicator_Order_Executed" type="Field_YN" minOccurs="0"/>
-                <xs:element ref="Code_delivery_date"/>
+                <xs:element ref="Code_delivery_date" minOccurs="0"/>
                 <xs:element name="Delivery_date" type="Field_CCYYMMDD" minOccurs="0"/>
                 <xs:element name="Delivery_term" type="Field_AN3" minOccurs="0"/>
-                <xs:element ref="Payment_term"/>
+                <xs:element ref="Payment_term" minOccurs="0"/>
                 <xs:element name="Unique_shipment_id" type="Field_AN8" minOccurs="0"/>
                 <xs:element name="Third_PL_Reason_Code_Description" type="Field_AN35" minOccurs="0"/>
                 <xs:element name="Principal_Reason_Code" type="Field_AN4" minOccurs="0"/>
@@ -809,7 +809,7 @@
                 <xs:element name="Type_of_package" type="Field_AN10"/>
                 <xs:element name="Packages" type="Field_N6" minOccurs="0"/>
                 <xs:element name="Units_MUS" type="Field_N11" minOccurs="0"/>
-                <xs:element name="Date_executed" type="Field_CC_YYMMDD"/>
+                <!--<xs:element name="Date_executed" type="Field_CC_YYMMDD"/>-->
                 <xs:element name="Time_executed" type="Field_HHMMSS"/>
                 <xs:element name="Orderline_reference" type="Field_AN17" minOccurs="0"/>
                 <xs:element name="Picking_date" type="Field_YYMMDD" minOccurs="0"/>

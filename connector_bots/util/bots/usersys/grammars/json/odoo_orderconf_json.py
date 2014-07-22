@@ -21,6 +21,10 @@
 
 from bots.botsconfig import *
 
+syntax = { 
+        'indented': True,
+    }
+
 structure = [
 {ID:'orderconf',MIN:1,MAX:999999,
     QUERIES:{
@@ -94,13 +98,16 @@ recorddefs = {
             ['BOTSID', 'M', 64, 'AN'],
             ['id','C',64,'AN'],
             ['name', 'C', 64, 'AN'],
-            ['address1', 'C', 64, 'AN'],
-            ['address2', 'C', 64, 'AN'],
-            ['address3', 'C', 64, 'AN'],
+            ['street1', 'C', 64, 'AN'],
+            ['street2', 'C', 64, 'AN'],
             ['city', 'C', 64, 'AN'],
+            ['zip', 'C', 64, 'AN'],
             ['country', 'C', 64, 'AN'],
+            ['state', 'C', 64, 'AN'],
             ['phone', 'C', 64, 'AN'],
             ['fax', 'C', 64, 'AN'],
+            ['email', 'C', 64, 'AN'],
+            ['language', 'C', 64, 'AN'],
             ['vat', 'C', 64, 'AN'],
           ],
     'line':[

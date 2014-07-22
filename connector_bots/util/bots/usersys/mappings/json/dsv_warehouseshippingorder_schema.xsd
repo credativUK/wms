@@ -244,7 +244,7 @@
 
     <xs:simpleType name="Field_N9_6">
         <xs:restriction base="xs:string">
-            <xs:pattern value="[0-9]{0,9}\.[0-9]{0,6}"/>
+            <xs:pattern value="[0-9]{0,9}(\.[0-9]{0,6})?"/>
             <xs:maxLength value="16"/>
         </xs:restriction>
     </xs:simpleType>
@@ -364,23 +364,6 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:element name="Identification_Nbr">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:pattern value="[0-9]*"/>
-                <xs:maxLength value="6"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <xs:element name="File-Identifier">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:maxLength value="10"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
     <xs:element name="Principal_Off_code">
         <xs:simpleType>
             <xs:restriction base="xs:string">
@@ -392,17 +375,17 @@
     <xs:element name="Message_Type_Id">
         <xs:simpleType>
             <xs:restriction base="xs:string">
-                <xs:enumeration value="943"/>
+                <xs:enumeration value="940"/>
             </xs:restriction>
         </xs:simpleType>
     </xs:element>
 
-    <xs:element name="WEO00R">
+    <xs:element name="WSO00R">
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="Segment_Number" type="Segment_Number00"/>
-                <xs:element ref="Identification_Nbr"/>
-                <xs:element ref="File-Identifier" minOccurs="0"/>
+                <xs:element name="Identification_Nbr" type="Field_AN6"/>
+                <xs:element name="File-Identifier" type="Field_AN10" minOccurs="0"/>
                 <xs:element ref="Principal_Off_code" minOccurs="0"/>
                 <xs:element name="Message_Date" type="Field_CCYYMMDD" minOccurs="0"/>
                 <xs:element name="Message_Time" type="Field_HHMM" minOccurs="0"/>
@@ -418,7 +401,7 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:element name="WEO05R">
+    <xs:element name="WSO05R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="unbounded">
                 <xs:element name="Segment_Number" type="Segment_Number05"/>
@@ -434,7 +417,7 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:element name="Party_Day_indicator">
+    <xs:element name="Party_day_indicator">
         <xs:simpleType>
             <xs:restriction base="xs:string">
                 <xs:enumeration value="1"/> <!-- Monday -->
@@ -448,19 +431,19 @@
         </xs:simpleType>
     </xs:element>
 
-    <xs:element name="WEO36R">
+    <xs:element name="WSO36R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="7">
                 <xs:element name="Segment_Number" type="Segment_Number36"/>
-                <xs:element ref="Party_Day_indicator"/>
-                <xs:element name="Open_del_morning" type="Field_HHMM"/>
-                <xs:element name="Close_del_morning" type="Field_HHMM"/>
-                <xs:element name="Open_deps_morning" type="Field_HHMM"/>
-                <xs:element name="Close_desp_morning" type="Field_HHMM"/>
-                <xs:element name="Open_del_afternoon" type="Field_HHMM"/>
-                <xs:element name="Close_del_afternoon" type="Field_HHMM"/>
-                <xs:element name="Open_deps_afternoon" type="Field_HHMM"/>
-                <xs:element name="Close_desp_afternoon" type="Field_HHMM"/>
+                <xs:element ref="Party_day_indicator"/>
+                <xs:element name="Party_open_time_del" type="Field_HHMM"/>
+                <xs:element name="Party_Close_time_del" type="Field_HHMM"/>
+                <xs:element name="Party_open_time_desp" type="Field_HHMM"/>
+                <xs:element name="Part_Close_time_desp" type="Field_HHMM"/>
+                <xs:element name="Party_open_time_del" type="Field_HHMM"/>
+                <xs:element name="Party_Close_time_del" type="Field_HHMM"/>
+                <xs:element name="Party_open_time_desp" type="Field_HHMM"/>
+                <xs:element name="Part_Close_time_desp" type="Field_HHMM"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -472,30 +455,39 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:element name="PO-Box_Number">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:maxLength value="12"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <xs:element name="Postal_Code_PO-Box">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:maxLength value="9"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <xs:element name="WEO35R">
+    <xs:element name="WSO35R">
         <xs:complexType>
             <xs:sequence minOccurs="0">
                 <xs:element name="Segment_Number" type="Segment_Number35"/>
-                <xs:element ref="PO-Box_Number"/>
-                <xs:element ref="Postal_Code_PO-Box" minOccurs="0"/>
-                <xs:element name="Place_PO-Box" type="Field_AN35"/>
-                <xs:element name="Country_Code_PO-Box" type="Field_AN2"/>
+                <xs:element name="PO-Box_nr" type="Field_AN12"/>
+                <xs:element name="Postal_Code_PO-box" type="Field_AN9" minOccurs="0"/>
+                <xs:element name="Place_PO-box" type="Field_AN35"/>
+                <xs:element name="Country_code_PO-box" type="Field_AN2"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+
+    <!-- Party Specific Delivery Address -->
+    <xs:simpleType name="Segment_Number33">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="33"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="WSO33R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0">
+                <xs:element name="Segment_Number" type="Segment_Number33"/>
+                <xs:element name="Address_1Comp_name" type="Field_AN25"/>
+                <xs:element name="Address_2" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Address_3" type="Field_AN35" minOccurs="0"/>
+                <!-- FIXME: Postal_code should be AN9U, but to validate with DSV's example AN10 us used -->
+                <xs:element name="Postal_code" type="Field_AN10" minOccurs="0"/>
+                <xs:element name="Place_name" type="Field_AN35"/>
+                <xs:element name="Country_code" type="Field_AN2"/>
+                <xs:element name="Telephone_number" type="Field_AN25" minOccurs="0"/>
+                <xs:element name="Telefax_number" type="Field_AN25" minOccurs="0"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -507,33 +499,18 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:element name="Contact_person_Tel">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:maxLength value="20"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <xs:element name="Contact_person_Fax">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:maxLength value="20"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <xs:element name="WEO34R">
+    <xs:element name="WSO34R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="unbounded">
                 <xs:element name="Segment_Number" type="Segment_Number34"/>
-                <xs:element name="Contact_Person_Name" type="Field_AN35"/>
+                <xs:element name="Contact_person_name" type="Field_AN35"/>
                 <xs:element name="Contact_person_depar" type="Field_AN35" minOccurs="0"/>
-                <xs:element ref="Contact_person_Tel" minOccurs="0"/>
-                <xs:element name="Contact_person_Func" type="Field_AN2" minOccurs="0"/>
-                <xs:element name="Sex_Code" type="Field_Gender" minOccurs="0"/>
-                <xs:element name="Name_Abbrev" type="Field_AN10U" minOccurs="0"/>
-                <xs:element ref="Contact_person_Fax" minOccurs="0"/>
+                <xs:element name="Contact_person_tel-nr" type="Field_AN20" minOccurs="0"/>
+                <xs:element name="Contact_person_func" type="Field_AN2" minOccurs="0"/>
+                <xs:element name="Sex_code" type="Field_Gender" minOccurs="0"/>
+                <xs:element name="Name_abbrev_cont_per" type="Field_AN10U" minOccurs="0"/>
+                <xs:element name="Contact_person_fax-nr" type="Field_AN20" minOccurs="0"/>
+                <xs:element name="Email_address" type="Field_AN35" minOccurs="0"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -567,15 +544,6 @@
             <xs:restriction base="xs:string">
                 <xs:pattern value="[a-zA-Z ]*"/>
                 <xs:maxLength value="3"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <xs:element name="Postal_Code">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:pattern value="[a-zA-Z0-9 ]*"/>
-                <xs:maxLength value="9"/>
             </xs:restriction>
         </xs:simpleType>
     </xs:element>
@@ -621,7 +589,7 @@
         </xs:simpleType>
     </xs:element>
 
-    <xs:element name="WEO32R">
+    <xs:element name="WSO32R">
         <xs:complexType>
             <xs:sequence minOccurs="0">
                 <xs:element name="Segment_Number" type="Segment_Number32"/>
@@ -631,7 +599,8 @@
                 <xs:element ref="House_Number" minOccurs="0"/>
                 <xs:element ref="House_Number_Extsn" minOccurs="0"/>
                 <xs:element name="Address_3" type="Field_AN35" minOccurs="0"/>
-                <xs:element ref="Postal_Code"/>
+                <!-- FIXME: Postal_code should be AN9U, but to validate with DSV's example AN10 us used -->
+                <xs:element name="Postal_Code" type="Field_AN10"/>
                 <xs:element name="Place_Name" type="Field_AN35"/>
                 <xs:element ref="Country_Code"/>
                 <xs:element ref="Language_code"/>
@@ -643,6 +612,42 @@
                 <xs:element name="Address_4" type="Field_AN35" minOccurs="0"/>
                 <xs:element name="Party_Id" type="Field_AN35" minOccurs="0"/>
                 <xs:element name="Code_List_Agency_CD" type="Field_AN3" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Order Party Communication Number -->
+    <xs:simpleType name="Segment_Number31">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="31"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Communication_Number_Qualifier">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="EA"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Recipient_type">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="0"/> <!-- To -->
+                <xs:enumeration value="1"/> <!-- CC -->
+                <xs:enumeration value="2"/> <!-- BCC -->
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="WSO31R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0">
+                <xs:element name="Segment_Number" type="Segment_Number31"/>
+                <xs:element name="Communication_Number_Qualifier"/>
+                <xs:element name="Communication_Number" type="Field_AN256"/>
+                <xs:element name="Recipient_type"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -662,7 +667,7 @@
         </xs:simpleType>
     </xs:element>
 
-    <xs:element name="WEO30R">
+    <xs:element name="WSO30R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="unbounded">
                 <xs:element name="Segment_Number" type="Segment_Number30"/>
@@ -670,12 +675,14 @@
                 <xs:element name="Party_External_Ref" type="Field_AN17"/>
                 <xs:element name="Client_Ref_to_Order" type="Field_AN17" minOccurs="0"/>
                 <xs:element name="GLN_code" type="Field_AN17" minOccurs="0"/>
-                <xs:element ref="WEO32R" minOccurs="0"/>
-                <!-- FIXME: Element in mentioned in specs but not defined -->
-                <!-- <xs:element ref="WEO33R" minOccurs="0"/> -->
-                <xs:element ref="WEO34R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO35R" minOccurs="0"/>
-                <xs:element ref="WEO36R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="Shop_number" type="Field_AN17" minOccurs="0"/>
+                <xs:element name="Department" type="Field_AN17" minOccurs="0"/>
+                <xs:element ref="WSO31R" minOccurs="0"/>
+                <xs:element ref="WSO32R" minOccurs="0"/>
+                <xs:element ref="WSO33R" minOccurs="0"/>
+                <xs:element ref="WSO34R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WSO35R" minOccurs="0"/>
+                <xs:element ref="WSO36R" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -699,70 +706,29 @@
         <xs:simpleType>
             <xs:restriction base="xs:string">
                 <xs:enumeration value="T"/>
+                <xs:enumeration value="D"/>
                 <xs:enumeration value="E"/>
                 <xs:enumeration value="G"/>
             </xs:restriction>
         </xs:simpleType>
     </xs:element>
 
-    <xs:element name="WEO20R">
+    <xs:element name="Remark_subject_qual">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="Z[0-9]{2}"/>
+                <xs:maxLength value="3"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="WSO20R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="unbounded">
                 <xs:element name="Segment_Number" type="Segment_Number20"/>
                 <xs:element ref="Order_Remark"/>
                 <xs:element ref="Order_Remark_Qual"/>
-            </xs:sequence>
-        </xs:complexType>
-    </xs:element>
-
-    <!-- Order box contents -->
-    <xs:simpleType name="Segment_Number18">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="18"/>
-        </xs:restriction>
-    </xs:simpleType>
-
-    <xs:simpleType name="Type_of_package18">
-        <xs:restriction base="xs:string">
-            <xs:maxLength value="10"/>
-        </xs:restriction>
-    </xs:simpleType>
-
-    <xs:element name="WEO18R">
-        <xs:complexType>
-            <xs:sequence minOccurs="0" maxOccurs="unbounded">
-                <xs:element name="Segment_Number" type="Segment_Number18"/>
-                <xs:element name="SKU_reference" type="Field_AN35"/>
-                <xs:element name="Number_of_pieces" type="Field_N6"/>
-                <xs:element name="Type_of_package" type="Type_of_package18" minOccurs="0"/>
-                <xs:element name="Number_of_units_MUS" type="Field_N11" minOccurs="0"/>
-                <xs:element name="SKU_subdivision" type="Field_AN2" minOccurs="0"/>
-                <xs:element name="Country_of_Origin" type="Field_AN2" minOccurs="0"/>
-                <xs:element name="Country_of_Despatch" type="Field_AN2" minOccurs="0"/>
-                <xs:element name="Custom_Status_From" type="Field_Customs"/>
-                <xs:element name="Currency_customs_val" type="Field_AN3" minOccurs="0"/>
-                <xs:element name="Goods_value_per_Box" type="Field_N15_2" minOccurs="0"/>
-                <xs:element name="PO-Number" type="Field_AN35" minOccurs="0"/>
-            </xs:sequence>
-        </xs:complexType>
-    </xs:element>
-
-    <!-- Order Box -->
-    <xs:simpleType name="Segment_Number16">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="16"/>
-        </xs:restriction>
-    </xs:simpleType>
-
-    <xs:element name="WEO16R">
-        <xs:complexType>
-            <xs:sequence minOccurs="0" maxOccurs="unbounded">
-                <xs:element name="Segment_Number" type="Segment_Number16"/>
-                <xs:element name="External_Box_Ref" type="Field_AN35"/>
-                <xs:element name="Gross_Volume" type="Field_N9_3" minOccurs="0"/>
-                <xs:element name="Gross_Weight" type="Field_N14_6" minOccurs="0"/>
-                <xs:element name="Carton_SSCC" type="Field_AN35" minOccurs="0"/>
-                <xs:element ref="WEO18R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="Remark_subject_qual" minOccurs="0"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -777,14 +743,16 @@
     <xs:element name="Reference_Qual">
         <xs:simpleType>
             <xs:restriction base="xs:string">
-                <xs:enumeration value="EPF"/>
-                <xs:enumeration value="ABO"/>
                 <xs:enumeration value="PO"/>
+                <xs:enumeration value="ABO"/>
+                <xs:enumeration value="AOS"/>
+                <xs:enumeration value="TSL"/>
+                <xs:enumeration value="D01"/>
             </xs:restriction>
         </xs:simpleType>
     </xs:element>
 
-    <xs:element name="WEO12R">
+    <xs:element name="WSO12R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="unbounded">
                 <xs:element name="Segment_Number" type="Segment_Number12"/>
@@ -798,6 +766,33 @@
         </xs:complexType>
     </xs:element>
 
+    <!-- Orderline Goods Invoice -->
+    <xs:simpleType name="Segment_Number41">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="41"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Goods_inv_amoun_Qual">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="L"/>
+                <xs:enumeration value="U"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="WSO41R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="Segment_Number" type="Segment_Number41"/>
+                <xs:element name="Goods_invoice_amount" type="Field_N15_2"/>
+                <xs:element ref="Goods_inv_amoun_Qual" minOccurs="0"/>
+                <xs:element name="VAT_percentage" type="Field_N5_2"  minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
     <!-- Order Line Details -->
     <xs:simpleType name="Segment_Number42">
         <xs:restriction base="xs:string">
@@ -807,49 +802,20 @@
 
     <xs:simpleType name="Qualifier42">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="1"/>
             <xs:enumeration value="2"/>
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:element name="Pallet_type">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:enumeration value="1"/>
-                <xs:enumeration value="2"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <xs:element name="Ref_Identification_qualifier">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:enumeration value="SSCC"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <xs:element name="WEO42R">
+    <xs:element name="WSO42R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="999">
                 <xs:element name="Segment_Number" type="Segment_Number42"/>
                 <xs:element name="Qualifier" type="Qualifier42"/>
-                <xs:element name="Serial_nr_ident" type="Field_AN35" minOccurs="0"/>
                 <xs:element name="Number_of_packages" type="Field_N6" minOccurs="0"/>
-                <xs:element name="Pallet-ident" type="Field_N6" minOccurs="0"/>
-                <xs:element name="Production_number" type="Field_AN10" minOccurs="0"/>
-                <xs:element name="Pallet_sequence_nbr" type="Field_N3" minOccurs="0"/>
-                <!-- FIXME: Production_date is superseded by the CCYYMMDD version defined later on -->
-                <!--<xs:element name="Production_date" type="Field_YYMMDD" minOccurs="0"/>-->
-                <xs:element name="Pallet_gross_weight" type="Field_N14_6" minOccurs="0"/>
-                <xs:element name="Quality_control_sts" type="Field_AN2" minOccurs="0"/>
-                <xs:element name="Ind_cross_docking" type="Field_YN" minOccurs="0"/>
-                <xs:element name="Description" type="Field_AN35" minOccurs="0"/>
-                <xs:element ref="Pallet_type" minOccurs="0"/>
-                <xs:element name="Production_date" type="Field_CCYYMMDD" minOccurs="0"/>
-                <xs:element name="Warehouse_location" type="Field_AN8" minOccurs="0"/>
-                <xs:element ref="Ref_Identification_qualifier"/>
-                <xs:element name="Ref_Identification" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Pallet_prefix" type="Field_N2" minOccurs="0"/>
+                <xs:element name="Pallet-identification" type="Field_N6"/>
+                <xs:element name="Production_number" type="Field_AN10"/>
+                <xs:element name="Pallet_sequence_nr" type="Field_N3"/>
                 <xs:element name="Quantity" type="Field_N19_8" minOccurs="0"/>
             </xs:sequence>
         </xs:complexType>
@@ -867,15 +833,42 @@
             <xs:enumeration value="I"/>
             <xs:enumeration value="E"/>
             <xs:enumeration value="G"/>
+            <xs:enumeration value="B"/>
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:element name="WEO43R">
+    <xs:element name="Remark_ref_qual">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="Z[0-9]{2}"/>
+                <xs:maxLength value="3"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="WSO43R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="999">
                 <xs:element name="Segment_Number" type="Segment_Number43"/>
                 <xs:element name="Qualifier" type="Qualifier43"/>
-                <xs:element name="OrderLine_Remark" type="Field_AN60"/>
+                <xs:element name="OrderLine_Remark" type="Field_AN60" minOccurs="0"/>
+                <xs:element ref="Remark_ref_qual" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Order Line Remark -->
+    <xs:simpleType name="Segment_Number44">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="44"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="WSO44R">
+        <xs:complexType>
+            <xs:sequence minOccurs="0">
+                <xs:element name="Segment_Number" type="Segment_Number44"/>
+                <xs:element name="SKU_reference_cust" type="Field_AN35"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -892,12 +885,12 @@
             <xs:restriction base="xs:string">
                 <xs:enumeration value="EAN"/>
                 <xs:enumeration value="UPC"/>
-                <xs:enumeration value="PFP"/>
+                <xs:enumeration value="GTN"/>
             </xs:restriction>
         </xs:simpleType>
     </xs:element>
 
-    <xs:element name="WEO45R">
+    <xs:element name="WSO45R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="3">
                 <xs:element name="Segment_Number" type="Segment_Number45"/>
@@ -914,71 +907,13 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:element name="WEO46R">
+    <xs:element name="WSO46R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="11">
                 <xs:element name="Segment_Number" type="Segment_Number46"/>
                 <xs:element name="Language_Code" type="Field_AN1"/>
                 <xs:element name="Article_Desciption" type="Field_AN35"/>
                 <xs:element name="Article_Description_long" type="Field_AN128" minOccurs="0"/>
-            </xs:sequence>
-        </xs:complexType>
-    </xs:element>
-
-    <!-- Article Customs Commodity -->
-    <xs:simpleType name="Segment_Number47">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="47"/>
-        </xs:restriction>
-    </xs:simpleType>
-
-    <xs:element name="WEO47R">
-        <xs:complexType>
-            <xs:sequence minOccurs="0" maxOccurs="99">
-                <xs:element name="Segment_Number" type="Segment_Number47"/>
-                <xs:element name="Customs_comm_ref" type="Field_AN22"/>
-                <xs:element name="Nbr_per_customs_comm" type="Field_N6"/>
-                <xs:element name="_nett_weight" type="Field_N5_2"/>
-                <xs:element name="_nett_volume" type="Field_N5_2"/>
-                <xs:element name="_customs_value" type="Field_N5_2"/>
-                <xs:element name="Descrip_1_cust_comm" type="Field_AN26"/>
-                <xs:element name="Descrip_2_cust_comm" type="Field_AN26" minOccurs="0"/>
-                <xs:element name="Descrip_3_cust_comm" type="Field_AN26" minOccurs="0"/>
-                <xs:element name="Descrip_4_cust_comm" type="Field_AN26" minOccurs="0"/>
-                <xs:element name="_VAT" type="Field_N5_2" minOccurs="0"/>
-            </xs:sequence>
-        </xs:complexType>
-    </xs:element>
-
-    <!-- Orderline Customs Value -->
-    <xs:simpleType name="Segment_Number48">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="48"/>
-        </xs:restriction>
-    </xs:simpleType>
-
-    <xs:element name="Customs_value_qual">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:enumeration value="001"/>
-                <xs:enumeration value="002"/>
-                <xs:enumeration value="003"/>
-                <xs:enumeration value="004"/>
-                <xs:enumeration value="005"/>
-                <xs:enumeration value="006"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <xs:element name="WEO48R">
-        <xs:complexType>
-            <xs:sequence maxOccurs="6">
-                <xs:element name="Segment_Number" type="Segment_Number48"/>
-                <xs:element ref="Customs_value_qual"/>
-                <xs:element name="Customs_value" type="Field_N15_2"/>
-                <xs:element name="Positive-sign" type="Field_YN"/>
-                <xs:element name="Invoice_number" type="Field_AN17" minOccurs="0"/>
-                <xs:element name="Invoice_date" type="Field_CCYYMMDD" minOccurs="0"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -994,13 +929,15 @@
         <xs:simpleType>
             <xs:restriction base="xs:string">
                 <xs:enumeration value="PO"/>
+                <xs:enumeration value="SO"/>
+                <xs:enumeration value="EPF"/>
                 <xs:enumeration value="ABO"/>
-                <xs:enumeration value="PD"/>
+                <xs:enumeration value="PPI"/>
             </xs:restriction>
         </xs:simpleType>
     </xs:element>
 
-    <xs:element name="WEO49R">
+    <xs:element name="WSO49R">
         <xs:complexType>
             <xs:sequence minOccurs="0">
                 <xs:element name="Segment_Number" type="Segment_Number49"/>
@@ -1028,7 +965,7 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:element name="WEO50R">
+    <xs:element name="WSO50R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="3">
                 <xs:element name="Segment_Number" type="Segment_Number50"/>
@@ -1054,7 +991,7 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:element name="WEO51R">
+    <xs:element name="WSO51R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="2">
                 <xs:element name="Segment_Number" type="Segment_Number51"/>
@@ -1065,30 +1002,43 @@
     </xs:element>
 
     <!-- SKU Identification Number -->
-    <xs:simpleType name="Segment_Number52">
+    <xs:simpleType name="Segment_Number53">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="52"/>
+            <xs:enumeration value="53"/>
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:simpleType name="Qualifier52">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="ALL"/>
-            <xs:enumeration value="SN"/>
-            <xs:enumeration value="VIN"/>
-        </xs:restriction>
-    </xs:simpleType>
-    <xs:element name="WEO52R">
+    <xs:element name="Price_qualifier">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="PP"/>
+                <xs:enumeration value="RP"/>
+                <xs:enumeration value="CP"/>
+                <xs:enumeration value="IP"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Price_Level">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="U"/>
+                <xs:enumeration value="L"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="WSO53R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="unbounded">
-                <xs:element name="Segment_Number" type="Segment_Number52"/>
-                <xs:element name="Qualifier" type="Qualifier52"/>
-                <xs:element name="SKU_ident_nr" type="Field_AN35"/>
-                <xs:element name="Idenr_nr_Group_Seq" type="Field_N7" minOccurs="0"/>
-                <xs:element name="Idenrnr_palletCrate" type="Field_N7" minOccurs="0"/>
-                <xs:element name="Expiry_date" type="Field_CCYYMMDD" minOccurs="0"/>
-                <xs:element name="External_Box_number" type="Field_AN35" minOccurs="0"/>
-                <xs:element name="External_Pallet_nr" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Segment_Number" type="Segment_Number53"/>
+                <xs:element ref="Price_qualifier"/>
+                <xs:element name="Price" type="Field_N15_2"/>
+                <xs:element name="Price_Currency" type="Field_AN3"/>
+                <xs:element name="Price_Percentage" type="Field_N5_2" minOccurs="0"/>
+                <xs:element ref="Price_Level" minOccurs="0"/>
+                <xs:element name="LPI_Quantity" type="Field_N15_2" minOccurs="0"/>
+                <xs:element name="LPI_Quantity_UOM" type="Field_AN3" minOccurs="0"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1102,7 +1052,7 @@
 
     <xs:simpleType name="Type_of_package40">
         <xs:restriction base="xs:string">
-            <xs:pattern value="[a-zA-Z ]*"/>
+            <xs:pattern value="[*a-zA-Z ]*"/>
             <xs:maxLength value="10"/>
         </xs:restriction>
     </xs:simpleType>
@@ -1116,90 +1066,42 @@
         </xs:simpleType>
     </xs:element>
 
-    <xs:element name="WEO40R">
+    <xs:element name="WSO40R">
         <xs:complexType>
             <xs:sequence maxOccurs="999">
                 <xs:element name="Segment_Number" type="Segment_Number40"/>
                 <xs:element name="Orderline_ID" type="Field_N3"/>
                 <xs:element name="Article_Ref" type="Field_AN17" minOccurs="0"/>
                 <xs:element name="SKU_Reference" type="Field_AN35" minOccurs="0"/>
-                <xs:element name="Customs_Status_from" type="Field_Customs"/>
+                <xs:element name="Customs_Status_from" type="Field_Customs" minOccurs="0"/>
                 <xs:element name="Customs_Status_to" type="Field_Customs" minOccurs="0"/>
-                <xs:element name="Country_of_Origin" type="Field_AN2" minOccurs="0"/>
-                <xs:element name="Country_of_Despatch" type="Field_AN2" minOccurs="0"/>
-                <xs:element name="Currency_customs_val" type="Field_AN3" minOccurs="0"/>
-                <xs:element name="UNDG_nummer" type="Field_N4" minOccurs="0"/>
-                <xs:element name="UNDG_extension_nr" type="Field_AN1" minOccurs="0"/>
+                <xs:element name="UNDG_number" type="Field_N4" minOccurs="0"/>
+                <xs:element name="UNDG-extension_number" type="Field_AN1" minOccurs="0"/>
                 <xs:element name="Type_of_package" type="Type_of_package40"/>
-                <!-- FIXME: Number_of_packages should come here, but to validate with DSV's examples it is moved to after Measure_unit_specifier -->
-                <!-- <xs:element name="Number_of_packages" type="Field_N6" minOccurs="0"/> -->
-                <xs:element name="Gross_weight_per_type_of_package_in_kilograms" type="Field_N11_3" minOccurs="0"/>
-                <xs:element name="Measure_unit_specifier" type="Field_AN3"/>
-                <!-- FIXME: Number_of_packages should come before here, but to validate with DSV's examples it is moved to after Measure_unit_specifier -->
                 <xs:element name="Number_of_packages" type="Field_N6" minOccurs="0"/>
-                <xs:element name="Number_of_units_measure_unit_specifier" type="Field_N11"/>
-                <xs:element name="Nett_weight_per_unit_measure_unit_specifier_in_kilograms" type="Field_N11_6" minOccurs="0"/>
-                <xs:element name="Number_of_units_measure_unit_specifier_per_type_of_package" type="Field_N6"/>
-                <xs:element name="Customs_document_type" type="Field_AN3" minOccurs="0"/>
-                <!-- FIXME: Customs_document_number is superseded by the AN21 version defined later on -->
-                <!--<xs:element name="Customs_document_number" type="Field_AN8" minOccurs="0"/>-->
+                <xs:element name="Number_of_units_measure_unit_specifier" type="Field_N11" minOccurs="0"/>
+                <xs:element name="Number_of_units_measure_unit_specifier_per_type_of_package" type="Field_N6" minOccurs="0"/>
                 <xs:element name="Orderline_remarks" type="Field_AN35" minOccurs="0"/>
-                <xs:element name="SKU_allocation_date" type="Field_N6" minOccurs="0"/>
-                <xs:element name="Net_volume_per_unit_measure_unit_specifier" type="Field_N9_6" minOccurs="0"/>
-                <xs:element name="Code_type_of_package_1_Type-1" type="Field_AN10U" minOccurs="0"/>
-                <xs:element name="Type-1_length_in_cm" type="Field_N5" minOccurs="0"/>
-                <xs:element name="Type-1_width_in_cm" type="Field_N5" minOccurs="0"/>
-                <xs:element name="Type-1_height_in_cm" type="Field_N5" minOccurs="0"/>
-                <xs:element name="Nr_of_units_measure_unit_specifier_per_type-1" type="Field_N6" minOccurs="0"/>
-                <xs:element name="Gross_weight_per_type-1_in_kgm" type="Field_N11_3" minOccurs="0"/>
-                <xs:element name="Code_type_of_package_2_Type-2" type="Field_AN10U" minOccurs="0"/>
-                <xs:element name="Type-2_length_in_cm" type="Field_N5" minOccurs="0"/>
-                <xs:element name="Type-2_width_in_cm" type="Field_N5" minOccurs="0"/>
-                <xs:element name="Type-2_height_in_cm" type="Field_N5" minOccurs="0"/>
-                <xs:element name="Nr_of_type-1_per_type-2" type="Field_N6" minOccurs="0"/>
-                <xs:element name="Gross_weight_per_type-2_in_kgm" type="Field_N11_3" minOccurs="0"/>
-                <xs:element name="Code_type_of_package-3" type="Field_AN10U" minOccurs="0"/>
-                <xs:element name="Type-3_length_in_cm" type="Field_N5" minOccurs="0"/>
-                <xs:element name="Type_of_package-3_width_in_cm" type="Field_N5" minOccurs="0"/>
-                <xs:element name="Type-3_height_in_cm" type="Field_N5" minOccurs="0"/>
-                <xs:element name="Nr_of_type-2_per_type-3" type="Field_N6" minOccurs="0"/>
-                <xs:element name="Gross_weight_per_type-3_in_kgm" type="Field_N11_3" minOccurs="0"/>
-                <xs:element name="Alcohol_percentage_per_type-1" type="Field_N6_4" minOccurs="0"/>
-                <xs:element name="Code_repackaging_after_entry" type="Field_YN" minOccurs="0"/>
+                <xs:element name="Net_volume_per_unit_measure_unit-specifier" type="Field_N9_6" minOccurs="0"/>
                 <xs:element name="Indicator_external_repackaging_department" type="Field_AN1" minOccurs="0"/>
-                <xs:element name="Indicator_identical_box_contents" type="Field_YN" minOccurs="0"/>
                 <xs:element name="Principal_orderline_reference" type="Field_Order_Reference17" minOccurs="0"/>
                 <xs:element name="Measure_unit_specifier_factor" type="Field_N6" minOccurs="0"/>
-                <xs:element name="Indicator_quality_check" type="Field_YN" minOccurs="0"/>
-                <xs:element name="SKU_allocation_date" type="Field_CCYYMMDD" minOccurs="0"/>
+                <xs:element name="SKU_reference_original_ordered_lot" type="Field_AN35" minOccurs="0"/>
                 <xs:element name="SKU_subdivision" type="Field_AN2" minOccurs="0"/>
-                <xs:element name="Customs_document_number" type="Field_AN21" minOccurs="0"/>
-                <xs:element name="Customs_office" type="Field_AN17" minOccurs="0"/>
-                <xs:element name="Document_date" type="Field_CCYYMMDD" minOccurs="0"/>
-                <xs:element name="Entry_issue_number" type="Field_N6" minOccurs="0"/>
-                <xs:element name="Document_reference" type="Field_AN17" minOccurs="0"/>
-                <xs:element name="Alternative_fifo_date" type="Field_CCYYMMDD" minOccurs="0"/>
-                <xs:element name="Supplementary_document_type" type="Field_AN3" minOccurs="0"/>
-                <xs:element name="Supplementary_document_number" type="Field_N8" minOccurs="0"/>
-                <xs:element name="Supplementary_document_date" type="Field_CCYYMMDD" minOccurs="0"/>
-                <xs:element name="Supplementary_document_national_preference" type="Field_N3" minOccurs="0"/>
-                <xs:element name="Supplementary_document_communautair_preference" type="Field_N3" minOccurs="0"/>
-                <xs:element name="Supplementary_document_indicator_free_of_ID" type="Field_AN1" minOccurs="0"/>
-                <xs:element ref="Reference_identification_qualifier" minOccurs="0"/>
-                <xs:element name="Reference_identification" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Indicator_print_on_packinglist" type="Field_YN" minOccurs="0"/>
                 <xs:element name="Quantity" type="Field_N19_8" minOccurs="0"/>
-                <xs:element name="Batch_or_Lot_number" type="Field_AN20U" minOccurs="0"/>
-                <xs:element name="Indicator_scan_serial_number_Y_N_E" type="Field_AN1" minOccurs="0"/>
-                <xs:element ref="WEO42R" minOccurs="0"/>
-                <xs:element ref="WEO43R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO45R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO46R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO47R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO48R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO49R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO50R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO51R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO52R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="Indicator_main_component" type="Field_YN" minOccurs="0"/>
+                <xs:element name="Minimum_Shelf_Life_Date" type="Field_CCYYMMDD" minOccurs="0"/>
+                <xs:element name="Print_Label" type="Field_YN" minOccurs="0"/>
+                <xs:element ref="WSO41R" minOccurs="0"/>
+                <xs:element ref="WSO42R" minOccurs="0"/>
+                <xs:element ref="WSO43R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WSO45R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WSO46R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WSO49R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WSO50R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WSO51R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WSO53R" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1215,12 +1117,12 @@
     <xs:element name="Order_Type">
         <xs:simpleType>
             <xs:restriction base="xs:string">
-                <xs:enumeration value="I"/>
+                <xs:enumeration value="O"/>
             </xs:restriction>
         </xs:simpleType>
     </xs:element>
 
-    <xs:element name="Code_date_expected">
+    <xs:element name="Code_delivery_date">
         <xs:simpleType>
             <xs:restriction base="xs:string">
                 <xs:enumeration value="O"/>
@@ -1242,14 +1144,15 @@
             <xs:restriction base="xs:string">
                 <xs:enumeration value="N"/>
                 <xs:enumeration value="C"/>
-                <xs:enumeration value="G"/>
-                <xs:enumeration value="M"/>
-                <xs:enumeration value="H"/>
+                <xs:enumeration value="B"/>
                 <xs:enumeration value="P"/>
                 <xs:enumeration value="U"/>
                 <xs:enumeration value="L"/>
                 <xs:enumeration value="I"/>
                 <xs:enumeration value="W"/>
+                <xs:enumeration value="A"/>
+                <xs:enumeration value="J"/>
+                <xs:enumeration value="V"/>
             </xs:restriction>
         </xs:simpleType>
     </xs:element>
@@ -1258,14 +1161,6 @@
         <xs:simpleType>
             <xs:restriction base="xs:string">
                 <xs:maxLength value="5"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
-    <xs:element name="Indicator_Transport_Code">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:maxLength value="1"/>
             </xs:restriction>
         </xs:simpleType>
     </xs:element>
@@ -1279,6 +1174,24 @@
         </xs:simpleType>
     </xs:element>
 
+    <xs:element name="Group_indicator">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="[A-Z ]*"/>
+                <xs:maxLength value="1"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Indicator_Rebate_Surcharge">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="R"/>
+                <xs:enumeration value="S"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
     <xs:element name="Sales_Channel">
         <xs:simpleType>
             <xs:restriction base="xs:string">
@@ -1288,7 +1201,7 @@
         </xs:simpleType>
     </xs:element>
 
-    <xs:element name="WEO10R">
+    <xs:element name="WSO10R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="unbounded">
                 <xs:element name="Segment_Number" type="Segment_Number10"/>
@@ -1297,28 +1210,44 @@
                 <xs:element name="Order_Reference" type="Field_Order_Reference16" minOccurs="0"/>
                 <xs:element name="Indicator_Labelling" type="Field_YN"/>
                 <xs:element name="Indicator_contact_cl" type="Field_YN"/>
-                <xs:element ref="Code_date_expected" minOccurs="0"/>
-                <xs:element name="Date_Expected" type="Field_YYMMDD" minOccurs="0"/>
+                <xs:element ref="Code_delivery_date" minOccurs="0"/>
+                <!-- FIXME: This element is mentioned twice in two places with two formats. Ignoring first instance -->
+                <!-- <xs:element name="Delivery_date" type="Field_YYMMDD" minOccurs="0"/> -->
+                <xs:element name="Delivery_time_from" type="Field_HHMM" minOccurs="0"/>
+                <xs:element name="Delivery_time_until" type="Field_HHMM" minOccurs="0"/>
                 <xs:element name="Terms_of_Delivery" type="Field_AN3" minOccurs="0"/>
+                <xs:element name="COD_payment_code" type="Field_AN2" minOccurs="0"/>
+                <xs:element name="COD_amount" type="Field_N15_2" minOccurs="0"/>
+                <xs:element name="Currency_COD-amount" type="Field_AN3" minOccurs="0"/>
                 <xs:element ref="Transp_means_Identification" minOccurs="0"/>
                 <xs:element ref="Order_Category"/>
                 <!-- FIXME: Sales_Channel should come last, but to validate with DSV's examples Remark is added last -->
                 <!--<xs:element name="Remark" type="Field_AN35" minOccurs="0"/>-->
+                <xs:element name="Order_priority" type="Field_N1"/>
+                <xs:element name="Ext_Forwarding_service" type="Field_AN6" minOccurs="0"/>
                 <xs:element ref="Location_code_TOD" minOccurs="0"/>
-                <xs:element name="Indicator_External_Repackaging_department" type="Field_YN" minOccurs="0"/>
-                <xs:element ref="Indicator_Transport_Code" minOccurs="0"/>
+                <xs:element name="Indicator_External_Repackaging" type="Field_YN" minOccurs="0"/>
+                <xs:element name="Indicator_transport_code" type="Field_AN1" minOccurs="0"/>
+                <!-- FIXME: This element is mentioned twice in two places with two formats. Ignoring first instance -->
+                <!-- <xs:element name="Requested_pick_date" type="Field_YYMMDD" minOccurs="0"/> -->
+                <xs:element name="Requested_pick_time" type="Field_HHMM" minOccurs="0"/>
                 <xs:element ref="Update_order_Indicator" minOccurs="0"/>
-                <xs:element name="Default_Production_date" type="Field_YYMMDD" minOccurs="0"/>
-                <xs:element name="Date_expected" type="Field_CCYYMMDD" minOccurs="0"/>
-                <xs:element name="Default_production_date" type="Field_CCYYMMDD" minOccurs="0"/>
+                <xs:element name="Ind_Blocked_for_allocation" type="Field_YN" minOccurs="0"/>
+                <xs:element name="Delivery_date" type="Field_CCYYMMDD" minOccurs="0"/>
+                <xs:element name="Requested_pick_date" type="Field_CCYYMMDD" minOccurs="0"/>
+                <xs:element ref="Group_indicator" minOccurs="0"/>
+                <xs:element name="Print_customer_invoice" type="Field_YN" minOccurs="0"/>
+                <xs:element name="Overrule_full_pallet_allocation" type="Field_YN" minOccurs="0"/>
+                <xs:element name="Indicator_Load_in_planning_module" type="Field_YN" minOccurs="0"/>
+                <xs:element ref="Indicator_Rebate_Surcharge" minOccurs="0"/>
+                <xs:element name="Percentage_Rebate_Surcharge" type="Field_N5_2" minOccurs="0"/>
                 <xs:element ref="Sales_Channel" minOccurs="0"/>
                 <!-- FIXME: Sales_Channel should come last, but to validate with DSV's examples Remark is added last -->
                 <xs:element name="Remark" type="Field_AN35" minOccurs="0"/>
-                <xs:element ref="WEO12R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO16R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO20R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO30R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO40R" maxOccurs="unbounded"/>
+                <xs:element ref="WSO12R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WSO20R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WSO30R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WSO40R" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1341,11 +1270,13 @@
                 <xs:enumeration value="18"/>
                 <xs:enumeration value="20"/>
                 <xs:enumeration value="30"/>
+                <xs:enumeration value="31"/>
                 <xs:enumeration value="32"/>
                 <xs:enumeration value="34"/>
                 <xs:enumeration value="35"/>
                 <xs:enumeration value="36"/>
                 <xs:enumeration value="40"/>
+                <xs:enumeration value="41"/>
                 <xs:enumeration value="42"/>
                 <xs:enumeration value="43"/>
                 <xs:enumeration value="45"/>
@@ -1361,7 +1292,7 @@
         </xs:simpleType>
     </xs:element>
 
-    <xs:element name="WEO99R">
+    <xs:element name="WSO99R">
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="unbounded">
                 <xs:element name="Segment_Number" type="Segment_Number99"/>
@@ -1372,14 +1303,14 @@
     </xs:element>
 
     <!-- Main Element -->
-    <xs:element name="WEO">
+    <xs:element name="WSO">
         <xs:complexType>
             <xs:sequence>
                 <!-- FIXME: minOccurs should be default, but to validate with DSV's examples 0 is used -->
-                <xs:element ref="WEO00R" minOccurs="0"/>
-                <xs:element ref="WEO05R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO10R" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="WEO99R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WSO00R" minOccurs="0"/>
+                <xs:element ref="WSO05R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WSO10R" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="WSO99R" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
