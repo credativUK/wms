@@ -184,17 +184,17 @@ def main(inn,out):
                 PART_ADD_VAT = PART_ADD.get('VAT-number')
 
                 partout = oout.putloop({'BOTSID': 'shipment'}, {'BOTSID':'partner'})
-                partout.put({'BOTSID':'partner'},{'BOTSID':'partner', 'id': PART_PARTNER_ID})
-                partout.put({'BOTSID':'partner'},{'BOTSID':'partner', 'name': PART_ADD_NAME})
-                partout.put({'BOTSID':'partner'},{'BOTSID':'partner', 'street1': PART_ADD_LINE1})
-                partout.put({'BOTSID':'partner'},{'BOTSID':'partner', 'street2': PART_ADD_LINE2})
-                partout.put({'BOTSID':'partner'},{'BOTSID':'partner', 'city': PART_ADD_LINE3})
-                partout.put({'BOTSID':'partner'},{'BOTSID':'partner', 'state': PART_ADD_STATE})
-                partout.put({'BOTSID':'partner'},{'BOTSID':'partner', 'country': PART_ADD_COUNTRY})
-                partout.put({'BOTSID':'partner'},{'BOTSID':'partner', 'zip': PART_ADD_ZIP})
-                partout.put({'BOTSID':'partner'},{'BOTSID':'partner', 'phone': PART_ADD_PHONE})
-                partout.put({'BOTSID':'partner'},{'BOTSID':'partner', 'fax': PART_ADD_VAT})
-                partout.put({'BOTSID':'partner'},{'BOTSID':'partner', 'vat': PART_ADD_VAT})
+                partout.put({'BOTSID':'partner', 'id': PART_PARTNER_ID})
+                partout.put({'BOTSID':'partner', 'name': PART_ADD_NAME})
+                partout.put({'BOTSID':'partner', 'street1': PART_ADD_LINE1})
+                partout.put({'BOTSID':'partner', 'street2': PART_ADD_LINE2})
+                partout.put({'BOTSID':'partner', 'city': PART_ADD_LINE3})
+                partout.put({'BOTSID':'partner', 'state': PART_ADD_STATE})
+                partout.put({'BOTSID':'partner', 'country': PART_ADD_COUNTRY})
+                partout.put({'BOTSID':'partner', 'zip': PART_ADD_ZIP})
+                partout.put({'BOTSID':'partner', 'phone': PART_ADD_PHONE})
+                partout.put({'BOTSID':'partner', 'fax': PART_ADD_VAT})
+                partout.put({'BOTSID':'partner', 'vat': PART_ADD_VAT})
 
             # == ORDER LINES - WOC80R ==
             for ORDL in ORD.get('WOC80R', []):

@@ -1,0 +1,40 @@
+[{
+  "inventory": {
+    "partner": [
+      {
+        "city": "", 
+        "fax": "(31)168-414000", 
+        "name": "DSV Solutions Nederland BV", 
+        "zip": "4761 RL", 
+        "street1": "", 
+        "street2": "", 
+        "phone": "(31)168-413000", 
+        "state": "Zevenbergen", 
+        "country": "NL", 
+        "id": "FLR", 
+        "vat": "820221466B01"
+      }
+    ], 
+    "inventory_line": [
+      {
+        "product": "Lot Ref 1", 
+        "qty_available": "29", 
+        "product_article_no": "Art Ref 1", 
+        "datetime": "2013-03-19 20:00:00"
+      }, 
+      {
+        "product": "Lot Ref 2", 
+        "qty_available": "92", 
+        "product_article_no": "Art Ref 2", 
+        "datetime": "2013-03-19 20:00:00"
+      }
+    ], 
+    "header": [
+      {
+        "partner_name": "999999", 
+        "msg_id": "SR_SR999999.O", 
+        "datetime": "2013-03-19 17:30:00"
+      }
+    ]
+  }
+}]
