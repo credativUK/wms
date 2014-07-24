@@ -21,7 +21,7 @@
 from openerp.osv import orm,osv
 
 from openerp.addons.connector.session import ConnectorSession
-from .event import on_picking_out_done, on_picking_out_available, on_picking_in_available
+from .event import on_picking_out_done, on_picking_out_available, on_picking_in_available, on_picking_out_cancel, on_picking_in_cancel
 
 class stock_picking(orm.Model):
     _inherit = 'stock.picking'
@@ -57,6 +57,21 @@ class stock_picking(orm.Model):
                     on_picking_in_available.fire(session, self._name, picking_vals['id'])
                 else:
                     continue
+        return res
+
+    def action_cancel(self, cr, uid, ids, *args):
+        res = super(stock_picking, self).action_cancel(cr, uid, ids, *args)
+        session = ConnectorSession(cr, uid, context=None)
+        picking_records = self.read(cr, uid, ids,
+                                ['id', 'type'],
+                                context=None)
+        for picking_vals in picking_records:
+            if picking_vals['type'] == 'out':
+                on_picking_out_cancel.fire(session, self._name, picking_vals['id'])
+            elif picking_vals['type'] == 'in':
+                on_picking_in_cancel.fire(session, self._name, picking_vals['id'])
+            else:
+                continue
         return res
 
     def action_done(self, cr, uid, ids, *args):
