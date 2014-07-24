@@ -48,7 +48,6 @@ Events
      'delivery',
  ],
  'data': [
-     'wms_data.xml'
  ],
  'installable': True,
 }
