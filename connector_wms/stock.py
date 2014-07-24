@@ -21,22 +21,7 @@
 from openerp.osv import orm,osv
 
 from openerp.addons.connector.session import ConnectorSession
-from .event import on_picking_out_available
-
-
-def send_email(session, module_name, template_name, record_ids,context=None):
-    '''Send email to customers'''
-
-    ir_model_data = session.pool.get('ir.model.data')
-    if context is None:
-        context = {}
-    try:
-        template_id = ir_model_data.get_object_reference(session.cr, session.uid, module_name,template_name)[1]
-        for record_id in record_ids:
-            session.pool.get('email.template').send_mail(session.cr, session.uid, template_id, record_id, force_send=True, context=context)
-    except ValueError:
-        #TODO Log exception
-        pass
+from .event import on_picking_out_done, on_picking_out_available, on_picking_in_available
 
 class stock_picking(orm.Model):
     _inherit = 'stock.picking'
@@ -49,9 +34,12 @@ class stock_picking(orm.Model):
                                     ['id', 'type'],
                                     context=context)
             for picking_vals in picking_records:
-                if picking_vals['type'] != 'out':
+                if picking_vals['type'] == 'out':
+                    on_picking_out_available.fire(session, self._name, picking_vals['id'])
+                elif picking_vals['type'] == 'in':
+                    on_picking_in_available.fire(session, self._name, picking_vals['id'])
+                else:
                     continue
-                on_picking_out_available.fire(session, self._name, picking_vals['id'])
         return res
 
 
@@ -63,22 +51,24 @@ class stock_picking(orm.Model):
                                     ['id', 'type'],
                                     context=None)
             for picking_vals in picking_records:
-                if picking_vals['type'] != 'out':
+                if picking_vals['type'] == 'out':
+                    on_picking_out_available.fire(session, self._name, picking_vals['id'])
+                elif picking_vals['type'] == 'in':
+                    on_picking_in_available.fire(session, self._name, picking_vals['id'])
+                else:
                     continue
-                on_picking_out_available.fire(session, self._name, picking_vals['id'])
         return res
 
-    def action_done(self, cr, uid, ids, context=None):
-        """Changes picking state to done.
-
-        This method is called at the end of the workflow by the activity "done".
-        @return: True
-        """
-
-        res = super(stock_picking, self).action_done(cr, uid, ids, context=context)
-        session = ConnectorSession(cr, uid, context=context)
-        #If sale order associated with picking then send email
-        for picking in self.browse(cr,uid,ids,context=context):
-            if picking.sale_id:
-                send_email(session, 'connector_wms', 'email_template_dispatch_customer', ids, context=context)
+    def action_done(self, cr, uid, ids, *args):
+        res = super(stock_picking, self).done(cr, uid, ids, *args)
+        if res:
+            session = ConnectorSession(cr, uid, context=None)
+            picking_records = self.read(cr, uid, ids,
+                                    ['id', 'type'],
+                                    context=None)
+            for picking_vals in picking_records:
+                if picking_vals['type'] == 'out':
+                    on_picking_out_done.fire(session, self._name, picking_vals['id'])
+                else:
+                    continue
         return res
