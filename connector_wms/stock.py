@@ -60,7 +60,7 @@ class stock_picking(orm.Model):
         return res
 
     def action_done(self, cr, uid, ids, *args):
-        res = super(stock_picking, self).done(cr, uid, ids, *args)
+        res = super(stock_picking, self).action_done(cr, uid, ids, *args)
         if res:
             session = ConnectorSession(cr, uid, context=None)
             picking_records = self.read(cr, uid, ids,
