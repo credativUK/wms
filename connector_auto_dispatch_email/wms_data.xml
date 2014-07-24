@@ -1,0 +1,90 @@
+<?xml version="1.0" ?>
+<openerp>
+    <data noupdate="0">
+        <!--Email template -->
+        <record id="email_template_dispatch_customer" model="email.template">
+            <field name="name">Customer's 'Order Dispatch - Send by Email</field>
+            <field name="email_from">openerp@openerp.com</field>
+            <field name="subject">Greetings! Your order has been dispatched</field>
+            <field name="email_recipients">${object.partner_id.id}</field>
+            <field name="email_to">${object.partner_id.email}</field>
+            <field name="model_id" ref="stock.model_stock_picking"/>
+            <field name="auto_delete" eval="False"/>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="body_html"><![CDATA[<div>
+            <p>Hi ${object.partner_id.name or 'N/A'},</p>
+            <p>Here's an update on your order, <strong>${object.sale_id.name}</strong>.</p>
+            %if object.carrier_id:
+            <p>We have dispatched the items below on ${object.date_done}, using our delivery partner ${object.carrier_id.name }</p>
+            %else:
+            <p>We have dispatched the items below on ${object.date_done}</p>
+            %endif
+
+            % for line in object.move_lines:
+            <p>${line.product_qty} x <strong>${line.product_id.name}</strong></p>
+            % endfor
+
+            % if object.sale_id and object.sale_id.partner_invoice_id:
+            % set delivery_address = object.sale_id.partner_invoice_id
+            <p>The address details we have are: </p>
+
+            % if delivery_address.name:
+            ${delivery_address.name}</br>
+            % endif
+            % if delivery_address.street:
+            ${delivery_address and delivery_address.street},<br>
+            % endif
+            % if delivery_address.street2:
+            ${delivery_address and delivery_address},</br>
+            % endif
+            % if delivery_address.city:
+            ${delivery_address and delivery_address.city.title()},</br>
+            % endif
+            % if delivery_address.zip:
+            ${delivery_address.zip.upper()}</br>
+            %endif
+            %endif
+
+            <div style="width: 347px; margin: 0px; padding: 5px 14px; line-height: 16px; background-color: #F2F2F2;">
+                    <span style="color: #222; margin-bottom: 5px; display: block; ">
+                    % if object.company_id.street:
+                        ${object.company_id.street}<br/>
+                    % endif
+                    % if object.company_id.street2:
+                        ${object.company_id.street2}<br/>
+                    % endif
+                    % if object.company_id.city or object.company_id.zip:
+                        ${object.company_id.zip} ${object.company_id.city}<br/>
+                    % endif
+                    % if object.company_id.country_id:
+                        ${object.company_id.state_id and ('%s, ' % object.company_id.state_id.name) or ''} ${object.company_id.country_id.name or ''}<br/>
+                    % endif
+                    </span>
+                    % if object.company_id.phone:
+                        <div style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px; ">
+                            Phone:&nbsp; ${object.company_id.phone}
+                        </div>
+                    % endif
+                    % if object.company_id.website:
+                        <div>
+                            Web :&nbsp;<a href="${object.company_id.website}">${object.company_id.website}</a>
+                        </div>
+                    %endif
+                    <p></p>
+                </div>
+        </div>
+        ]]>
+    </field>
+    </record>
+
+   <!-- Add a server action -->
+    <record id="action_dispatch_email" model="ir.actions.server">
+            <field name="name">Customer's 'Order Dispatch</field>
+            <field name="model_id" ref="stock.model_stock_picking"/>
+            <field name="sequence">5</field>
+            <field name="condition">True</field>
+            <field name="state">code</field>
+            <field name="code">self.send_dispatch_email(cr,uid,[],context) </field>
+        </record>
+    </data>
+</openerp>
