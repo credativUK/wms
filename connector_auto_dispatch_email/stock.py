@@ -29,7 +29,9 @@ _logger = logging.getLogger(__name__)
 
 @on_picking_out_send_email
 def picking_out_send_email(session, model_name, record_id):
-    """
+    """Send email to customer when picking is done.
+
+    @return: True
     """
 
     ir_model_data = session.pool.get('ir.model.data')
@@ -53,10 +55,16 @@ class stock_picking(orm.Model):
         """
 
         res = super(stock_picking, self).action_done(cr, uid, ids)
-        session = ConnectorSession(cr, uid)
-        #If sale order associated with picking then send email
-        for picking_id in ids:
-            on_picking_out_send_email.fire(session, self._name, picking_id)
+        if res:
+            session = ConnectorSession(cr, uid, context=None)
+            picking_records = self.read(cr, uid, ids,
+                                    ['id', 'type'],
+                                    context=None)
+            for picking_vals in picking_records:
+                if picking_vals['type'] == 'out':
+                    on_picking_out_send_email.fire(session, self._name, picking_vals['id'])
+                else:
+                    continue
         return res
 
     def send_dispatch_email(self, cr, uid, ids, context=None):
