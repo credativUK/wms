@@ -20,10 +20,15 @@
 
 import socket
 import logging
-from suds.client import Client
 
+from openerp import SUPERUSER_ID
+from openerp import pooler
 from openerp.addons.connector.unit.backend_adapter import CRUDAdapter
 from openerp.addons.connector.exception import NetworkRetryableError, RetryableJobError
+
+from datetime import datetime
+import os
+import time
 
 _logger = logging.getLogger(__name__)
 
@@ -48,6 +53,39 @@ class BotsCRUDAdapter(CRUDAdapter):
                                        self.backend_record.location_archive,
                                        self.backend_record.location_out)
 
+    def _get_unique_filename(self, pattern):
+        file_obj = self.session.pool.get('bots.file')
+        _cr = pooler.get_db(self.session.cr.dbname).cursor()
+        try:
+            loop_counter = 0
+            while True:
+                loop_counter += 1
+                assert loop_counter < 50
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+                file_name = pattern % (ts,)
+                full_path = os.path.join(self.bots.location_out, file_name)
+
+                files = file_obj.search(_cr, SUPERUSER_ID, [('full_path', '=', full_path)])
+                if files:
+                    _cr.commit()
+                    time.sleep(0.1)
+                    continue
+
+                new_file = file_obj.create(_cr, SUPERUSER_ID, {'full_path': full_path, 'temp_path': full_path + ".tmp"})
+                _cr.commit()
+                _cr.execute("SELECT id FROM bots_file WHERE id = %s FOR UPDATE NOWAIT" % (new_file,))
+
+                if os.path.isfile(full_path) or os.path.isfile(full_path + ".tmp"):
+                    file_obj.unlink(_cr, SUPERUSER_ID, new_file)
+                    _cr.commit()
+                    time.sleep(0.1)
+                    continue
+
+                _cr.commit()
+                return new_file
+        finally:
+            _cr.close()
+
     def _search(self, pattern):
         """ Search the in location for the pattern, return a list of file names that match """
 
@@ -55,7 +93,7 @@ class BotsCRUDAdapter(CRUDAdapter):
         raise NotImplementedError('NIE')
 
 
-    def _read(self, filename):
+    def _read(self, filename_id):
         """ Open file for reading and return the contents as a python dict """
 
         # TODO: Test file is not already being read (check DB in new cursor)
@@ -63,7 +101,7 @@ class BotsCRUDAdapter(CRUDAdapter):
         # TODO: If this worker dies this DB entry should be invalid
         raise NotImplementedError('NIE')
 
-    def _read_done(self, filename):
+    def _read_done(self, filename_id):
         """ Move the file to archive and remove the read lock """
 
         # TODO: Test we have the lock on this file (check DB in new cursor)
@@ -71,12 +109,21 @@ class BotsCRUDAdapter(CRUDAdapter):
         # TODO: Remove the read lock
         raise NotImplementedError('NIE')
 
-    def _write(self, filename, contents):
+    def _write(self, filename_id, contents):
         """ Create a new file at the location with the contents converted to JSON """
 
-        # TODO: Make sure the file is not currently being written to (check DB in new cursor)
-        # TODO: Mark file as being written to (new DB entry in new cursor and commit)
-        # TODO: If this worker dies this DB entry should be invalid
-        # TODO: Create a new file with a temporary name, write contents, rename to destination filename
-        # TODO: Clean up DB entry
-        raise NotImplementedError('NIE')
+        file_obj = self.session.pool.get('bots.file')
+        _cr = pooler.get_db(self.session.cr.dbname).cursor()
+        try:
+            _cr.execute("SELECT id FROM bots_file WHERE id = %s FOR UPDATE NOWAIT" % (filename_id,))
+            file = file_obj.browse(_cr, SUPERUSER_ID, filename_id)
+
+            out_fd = open(file.temp_path, "wb")
+            out_fd.write(contents)
+            out_fd.close()
+
+            os.rename(file.temp_path, file.full_path)
+            _cr.commit()
+            return True
+        finally:
+            _cr.close()

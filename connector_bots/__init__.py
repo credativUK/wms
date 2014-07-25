@@ -22,3 +22,4 @@ import connector
 import backend
 import bots_model
 import product
+import stock

@@ -28,9 +28,6 @@ def get_environment(session, model_name, backend_id):
     """ Create an environment to work with.  """
     backend_record = session.browse('bots.backend', backend_id)
     env = Environment(backend_record, session, model_name)
-    lang = backend_record.default_lang_id
-    lang_code = lang.code if lang else 'en_US'
-    env.set_lang(code=lang_code)
     return env
 
 class BotsBinding(orm.AbstractModel):

@@ -35,14 +35,16 @@ class BotsBackend(orm.Model):
             _select_versions,
             string='Version',
             required=True),
-        'location_in': fields.char('In Location', required=True, help='Location on the file system where incoming files are read from'),
-        'location_archive': fields.char('Archive Location', required=True, help='Location on the file system where incoming files are archived after being read'),
-        'location_out': fields.char('Out Location', required=True, help='Location on the file system where outgoing files are written to'),
+        'name_from': fields.char('Source ID', required=True, help='Name of the source location of the message, used for routing in Bots.'),
+        'name_to': fields.char('Destination ID', required=True, help='Name of the destinations location of the message, used for routing in Bots.'),
+        'location_in': fields.char('In Location', required=True, help='Location on the file system where incoming files are read from (Bots Out location)'),
+        'location_archive': fields.char('Archive Location', required=True, help='Location on the file system where incoming files are archived after being read (Must be different to Bots archive location)'),
+        'location_out': fields.char('Out Location', required=True, help='Location on the file system where outgoing files are written to (Bots In location)'),
         'warehouse_ids': fields.one2many('bots.warehouse', 'backend_id', string='Warehouse Mapping'),
         'feat_picking_out': fields.boolean('Export Delivery Orders', help='Export delivery orders for this warehouse'),
         'feat_picking_in': fields.boolean('Export Shipments', help='Export shipments for this warehouse'),
-        'feat_picking_out_cancel': fields.boolean('Export Delivery Order Cancelations', help='Export delivery order cancellations for this warehouse'),
-        'feat_picking_in_cancel': fields.boolean('Export Shipment Cancelations', help='Export shipment cancellations for this warehouse'),
+        'feat_picking_out_cancel': fields.boolean('Export Delivery Order Cancellations', help='Export delivery order cancellations for this warehouse'),
+        'feat_picking_in_cancel': fields.boolean('Export Shipment Cancellations', help='Export shipment cancellations for this warehouse'),
         'feat_picking_out_conf': fields.boolean('Import Delivery Order Confirmation', help='Import delivery confirmation and tracking details for delivery orders'),
         'feat_picking_in_conf': fields.boolean('Import Shipment Confirmation', help='Import receipt confirmation for shipments'),
         'feat_inventory_in': fields.boolean('Import Inventory', help='Import inventories for this warehouse'),
@@ -64,6 +66,21 @@ class BotsBackend(orm.Model):
         ids = self.search(cr, uid, domain, context=context)
         if ids:
             callback(cr, uid, ids, context=context)
+
+class BotsFile(orm.TransientModel):
+    _name = 'bots.file'
+    _description = 'File mutex for communication with Bots'
+    _rec_name = 'full_path'
+
+    _columns = {
+        'full_path': fields.char('Full Path', required=True),
+        'temp_path': fields.char('Temporary Path', required=True),
+    }
+
+    _sql_constraints = [
+        ('bots_file_uniq', 'unique(full_path)', 'A file already exists at this path.'),
+        ('bots_temp_file_uniq', 'unique(temp_path)', 'A file already exists at this path.'),
+    ]
 
 class BotsWarehouse(orm.Model):
     _name = 'bots.warehouse'

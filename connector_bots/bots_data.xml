@@ -1,32 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-    <data noupdate="1">
-        <record forcecreate="True" id="ir_cron_export_stock_picking_out" model="ir.cron">
-            <field name="name">Bots - Export Delivery Orders</field>
-            <field eval="False" name="active"/>
-            <field name="user_id" ref="base.user_root"/>
-            <field name="interval_number">1</field>
-            <field name="interval_type">hours</field>
-            <field name="numbercall">-1</field>
-            <field eval="False" name="doall"/>
-            <field eval="'bots.backend'" name="model"/>
-            <field eval="'_export_stock_picking_out'" name="function"/>
-            <field eval="'()'" name="args"/>
-        </record>
-
-        <record forcecreate="True" id="ir_cron_export_stock_picking_in" model="ir.cron">
-            <field name="name">Bots - Export Shipments</field>
-            <field eval="False" name="active"/>
-            <field name="user_id" ref="base.user_root"/>
-            <field name="interval_number">1</field>
-            <field name="interval_type">hours</field>
-            <field name="numbercall">-1</field>
-            <field eval="False" name="doall"/>
-            <field eval="'bots.backend'" name="model"/>
-            <field eval="'_export_stock_picking_in'" name="function"/>
-            <field eval="'()'" name="args"/>
-        </record>
-
+    <data>
         <record forcecreate="True" id="ir_cron_import_inventory" model="ir.cron">
             <field name="name">Bots - Import Inventory</field>
             <field eval="False" name="active"/>

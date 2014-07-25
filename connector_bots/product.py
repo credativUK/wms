@@ -25,7 +25,7 @@ from .backend import bots
 
 _logger = logging.getLogger(__name__)
 
-class BotsProductProduct(orm.TransientModel):
+class BotsProductProduct(orm.Model):
     _name = 'bots.product.product'
     _inherit = 'bots.binding'
     _inherits = {'product.product': 'openerp_id'}

@@ -41,8 +41,6 @@ class BotsModelBinder(BotsBinder):
     """
     _model_name = [
             'bots.warehouse',
-            'bots.stock.picking.in',
-            'bots.stock.picking.out',
         ]
 
     def to_openerp(self, external_id, unwrap=False):
