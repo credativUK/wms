@@ -21,6 +21,7 @@
 
 from util import serialize_dsv_xml, get_datetime, get_dsv_lang
 from collections import OrderedDict
+import re
 
 SCHEMA = 'usersys/mappings/json/dsv_warehouseshippingorder_schema.xsd'
 
@@ -54,6 +55,7 @@ def main(inn,out):
     for pick in pinn:
         ORD_ID = pick.get({'BOTSID': 'pickings', 'id': None})
         assert ORD_ID, "Order ID must be present"
+        ORD_ID = re.sub(r'[\\/_-]', r'', ORD_ID.upper())
         ORD_STATE = pick.get({'BOTSID': 'pickings', 'state': None})
 
         # == Cancelled Orders - WSO05R ==

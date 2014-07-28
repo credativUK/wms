@@ -19,14 +19,15 @@
 ##############################################################################
 
 import logging
-from openerp.osv import orm, fields
+from openerp.osv import orm, fields, osv
 from .unit.binder import BotsModelBinder
 from .unit.backend_adapter import BotsCRUDAdapter
 from .backend import bots
 from .connector import get_environment
+from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.event import on_record_create
-from openerp.addons.connector_wms.event import on_picking_out_available, on_picking_in_available #, on_picking_out_cancel, on_picking_in_cancel
+from openerp.addons.connector_wms.event import on_picking_out_available, on_picking_in_available, on_picking_out_cancel, on_picking_in_cancel
 from openerp.addons.connector.exception import MappingError, InvalidDataError, JobError
 from openerp.addons.connector.unit.synchronizer import (ImportSynchronizer,
                                                         ExportSynchronizer
@@ -44,98 +45,176 @@ _logger = logging.getLogger(__name__)
 class StockPickingIn(orm.Model):
     _inherit = 'stock.picking.in'
 
-    def bots_test_exported(self, cr, uid, ids, doraise=False, context=None):
+    def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
         exported = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids)], context=context)
+        if exported and cancel:
+            exported_obj = self.pool.get('bots.stock.picking.in').browse(cr, uid, exported, context=context)
+            exported = [x.id for x in exported_obj if not x.backend_id.feat_picking_in_cancel]
         if exported and doraise:
             raise osv.except_osv(_('Error!'), _('This picking has been exported to an external WMS and cannot be modified directly in OpenERP.'))
         return exported or False
 
     def cancel_assign(self, cr, uid, ids, context=None):
-        res = super(StockPickingIn, self).cancel_assign(cr, uid, ids, context=context)
-        self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
+        self.bots_test_exported(cr, uid, ids, doraise=True, cancel=True, context=context)
+        ctx = context and context.copy() or {}
+        ctx.update({'from_picking': True})
+        res = super(StockPickingIn, self).cancel_assign(cr, uid, ids, context=ctx)
+        session = ConnectorSession(cr, uid, context=None)
+        for id in ids:
+            on_picking_in_cancel.fire(session, self._name, id)
         return res
 
     def action_cancel(self, cr, uid, ids, context=None):
-        res = super(StockPickingIn, self).action_cancel(cr, uid, ids, context=context)
-        self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
+        self.bots_test_exported(cr, uid, ids, doraise=True, cancel=True, context=context)
+        ctx = context and context.copy() or {}
+        ctx.update({'from_picking': True})
+        res = super(StockPickingIn, self).action_cancel(cr, uid, ids, context=ctx)
         return res
 
     def action_done(self, cr, uid, ids, context=None):
-        res = super(StockPickingIn, self).action_done(cr, uid, ids, context=context)
         self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
+        res = super(StockPickingIn, self).action_done(cr, uid, ids, context=context)
         return res
 
     def unlink(self, cr, uid, ids, context=None):
-        res = super(StockPickingIn, self).unlink(cr, uid, ids, context=context)
         self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
+        res = super(StockPickingIn, self).unlink(cr, uid, ids, context=context)
         return res
 
 class StockPickingOut(orm.Model):
     _inherit = 'stock.picking.out'
 
-    def bots_test_exported(self, cr, uid, ids, doraise=False, context=None):
+    def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
         exported = self.pool.get('bots.stock.picking.out').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids)], context=context)
+        if exported and cancel:
+            exported_obj = self.pool.get('bots.stock.picking.out').browse(cr, uid, exported, context=context)
+            exported = [x.id for x in exported_obj if not x.backend_id.feat_picking_out_cancel]
         if exported and doraise:
             raise osv.except_osv(_('Error!'), _('This picking has been exported to an external WMS and cannot be modified directly in OpenERP.'))
         return exported or False
 
     def cancel_assign(self, cr, uid, ids, context=None):
-        res = super(StockPickingOut, self).cancel_assign(cr, uid, ids, context=context)
-        self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
+        self.bots_test_exported(cr, uid, ids, doraise=True, cancel=True, context=context)
+        ctx = context and context.copy() or {}
+        ctx.update({'from_picking': True})
+        res = super(StockPickingOut, self).cancel_assign(cr, uid, ids, context=ctx)
+        session = ConnectorSession(cr, uid, context=None)
+        for id in ids:
+            on_picking_out_cancel.fire(session, self._name, id)
         return res
 
     def action_cancel(self, cr, uid, ids, context=None):
-        res = super(StockPickingOut, self).action_cancel(cr, uid, ids, context=context)
-        self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
+        self.bots_test_exported(cr, uid, ids, doraise=True, cancel=True, context=context)
+        ctx = context and context.copy() or {}
+        ctx.update({'from_picking': True})
+        res = super(StockPickingOut, self).action_cancel(cr, uid, ids, context=ctx)
         return res
 
     def action_done(self, cr, uid, ids, context=None):
-        res = super(StockPickingOut, self).action_done(cr, uid, ids, context=context)
         self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
+        res = super(StockPickingOut, self).action_done(cr, uid, ids, context=context)
         return res
 
     def unlink(self, cr, uid, ids, context=None):
-        res = super(StockPickingOut, self).unlink(cr, uid, ids, context=context)
         self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
+        res = super(StockPickingOut, self).unlink(cr, uid, ids, context=context)
+        return res
+
+class StockPicking(orm.Model):
+    _inherit = 'stock.picking'
+
+    def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
+        exported = []
+        for pick in self.browse(cr, uid, ids, context=context):
+            if pick.type == 'in':
+                MODEL = 'bots.stock.picking.in'
+                PARAM = 'feat_picking_in_cancel'
+            elif pick.type == 'out':
+                MODEL = 'bots.stock.picking.out'
+                PARAM = 'feat_picking_out_cancel'
+            else:
+                continue
+            exported.extend(self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids)], context=context))
+            if exported and cancel:
+                exported_obj = self.pool.get(MODEL).browse(cr, uid, exported, context=context)
+                exported = [x.id for x in exported_obj if not getattr(x.backend_id, PARAM)]
+            if exported and doraise:
+                raise osv.except_osv(_('Error!'), _('This picking has been exported to an external WMS and cannot be modified directly in OpenERP.'))
+        return exported or False
+
+    def cancel_assign(self, cr, uid, ids, context=None):
+        self.bots_test_exported(cr, uid, ids, doraise=True, cancel=True, context=context)
+        ctx = context and context.copy() or {}
+        ctx.update({'from_picking': True})
+        res = super(StockPicking, self).cancel_assign(cr, uid, ids, context=ctx)
+        session = ConnectorSession(cr, uid, context=None)
+        for pick in self.browse(cr, uid, ids, context=context):
+            if pick.type == 'in':
+                on_picking_in_cancel.fire(session, self._name, id)
+            elif pick.type == 'out':
+                on_picking_out_cancel.fire(session, self._name, id)
+            else:
+                continue
+        return res
+
+    def action_cancel(self, cr, uid, ids, context=None):
+        self.bots_test_exported(cr, uid, ids, doraise=True, cancel=True, context=context)
+        ctx = context and context.copy() or {}
+        ctx.update({'from_picking': True})
+        res = super(StockPicking, self).action_cancel(cr, uid, ids, context=ctx)
+        return res
+
+    def action_done(self, cr, uid, ids, context=None):
+        self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
+        res = super(StockPicking, self).action_done(cr, uid, ids, context=context)
+        return res
+
+    def unlink(self, cr, uid, ids, context=None):
+        self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
+        res = super(StockPicking, self).unlink(cr, uid, ids, context=context)
         return res
 
 class StockMove(orm.Model):
     _inherit = 'stock.move'
 
-    def bots_test_exported(self, cr, uid, ids, doraise=False, context=None):
+    def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
         exported = False
         for move in self.browse(cr, uid, ids, context=context):
             if move.picking_id and move.picking_id.type == 'out':
-                exported = self.pool.get('stock.picking.out').bots_test_exported(cr, uid, ids, doraise=doraise, context=context)
+                exported = self.pool.get('stock.picking.out').bots_test_exported(cr, uid, [move.picking_id.id], doraise=doraise, cancel=cancel, context=context)
             elif move.picking_id and move.picking_id.type == 'in':
-                exported = self.pool.get('stock.picking.in').bots_test_exported(cr, uid, ids, doraise=doraise, context=context)
+                exported = self.pool.get('stock.picking.in').bots_test_exported(cr, uid, [move.picking_id.id], doraise=doraise, cancel=cancel, context=context)
             if exported:
                 return exported
         return False
 
     def cancel_assign(self, cr, uid, ids, context=None):
+        context = context or {}
+        if not context.get('from_picking') and self.bots_test_exported(cr, uid, ids, doraise=False, cancel=False, context=context):
+            raise osv.except_osv(_('Error!'), _('This move has been exported to an external WMS and cannot unassigned directly. Unassign the picking.'))
         res = super(StockMove, self).cancel_assign(cr, uid, ids, context=context)
-        self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
         return res
 
     def action_cancel(self, cr, uid, ids, context=None):
+        context = context or {}
+        if not context.get('from_picking') and self.bots_test_exported(cr, uid, ids, doraise=False, cancel=False, context=context):
+            raise osv.except_osv(_('Error!'), _('This move has been exported to an external WMS and cannot be cancelled directly. Cancel the picking.'))
         res = super(StockMove, self).action_cancel(cr, uid, ids, context=context)
-        self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
         return res
 
     def action_done(self, cr, uid, ids, context=None):
-        res = super(StockMove, self).action_done(cr, uid, ids, context=context)
         self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
+        res = super(StockMove, self).action_done(cr, uid, ids, context=context)
         return res
 
     def action_scrap(self, cr, uid, ids, product_qty, location_id, context=None):
-        res = super(StockMove, self).action_scrap(cr, uid, ids, product_qty, location_id, context=context)
         self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
+        res = super(StockMove, self).action_scrap(cr, uid, ids, product_qty, location_id, context=context)
         return res
 
     def unlink(self, cr, uid, ids, context=None):
-        res = super(StockMove, self).unlink(cr, uid, ids, context=context)
         self._test_exported(cr, uid, ids, doraise=True, context=context)
+        res = super(StockMove, self).unlink(cr, uid, ids, context=context)
         return res
 
 class BotsStockPickingOut(orm.Model):
@@ -341,7 +420,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
 
         data = {
                 'picking': {
-                        'pickings': [picking_data,]
+                        'pickings': [picking_data,],
                         'header': [{
                                 'type': TYPE,
                                 'state': 'done',
@@ -357,6 +436,51 @@ class StockPickingAdapter(BotsCRUDAdapter):
         filename_id = self._get_unique_filename(FILENAME)
         res = self._write(filename_id, data)
         return bots_id
+
+    def delete(self, picking_id):
+
+        if self._picking_type == 'in':
+            MODEL = 'bots.stock.picking.in'
+            TYPE = 'in'
+            FILENAME = 'picking_in_%s.json'
+        elif self._picking_type == 'out':
+            MODEL = 'bots.stock.picking.out'
+            TYPE = 'out'
+            FILENAME = 'picking_out_%s.json'
+        else:
+            raise NotImplementedError('Unable to adapt stock picking of type %s' % (self._picking_type,))
+
+        bots_picking_obj = self.session.pool.get(MODEL)
+
+        picking = bots_picking_obj.browse(self.session.cr, self.session.uid, picking_id)
+        if not picking.bots_id:
+            raise JobError(_('The Bots picking %s is exported but does not yet have an external ID. Cannot be cancelled.') % (picking.id,))
+
+        picking_data = {
+                'id': picking.bots_id,
+                'name': picking.bots_id,
+                'order': picking.bots_id,
+                'state': 'delete',
+                'type': TYPE,
+            }
+        data = {
+                'picking': {
+                        'pickings': [picking_data,],
+                        'header': [{
+                                'type': TYPE,
+                                'state': 'cancel',
+                                'partner_to': picking.backend_id.name_to,
+                                'partner_from': picking.backend_id.name_from,
+                                'message_id': '0',
+                                'date_msg': datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'),
+                            }],
+                    },
+                }
+        data = json.dumps(data, indent=4)
+
+        filename_id = self._get_unique_filename(FILENAME)
+        res = self._write(filename_id, data)
+        return
 
 @bots
 class StockPickingOutAdapter(StockPickingAdapter):
@@ -392,6 +516,14 @@ def picking_available(session, model_name, record_id, picking_type, location_typ
                             'openerp_id': picking.id,
                             'warehouse_id': warehouse['id'],})
 
+def picking_cancel(session, model_name, record_id, picking_type):
+    warehouse_obj = session.pool.get('stock.warehouse')
+    bots_warehouse_obj = session.pool.get('bots.warehouse')
+    picking_ids = session.search(picking_type, [('openerp_id', '=', record_id)])
+    pickings = session.browse(picking_type, picking_ids)
+    for picking in pickings:
+        export_picking_cancel.delay(session, picking_type, picking.id)
+
 @bots
 class BotsPickingExport(ExportSynchronizer):
     _model_name = ['bots.stock.picking.in',
@@ -403,6 +535,14 @@ class BotsPickingExport(ExportSynchronizer):
         """
         bots_id = self.backend_adapter.create(binding_id)
         self.binder.bind(bots_id, binding_id)
+
+    def delete(self, binding_id):
+        """
+        Export the cancelled picking to Bots
+        """
+        self.backend_adapter.delete(binding_id)
+        self.binder.unbind(binding_id)
+        pass
 
 @on_record_create(model_names='bots.stock.picking.out')
 def delay_export_picking_out_available(session, model_name, record_id, vals):
@@ -421,26 +561,14 @@ def export_picking_available(session, model_name, record_id):
     res = picking_exporter.run(record_id)
     return res
 
-#def picking_cancel(session, model_name, record_id, picking_type):
-#    warehouse_obj = session.pool.get('stock.warehouse')
-#    bots_warehouse_obj = session.pool.get('bots.warehouse')
-#    picking = session.browse(model_name, record_id)
-#    # TODO: Check if we are already exported, if so export a 'cancel'
-#    raise NotImplementedError("NIE")
-#    # Check to see if the picking should be exported to the WMS
-#    # If so create binding, else return
-#    if not picking.state == 'assigned': # Handle only deliveries which are assigned
-#        return
-#    location_id = picking.location_id.id or picking.move_lines and picking.move_lines[0].location_id.id
-#    warehouse_ids = warehouse_obj.search(session.cr, session.uid, [('lot_stock_id', '=', location_id)])
-#    bots_warehouse_ids = bots_warehouse_obj.search(session.cr, session.uid, [('warehouse_id', 'in', warehouse_ids)])
-#    bots_warehouse = bots_warehouse_obj.read(session.cr, session.uid, bots_warehouse_ids, ['backend_id'])
-#    for warehouse in bots_warehouse:
-#        backend_id = warehouse['backend_id'][0]
-#        session.create(picking_type,
-#                        {'backend_id': backend_id,
-#                        'openerp_id': picking.id,
-#                        'warehouse_id': warehouse['id'],})
+@job
+def export_picking_cancel(session, model_name, record_id):
+    picking = session.browse(model_name, record_id)
+    backend_id = picking.backend_id.id
+    env = get_environment(session, model_name, backend_id)
+    picking_exporter = env.get_connector_unit(BotsPickingExport)
+    picking_exporter.delete(record_id)
+    return True
 
 @on_picking_out_available
 def picking_out_available(session, model_name, record_id):
@@ -450,10 +578,10 @@ def picking_out_available(session, model_name, record_id):
 def picking_in_available(session, model_name, record_id):
     return picking_available(session, model_name, record_id, 'bots.stock.picking.in', location_type='dest')
 
-#@on_picking_out_cancel
-#def picking_out_cancel(session, model_name, record_id):
-#    return picking_cancel(session, model_name, record_id, 'bots.stock.picking.out'):
+@on_picking_out_cancel
+def picking_out_cancel(session, model_name, record_id):
+    return picking_cancel(session, model_name, record_id, 'bots.stock.picking.out')
 
-#@on_picking_in_cancel
-#def picking_in_cancel(session, model_name, record_id):
-#    return picking_cancel(session, model_name, record_id, 'bots.stock.picking.in'):
+@on_picking_in_cancel
+def picking_in_cancel(session, model_name, record_id):
+    return picking_cancel(session, model_name, record_id, 'bots.stock.picking.in')

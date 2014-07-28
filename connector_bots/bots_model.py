@@ -54,8 +54,8 @@ class BotsBackend(orm.Model):
         'feat_picking_out': True,
         'feat_picking_in': True,
         'feat_picking_out_cancel': True,
-        'feat_picking_in_cancel': True,
-        'feat_picking_out_conf': True,
+        'feat_picking_in_cancel': False,
+        'feat_picking_out_conf': False,
         'feat_picking_in_conf': True,
         'feat_inventory_in': True,
     }

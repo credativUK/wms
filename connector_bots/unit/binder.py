@@ -112,3 +112,18 @@ class BotsModelBinder(BotsBinder):
             {'bots_id': str(external_id),
              'sync_date': now_fmt},
             context=context)
+
+    def unbind(self, binding_id):
+        """ Remove the link between an external ID and an OpenERP ID
+
+        :param binding_id: OpenERP ID to bind
+        :type binding_id: int
+        """
+        # avoid to trigger the export when we modify the `bots_id`
+        context = self.session.context.copy()
+        context['connector_no_export'] = True
+        self.environment.model.unlink(
+            self.session.cr,
+            self.session.uid,
+            binding_id,
+            context=context)

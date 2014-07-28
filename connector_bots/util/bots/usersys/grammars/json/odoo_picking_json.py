@@ -35,7 +35,7 @@ structure = [
     LEVEL:[
         {ID:'header',MIN:0,MAX:1},
         {ID:'pickings',MIN:0,MAX:999999,LEVEL:[
-                {ID:'partner',MIN:1,MAX:1},
+                {ID:'partner',MIN:0,MAX:1},
                 {ID:'line',MIN:0,MAX:999999},
             ]},
         ]},
