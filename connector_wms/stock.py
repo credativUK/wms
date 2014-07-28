@@ -43,8 +43,8 @@ class stock_picking(orm.Model):
         return res
 
 
-    def action_assign(self, cr, uid, ids, *args):
-        res = super(stock_picking, self).action_assign(cr, uid, ids, *args)
+    def action_assign(self, cr, uid, ids, *args, **kwargs):
+        res = super(stock_picking, self).action_assign(cr, uid, ids, *args, **kwargs)
         if res:
             session = ConnectorSession(cr, uid, context=None)
             picking_records = self.read(cr, uid, ids,
@@ -59,8 +59,8 @@ class stock_picking(orm.Model):
                     continue
         return res
 
-    def action_cancel(self, cr, uid, ids, *args):
-        res = super(stock_picking, self).action_cancel(cr, uid, ids, *args)
+    def action_cancel(self, cr, uid, ids, *args, **kwargs):
+        res = super(stock_picking, self).action_cancel(cr, uid, ids, *args, **kwargs)
         session = ConnectorSession(cr, uid, context=None)
         picking_records = self.read(cr, uid, ids,
                                 ['id', 'type'],
@@ -74,8 +74,8 @@ class stock_picking(orm.Model):
                 continue
         return res
 
-    def action_done(self, cr, uid, ids, *args):
-        res = super(stock_picking, self).done(cr, uid, ids, *args)
+    def action_done(self, cr, uid, ids, *args, **kwargs):
+        res = super(stock_picking, self).done(cr, uid, ids, *args, **kwargs)
         if res:
             session = ConnectorSession(cr, uid, context=None)
             picking_records = self.read(cr, uid, ids,
