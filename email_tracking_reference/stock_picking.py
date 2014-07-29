@@ -19,22 +19,19 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-import connector
-import openerp.addons.connector
 import logging
 from datetime import datetime
 from openerp.addons.connector.queue.job import job 
 from openerp.addons.connector.session import ConnectorSession
-from openerp.osv import orm, fields
 from openerp.addons.connector.event import Event
-from openerp.addons.connector_ecommerce.event import on_picking_out_done
-from openerp.addons.connector_ecommerce.event import on_tracking_number_added
-from connector.connector import install_in_connector
+from openerp.addons.connector_ecommerce.event import on_picking_out_done, on_tracking_number_added
+from openerp.addons.connector.connector import install_in_connector
+
+from openerp.osv import orm, fields
 
 _logger = logging.getLogger(__name__)
 
 on_picking_confirmed = Event()
-
 
 class stock_picking(orm.Model):
     _inherit = 'stock.picking'
