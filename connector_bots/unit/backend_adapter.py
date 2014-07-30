@@ -29,6 +29,7 @@ from openerp.addons.connector.exception import NetworkRetryableError, RetryableJ
 from datetime import datetime
 import os
 import time
+import re
 
 _logger = logging.getLogger(__name__)
 
@@ -87,30 +88,78 @@ class BotsCRUDAdapter(CRUDAdapter):
             _cr.close()
 
     def _search(self, pattern):
-        """ Search the in location for the pattern, return a list of file names that match """
+        """
+            Search the in location for the pattern, return a list of file names that match
+            he new files will not appear in the session cursor, a new cursor must be created
+        """
 
-        # TODO: Do not return matches which are marked as being read in the DB
-        raise NotImplementedError('NIE')
+        file_obj = self.session.pool.get('bots.file')
+        _cr = pooler.get_db(self.session.cr.dbname).cursor()
+        try:
+            all = [(f, os.path.join(self.bots.location_in, f), os.path.join(self.bots.location_archive, f)) for f in os.listdir(self.bots.location_in)]
+            matching_files = [x for x in all if re.match(pattern, x[0])]
+            file_ids = []
+            for file in matching_files:
+                file_id = file_obj.search(_cr, SUPERUSER_ID, [('full_path', '=', file[1])], context=self.session.context)
+                if file_id:
+                    file_ids.extend(file_id)
+                else:
+                    file_id = file_obj.create(_cr, SUPERUSER_ID, {'full_path': file[1], 'temp_path': file[2]}, context=self.session.context)
+                    file_ids.append(file_id)
+            _cr.commit()
+        finally:
+            _cr.close()
+        return file_ids
 
+    class _read_mutex(object):
+        _cr = None
+
+        def __init__(self, dbname):
+            self._cr = pooler.get_db(dbname).cursor()
+
+        def __del__(self):
+            self.free_cursor()
+
+        def free_cursor(self):
+            if self._cr:
+                self._cr.close()
+                self._cr = None
 
     def _read(self, filename_id):
-        """ Open file for reading and return the contents as a python dict """
+        """
+            Open file for reading and return the contents as a stream
+            Returns the raw data and a mutex class containing a cursor with a lock on the file
+        """
+        file_obj = self.session.pool.get('bots.file')
+        try:
+            mutex = self._read_mutex(self.session.cr.dbname)
+            mutex._cr.execute("SELECT id FROM bots_file WHERE id = %s FOR UPDATE NOWAIT" % (filename_id,))
+            file = file_obj.browse(mutex._cr, SUPERUSER_ID, filename_id)
+            in_fd = open(file.full_path, "rb")
+            data = in_fd.read()
+            in_fd.close()
+            return data, mutex
+        except Exception, e:
+            del mutex
+            raise e
 
-        # TODO: Test file is not already being read (check DB in new cursor)
-        # TODO: Mark file as being read (new DB entry in new cursor and commit)
-        # TODO: If this worker dies this DB entry should be invalid
-        raise NotImplementedError('NIE')
-
-    def _read_done(self, filename_id):
+    def _read_done(self, filename_id, mutex):
         """ Move the file to archive and remove the read lock """
 
-        # TODO: Test we have the lock on this file (check DB in new cursor)
-        # TODO: Move the file to the archive location
-        # TODO: Remove the read lock
-        raise NotImplementedError('NIE')
+        file_obj = self.session.pool.get('bots.file')
+        try:
+            file = file_obj.browse(mutex._cr, SUPERUSER_ID, filename_id)
+            os.rename(file.full_path, file.temp_path)
+            file_obj.unlink(mutex._cr, SUPERUSER_ID, filename_id)
+        except Exception, e:
+            del mutex
+            raise e
+        mutex._cr.commit()
+        mutex.free_cursor()
+        return True
 
     def _write(self, filename_id, contents):
-        """ Create a new file at the location with the contents converted to JSON """
+        """ Create a new file at the location. Input must be a stream."""
 
         file_obj = self.session.pool.get('bots.file')
         _cr = pooler.get_db(self.session.cr.dbname).cursor()

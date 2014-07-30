@@ -19,6 +19,8 @@
 ##############################################################################
 
 from openerp.osv import fields, orm
+from .stock import import_stock_levels, import_picking_confirmation
+from openerp.addons.connector.session import ConnectorSession
 
 class BotsBackend(orm.Model):
     _name = 'bots.backend'
@@ -67,6 +69,46 @@ class BotsBackend(orm.Model):
         if ids:
             callback(cr, uid, ids, context=context)
 
+    def _scheduler_import_inventory(self, cr, uid, domain=None, context=None):
+        self._bots_backend(cr, uid, self.import_inventory, domain=domain, context=context)
+
+    def _scheduler_import_stock_picking_out_conf(self, cr, uid, domain=None, context=None):
+        self._bots_backend(cr, uid, self.import_picking, domain=domain, context=context)
+
+    def _scheduler_import_stock_picking_in_conf(self, cr, uid, domain=None, context=None):
+        self._bots_backend(cr, uid, self.import_picking, domain=domain, context=context)
+
+    def import_inventory(self, cr, uid, ids, context=None):
+        """ Import inventory from all warehouses """
+        if not hasattr(ids, '__iter__'):
+            ids = [ids]
+        warehouse_obj = self.pool.get('bots.warehouse')
+        warehouse_ids = warehouse_obj.search(cr, uid, [('backend_id', 'in', ids)], context=context)
+        warehouses = warehouse_obj.browse(cr, uid, warehouse_ids, context=context)
+        for warehouse in warehouses:
+            if warehouse.backend_id.feat_inventory_in:
+                session = ConnectorSession(cr, uid, context=context)
+                import_stock_levels.delay(session, 'bots.warehouse', warehouse.id)
+        return True
+
+    def import_picking(self, cr, uid, ids, picking_type=('in', 'out'), context=None):
+        """ Import Picking confirmations """
+        if not hasattr(ids, '__iter__'):
+            ids = [ids]
+        warehouse_obj = self.pool.get('bots.warehouse')
+        warehouse_ids = warehouse_obj.search(cr, uid, [('backend_id', 'in', ids)], context=context)
+        warehouses = warehouse_obj.browse(cr, uid, warehouse_ids, context=context)
+        for warehouse in warehouses:
+            picking_types = []
+            if warehouse.backend_id.feat_picking_in_conf:
+                picking_types.append('in')
+            if warehouse.backend_id.feat_picking_out_conf:
+                picking_types.append('out')
+            if picking_types:
+                session = ConnectorSession(cr, uid, context=context)
+                import_picking_confirmation.delay(session, 'bots.warehouse', warehouse.id, picking_types)
+        return True
+
 class BotsFile(orm.TransientModel):
     _name = 'bots.file'
     _description = 'File mutex for communication with Bots'
@@ -74,7 +116,7 @@ class BotsFile(orm.TransientModel):
 
     _columns = {
         'full_path': fields.char('Full Path', required=True),
-        'temp_path': fields.char('Temporary Path', required=True),
+        'temp_path': fields.char('Temporary/Archive Path', required=True),
     }
 
     _sql_constraints = [

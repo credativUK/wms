@@ -23,12 +23,12 @@ from openerp.osv import orm, fields, osv
 from .unit.binder import BotsModelBinder
 from .unit.backend_adapter import BotsCRUDAdapter
 from .backend import bots
-from .connector import get_environment
+from .connector import get_environment, add_checkpoint
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.event import on_record_create
 from openerp.addons.connector_wms.event import on_picking_out_available, on_picking_in_available, on_picking_out_cancel, on_picking_in_cancel
-from openerp.addons.connector.exception import MappingError, InvalidDataError, JobError
+from openerp.addons.connector.exception import MappingError, InvalidDataError, JobError, NoExternalId
 from openerp.addons.connector.unit.synchronizer import (ImportSynchronizer,
                                                         ExportSynchronizer
                                                         )
@@ -36,9 +36,12 @@ from openerp import netsvc
 from openerp import SUPERUSER_ID
 from openerp.tools.translate import _
 from openerp.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
+from openerp import pooler
 
+import traceback
 from datetime import datetime
 import json
+import re
 
 _logger = logging.getLogger(__name__)
 
@@ -46,7 +49,10 @@ class StockPickingIn(orm.Model):
     _inherit = 'stock.picking.in'
 
     def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
-        exported = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids)], context=context)
+        context = context or {}
+        if context.get('wms_bots', False):
+            return False
+        exported = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel'))], context=context)
         if exported and cancel:
             exported_obj = self.pool.get('bots.stock.picking.in').browse(cr, uid, exported, context=context)
             exported = [x.id for x in exported_obj if not x.backend_id.feat_picking_in_cancel]
@@ -85,7 +91,10 @@ class StockPickingOut(orm.Model):
     _inherit = 'stock.picking.out'
 
     def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
-        exported = self.pool.get('bots.stock.picking.out').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids)], context=context)
+        context = context or {}
+        if context.get('wms_bots', False):
+            return False
+        exported = self.pool.get('bots.stock.picking.out').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel'))], context=context)
         if exported and cancel:
             exported_obj = self.pool.get('bots.stock.picking.out').browse(cr, uid, exported, context=context)
             exported = [x.id for x in exported_obj if not x.backend_id.feat_picking_out_cancel]
@@ -124,6 +133,9 @@ class StockPicking(orm.Model):
     _inherit = 'stock.picking'
 
     def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
+        context = context or {}
+        if context.get('wms_bots', False):
+            return False
         exported = []
         for pick in self.browse(cr, uid, ids, context=context):
             if pick.type == 'in':
@@ -134,7 +146,7 @@ class StockPicking(orm.Model):
                 PARAM = 'feat_picking_out_cancel'
             else:
                 continue
-            exported.extend(self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids)], context=context))
+            exported.extend(self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel'))], context=context))
             if exported and cancel:
                 exported_obj = self.pool.get(MODEL).browse(cr, uid, exported, context=context)
                 exported = [x.id for x in exported_obj if not getattr(x.backend_id, PARAM)]
@@ -323,7 +335,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
             raise MappingError(_('Missing address when attempting to export Bots picking %s.') % (picking_id,))
 
         # Get a unique name for the picking
-        bots_id = '%s' % (order_number,)
+        bots_id = re.sub(r'[\\/_-]', r'', order_number.upper())
         # Test if this ID is unique, if not increment it
         suffix_counter = 0
         existing_id = picking_binder.to_openerp(bots_id)
@@ -349,7 +361,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 moves_to_split.append(move.id)
                 continue
             order_line = {
-                    "id": "%s-%s" % (bots_id, seq),
+                    "id": "%sS%s" % (bots_id, seq),
                     "seq": seq,
                     "product": product_bots_id, 
                     "product_qty": int(move.product_qty),
@@ -492,6 +504,153 @@ class StockPickingInAdapter(StockPickingAdapter):
     _model_name = 'bot.stock.picking.in'
     _picking_type = 'in'
 
+@bots
+class WarehouseAdapter(BotsCRUDAdapter):
+    _model_name = 'bots.warehouse'
+
+    def get_picking_conf(self, picking_types):
+        product_binder = self.get_binder_for_model('bots.product.product')
+        picking_in_binder = self.get_binder_for_model('bots.stock.picking.in')
+        picking_out_binder = self.get_binder_for_model('bots.stock.picking.out')
+        bots_picking_in_obj = self.session.pool.get('bots.stock.picking.in')
+        bots_picking_out_obj = self.session.pool.get('bots.stock.picking.out')
+        picking_obj = self.session.pool.get('stock.picking')
+        bots_warehouse_obj = self.session.pool.get('bots.warehouse')
+        wf_service = netsvc.LocalService("workflow")
+        exceptions = []
+
+        FILENAME = r'^picking_conf_.*\.json$'
+        file_ids = self._search(FILENAME)
+        res = []
+        ctx = self.session.context.copy()
+        ctx['wms_bots'] = True
+
+        for file_id in file_ids:
+            try:
+                _cr = pooler.get_db(self.session.cr.dbname).cursor()
+                file_data, mutex = self._read(file_id)
+                json_data = json.loads(file_data)
+
+                for pickings in type(json_data) in (list, tuple) and json_data or [json_data,]:
+                    for picking in pickings['orderconf']['shipment']:
+                        if picking['type'] not in picking_types:
+                            # We are not a picking we want to import, discared
+                            continue
+
+                        if picking['type'] == 'in':
+                            picking_binder = picking_in_binder
+                            bots_picking_obj = bots_picking_in_obj
+                        elif picking['type'] == 'out':
+                            picking_binder = picking_out_binder
+                            bots_picking_obj = bots_picking_out_obj
+                        else:
+                            raise NotImplementedError("Unable to import picking of type %s" % (picking['type'],))
+
+                        picking_id = picking_binder.to_openerp(picking['id'])
+                        if not picking_id:
+                            raise NoExternalId("Picking %s could not be found in OpenERP" % (picking['id'],))
+                        stock_picking = bots_picking_obj.browse(_cr, self.session.uid, picking_id, context=ctx)
+
+                        tracking_number = False
+                        for tracking in picking.get('references', []):
+                            # Get the first sane tracking reference
+                            if tracking['type'] == 'shipping_ref' and picking['type'] == 'out' and tracking['id'] and tracking['id'] not in ('N/A',):
+                                tracking_number = tracking['id']
+                                break
+                            if tracking['type'] == 'purchase_ref' and picking['type'] == 'in' and tracking['id'] and tracking['id'] not in ('N/A',):
+                                tracking_number = tracking['id']
+                                break
+                            if tracking['id'] and tracking['id'] not in ('N/A',):
+                                tracking_number = tracking['id']
+                                break
+
+                        if tracking_number:
+                            bots_picking_obj.write(_cr, self.session.uid, picking_id, {'carrier_tracking_ref': tracking_number}, context=ctx)
+
+                        if picking['confirmed'] not in ('Y', 'True', '1', True, 1):
+                            # No more action needs to be taken, it is not yet delivered
+                            continue
+
+                        # Count products in the incoming file
+                        prod_counts = {}
+                        for line in picking['line']:
+                            product_id = product_binder.to_openerp(line['product'])
+                            if not product_id:
+                                raise NoExternalId("Product %s could not be found in OpenERP" % (line['product'],))
+                            prod_counts[product_id] = prod_counts.get(product_id, 0) + int(line['qty_real'])
+
+                        # Orgainise into done, partial and extra
+                        moves_part = []
+                        moves_extra = []
+                        for move in stock_picking.move_lines:
+                            qty = prod_counts.get(move.product_id.id, 0)
+                            if qty >= int(move.product_qty):
+                                moves_part.append((move, int(move.product_qty)))
+                                qty -= int(move.product_qty)
+                            elif qty > 0 and qty < int(move.product_qty) and int(move.product_qty) > 0:
+                                moves_part.append((move, qty))
+                                qty = 0
+                            else:
+                                moves_part.append((move, 0))
+                                qty = 0
+                            prod_counts[move.product_id.id] = qty
+
+                        for prod, qty in prod_counts.iteritems():
+                            if qty > 0:
+                                moves_extra.append((prod, qty))
+
+                        # If extra, raise since we do not expect this
+                        if moves_extra:
+                            raise NotImplementedError("Unable to process unexpected incoming stock for %s: %s" % (picking['id'], moves_extra,))
+
+                        # Prepare and complete the picking wizard
+                        moves_to_ship = {}
+                        for move, qty in moves_part:
+                            moves_to_ship['move%s' % (move.id)] = {
+                                'product_id': move.product_id.id,
+                                'product_qty': qty,
+                                'product_uom': move.product_uom.id,
+                                'prodlot_id': move.prodlot_id.id,
+                            }
+                        split = picking_obj.do_partial(_cr, self.session.uid, [stock_picking.openerp_id.id], moves_to_ship, context=ctx)
+                        stock_picking.refresh()
+
+                        # If there is a backorder, we need to assert that the current picking remains available
+                        # The backorder should be flagged for a checkpoint
+                        if stock_picking.backorder_id:
+                            if stock_picking.backorder_id.state != 'done' and stock_picking.state != 'assigned':
+                                raise JobError('Error while creating backorder for picking %s imported from Bots' % (stock_picking.name,))
+                            add_checkpoint(self.session, bots_picking_obj._name, picking_id, self.backend_record.id)
+
+                        # Done, next line please
+                        continue
+
+                self._read_done(file_id, mutex)
+                mutex = None
+                _cr.commit()
+            except Exception, e:
+                # Log error then continue processing files
+                exception = "%s: %s" % (e, traceback.format_exc())
+                if file_id:
+                    file = self.session.pool.get('bots.file').browse(_cr, SUPERUSER_ID, file_id, self.session.context)
+                    exception = "File: %s\n%s" % (file.full_path, exception)
+                exceptions.append(exception)
+                _cr.rollback()
+                continue
+            finally:
+                _cr.close()
+
+        # If we hit any errors, fail the job with a list of all errors now
+        if exceptions:
+            raise JobError('The following exceptions were encountered:\n\n%s' % ('\n\n'.join(exceptions),))
+
+        return res
+
+    def get_stock_levels(self):
+        # TODO: Match stock levels in import to stock levels of warehouse
+        # TODO: If any differences, create and confirm an inventory - flag inventory with a checkpoint
+        raise NotImplementedError("NIE")
+
 def picking_available(session, model_name, record_id, picking_type, location_type):
     warehouse_obj = session.pool.get('stock.warehouse')
     bots_warehouse_obj = session.pool.get('bots.warehouse')
@@ -544,6 +703,22 @@ class BotsPickingExport(ExportSynchronizer):
         self.binder.unbind(binding_id)
         pass
 
+@bots
+class BotsWarehouseImport(ImportSynchronizer):
+    _model_name = ['bots.warehouse']
+
+    def import_picking_confirmation(self, picking_types=('in', 'out')):
+        """
+        Import the picking confirmation from Bots
+        """
+        self.backend_adapter.get_picking_conf(picking_types)
+
+    def import_stock_levels(self):
+        """
+        Import the picking confirmation from Bots
+        """
+        self.backend_adapter.get_stock_levels()
+
 @on_record_create(model_names='bots.stock.picking.out')
 def delay_export_picking_out_available(session, model_name, record_id, vals):
     export_picking_available.delay(session, model_name, record_id)
@@ -555,6 +730,9 @@ def delay_export_picking_in_available(session, model_name, record_id, vals):
 @job
 def export_picking_available(session, model_name, record_id):
     picking = session.browse(model_name, record_id)
+    if picking.state == 'done' and session.search(model_name, [('backorder_id', '=', picking.openerp_id.id)]):
+        # We are an auto-created back order completed - ignore this export
+        return "Not creating backorder for auto-created done picking backorder %s" % (picking.name,)
     backend_id = picking.backend_id.id
     env = get_environment(session, model_name, backend_id)
     picking_exporter = env.get_connector_unit(BotsPickingExport)
@@ -568,6 +746,24 @@ def export_picking_cancel(session, model_name, record_id):
     env = get_environment(session, model_name, backend_id)
     picking_exporter = env.get_connector_unit(BotsPickingExport)
     picking_exporter.delete(record_id)
+    return True
+
+@job
+def import_picking_confirmation(session, model_name, record_id, picking_types):
+    warehouse = session.browse(model_name, record_id)
+    backend_id = warehouse.backend_id.id
+    env = get_environment(session, model_name, backend_id)
+    warehouse_importer = env.get_connector_unit(BotsWarehouseImport)
+    warehouse_importer.import_picking_confirmation(picking_types=picking_types)
+    return True
+
+@job
+def import_stock_levels(session, model_name, record_id):
+    warehouse = session.browse(model_name, record_id)
+    backend_id = warehouse.backend_id.id
+    env = get_environment(session, model_name, backend_id)
+    warehouse_importer = env.get_connector_unit(BotsWarehouseImport)
+    warehouse_importer.import_stock_levels()
     return True
 
 @on_picking_out_available
