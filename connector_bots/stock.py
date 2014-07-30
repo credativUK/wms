@@ -229,6 +229,28 @@ class StockMove(orm.Model):
         res = super(StockMove, self).unlink(cr, uid, ids, context=context)
         return res
 
+class BotsStockInventory(orm.Model):
+    _name = 'bots.stock.inventory'
+    _inherit = 'bots.binding'
+    _inherits = {'stock.inventory': 'openerp_id'}
+    _description = 'Bots Inventory'
+
+    _columns = {
+        'openerp_id': fields.many2one('stock.inventory',
+                                      string='Stock Inventory',
+                                      required=True,
+                                      ondelete='restrict'),
+        'warehouse_id': fields.many2one('bots.warehouse',
+                                      string='Bots Warehouse',
+                                      required=True,
+                                      ondelete='restrict'),
+        }
+
+    _sql_constraints = [
+        ('bots_inventory_uniq', 'unique(backend_id, openerp_id)',
+         'A Bots inventory already exists for this inventory for the same backend.'),
+    ]
+
 class BotsStockPickingOut(orm.Model):
     _name = 'bots.stock.picking.out'
     _inherit = 'bots.binding'
@@ -272,6 +294,12 @@ class BotsStockPickingIn(orm.Model):
         ('bots_picking_in_uniq', 'unique(backend_id, openerp_id)',
          'A Bots picking already exists for this picking for the same backend.'),
     ]
+
+@bots
+class BotsStockInventoryBinder(BotsModelBinder):
+    _model_name = [
+            'bots.stock.inventory',
+        ]
 
 @bots
 class BotsStockPickingOutBinder(BotsModelBinder):
@@ -620,7 +648,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                         if stock_picking.backorder_id:
                             if stock_picking.backorder_id.state != 'done' and stock_picking.state != 'assigned':
                                 raise JobError('Error while creating backorder for picking %s imported from Bots' % (stock_picking.name,))
-                            add_checkpoint(self.session, bots_picking_obj._name, picking_id, self.backend_record.id)
+                            add_checkpoint(self.session, stock_picking.openerp_id._name, stock_picking.openerp_id.id, self.backend_record.id)
 
                         # Done, next line please
                         continue
@@ -646,10 +674,101 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
         return res
 
-    def get_stock_levels(self):
-        # TODO: Match stock levels in import to stock levels of warehouse
-        # TODO: If any differences, create and confirm an inventory - flag inventory with a checkpoint
-        raise NotImplementedError("NIE")
+    def get_stock_levels(self, warehouse_id):
+        product_binder = self.get_binder_for_model('bots.product.product')
+        inventory_binder = self.get_binder_for_model('bots.stock.inventory')
+        bots_warehouse_obj = self.session.pool.get('bots.warehouse')
+        product_obj = self.session.pool.get('product.product')
+        inventory_obj = self.session.pool.get('stock.inventory')
+        bots_inventory_obj = self.session.pool.get('bots.stock.inventory')
+        exceptions = []
+
+        FILENAME = r'^inventory_.*\.json$'
+        file_ids = self._search(FILENAME)
+        res = []
+        warehouse = bots_warehouse_obj.browse(self.session.cr, self.session.uid, warehouse_id, self.session.context)
+
+
+        for file_id in file_ids:
+            try:
+                _cr = pooler.get_db(self.session.cr.dbname).cursor()
+                _session = ConnectorSession(_cr, self.session.uid, context=self.session.context)
+                file_data, mutex = self._read(file_id)
+                json_data = json.loads(file_data)
+                inventory_lines = {}
+
+                for inventory in type(json_data) in (list, tuple) and json_data or [json_data,]:
+                    for line in inventory['inventory']['inventory_line']:
+                        product_id = product_binder.to_openerp(line['product'])
+                        if not product_id:
+                            raise NoExternalId("Product %s could not be found in OpenERP" % (line['product'],))
+                        # Check the stock level for this warehouse at this time
+                        time = datetime.strptime(line['datetime'], '%Y-%m-%d %H:%M:%S')
+                        qty = int(line['qty_available'])
+                        assert inventory_lines.setdefault(time.strftime(DEFAULT_SERVER_DATETIME_FORMAT), {}).get('product_id', None) == None, "Product %s, ID %s appears twice in the inventory for %s" % (line['product'], product_id, time)
+                        inventory_lines.setdefault(time.strftime(DEFAULT_SERVER_DATETIME_FORMAT), {})[product_id] = qty
+
+                inventory_lines = sorted(inventory_lines.items(), key=lambda x: x[0])
+                for time, products in inventory_lines:
+                    inventory = {
+                            'name': 'Bots - %s - %s' % (self.backend_record.name, time,),
+                            'date': time,
+                            'company_id': warehouse.warehouse_id.company_id.id,
+                            'inventory_line_id': [],
+                        }
+                    for product_id, qty in products.iteritems():
+                        location_id = warehouse.warehouse_id.lot_stock_id.id
+                        ctx = {
+                                'location': location_id,
+                                #'to_date': time, # FIXME: Any recent inventories, even backdated, will not be considered since the date is always when it is done. Core bug or feature?
+                            }
+                        prod = product_obj.browse(_cr, self.session.uid, product_id, context=ctx)
+
+                        if int(qty) == int(prod.qty_available):
+                            # We match, no need to create an inventory line
+                            continue
+
+                        inventory_line = {
+                                'product_id': product_id,
+                                'location_id': location_id,
+                                'product_qty': int(qty),
+                                'product_uom': prod.uom_id.id, # We assume the qty is always in the standard UoM
+                            }
+                        inventory['inventory_line_id'].append([0, False, inventory_line])
+
+                    if inventory['inventory_line_id']:
+                        # We have a difference in inventory so we must create and validate a new inventory
+                        inventory_id = inventory_obj.create(_cr, self.session.uid, inventory, context=self.session.context)
+                        inventory_obj.action_confirm(_cr, self.session.uid, [inventory_id], context=self.session.context)
+                        inventory_obj.action_done(_cr, self.session.uid, [inventory_id], context=self.session.context)
+                        binding_id = bots_inventory_obj.create(_cr, self.session.uid,
+                            {'backend_id': self.backend_record.id,
+                            'openerp_id': inventory_id,
+                            'warehouse_id': warehouse.id,
+                            'bots_id': '%s %s' % (self.backend_record.name, time,),})
+                        add_checkpoint(_session, 'stock.inventory', inventory_id, self.backend_record.id)
+
+                self._read_done(file_id, mutex)
+                mutex = None
+                _cr.commit()
+            except Exception, e:
+                # Log error then continue processing files
+                exception = "%s: %s" % (e, traceback.format_exc())
+                if file_id:
+                    file = self.session.pool.get('bots.file').browse(_cr, SUPERUSER_ID, file_id, self.session.context)
+                    exception = "File: %s\n%s" % (file.full_path, exception)
+                exceptions.append(exception)
+                _cr.rollback()
+                continue
+            finally:
+                _cr.close()
+
+        # If we hit any errors, fail the job with a list of all errors now
+        if exceptions:
+            raise JobError('The following exceptions were encountered:\n\n%s' % ('\n\n'.join(exceptions),))
+
+        return res
+
 
 def picking_available(session, model_name, record_id, picking_type, location_type):
     warehouse_obj = session.pool.get('stock.warehouse')
@@ -713,11 +832,11 @@ class BotsWarehouseImport(ImportSynchronizer):
         """
         self.backend_adapter.get_picking_conf(picking_types)
 
-    def import_stock_levels(self):
+    def import_stock_levels(self, warehouse_id):
         """
         Import the picking confirmation from Bots
         """
-        self.backend_adapter.get_stock_levels()
+        self.backend_adapter.get_stock_levels(warehouse_id)
 
 @on_record_create(model_names='bots.stock.picking.out')
 def delay_export_picking_out_available(session, model_name, record_id, vals):
@@ -763,7 +882,7 @@ def import_stock_levels(session, model_name, record_id):
     backend_id = warehouse.backend_id.id
     env = get_environment(session, model_name, backend_id)
     warehouse_importer = env.get_connector_unit(BotsWarehouseImport)
-    warehouse_importer.import_stock_levels()
+    warehouse_importer.import_stock_levels(record_id)
     return True
 
 @on_picking_out_available

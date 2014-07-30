@@ -70,6 +70,7 @@ class BotsBackend(orm.Model):
             callback(cr, uid, ids, context=context)
 
     def _scheduler_import_inventory(self, cr, uid, domain=None, context=None):
+        import ipdb; ipdb.set_trace()
         self._bots_backend(cr, uid, self.import_inventory, domain=domain, context=context)
 
     def _scheduler_import_stock_picking_out_conf(self, cr, uid, domain=None, context=None):
@@ -137,6 +138,8 @@ class BotsWarehouse(orm.Model):
     _sql_constraints = [
         ('bots_warehouse_uniq', 'unique(backend_id, bots_id)',
          'A warehouse mapping with the same ID in Bots already exists.'),
+        ('bots_warehouse_single', 'unique(backend_id)',
+         'Multiple warehouses per Bots backend is not currently supported.'),
     ]
 
 class BotsProduct(orm.Model):
