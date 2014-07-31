@@ -80,7 +80,7 @@ class TestInventory(SetUpBotsBase):
 
         # 2. Create and run job to import inventory
         self.backend_model._scheduler_import_inventory(self.cr, self.uid, new_cr=False)
-        job_string = "openerp.addons.connector_bots.stock.import_stock_levels('bots.warehouse', %s, new_cr=False)" % (bots_warehouse.id,)
+        job_string = "openerp.addons.connector_bots.stock_warehouse.import_stock_levels('bots.warehouse', %s, new_cr=False)" % (bots_warehouse.id,)
         job_ids = job_obj.search(self.cr, self.uid, [('func_string', '=', job_string)])
         self.assertEquals(len(job_ids), 1, 'One job should be created to import inventory')
         res = self._run_job(job_ids[0])
@@ -126,7 +126,7 @@ class TestInventory(SetUpBotsBase):
 
         # 4. Create and run job to import inventory
         self.backend_model._scheduler_import_inventory(self.cr, self.uid, new_cr=False)
-        job_string = "openerp.addons.connector_bots.stock.import_stock_levels('bots.warehouse', %s, new_cr=False)" % (bots_warehouse.id,)
+        job_string = "openerp.addons.connector_bots.stock_warehouse.import_stock_levels('bots.warehouse', %s, new_cr=False)" % (bots_warehouse.id,)
         job_ids = job_obj.search(self.cr, self.uid, [('func_string', '=', job_string)])
         self.assertEquals(len(job_ids), 1, 'One job should be created to import inventory')
         res = self._run_job(job_ids[0])
@@ -179,7 +179,7 @@ class TestInventory(SetUpBotsBase):
 
         # 2. Create and run job to import inventory - should fail
         self.backend_model._scheduler_import_inventory(self.cr, self.uid, new_cr=False)
-        job_string = "openerp.addons.connector_bots.stock.import_stock_levels('bots.warehouse', %s, new_cr=False)" % (bots_warehouse.id,)
+        job_string = "openerp.addons.connector_bots.stock_warehouse.import_stock_levels('bots.warehouse', %s, new_cr=False)" % (bots_warehouse.id,)
         job_ids = job_obj.search(self.cr, self.uid, [('func_string', '=', job_string)])
         self.assertEquals(len(job_ids), 1, 'One job should be created to import inventory')
         with self.assertRaises(JobError):

@@ -19,7 +19,7 @@
 ##############################################################################
 
 from openerp.osv import fields, orm
-from .stock import import_stock_levels, import_picking_confirmation
+from .stock_warehouse import import_stock_levels, import_picking_confirmation
 from openerp.addons.connector.session import ConnectorSession
 
 class BotsBackend(orm.Model):
@@ -139,21 +139,4 @@ class BotsFile(orm.TransientModel):
         ('bots_file_uniq', 'unique(full_path)', 'A file already exists at this path.'),
         ('bots_temp_file_uniq', 'unique(temp_path)', 'A file already exists at this path.'),
         ('bots_arch_file_uniq', 'unique(arch_path)', 'A file already exists at this path.'),
-    ]
-
-class BotsWarehouse(orm.Model):
-    _name = 'bots.warehouse'
-    _inherit = 'bots.binding'
-    _description = 'Bots Warehouse Mapping'
-
-    _columns = {
-        'name': fields.char('Name', required=True),
-        'warehouse_id': fields.many2one('stock.warehouse', 'Warehouse', required=True),
-    }
-
-    _sql_constraints = [
-        ('bots_warehouse_uniq', 'unique(backend_id, bots_id)',
-         'A warehouse mapping with the same ID in Bots already exists.'),
-        ('bots_warehouse_single', 'unique(backend_id)',
-         'Multiple warehouses per Bots backend is not currently supported.'),
     ]

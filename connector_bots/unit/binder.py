@@ -40,7 +40,6 @@ class BotsModelBinder(BotsBinder):
     fields belonging to the bots instance.
     """
     _model_name = [
-            'bots.warehouse',
         ]
 
     def to_openerp(self, external_id, unwrap=False):

@@ -433,7 +433,7 @@ class TestPickingOut(TestPicking):
 
         # 6. Create and run job to import confirmation
         self.backend_model._scheduler_import_stock_picking_out_conf(self.cr, self.uid, new_cr=False)
-        job_string = "openerp.addons.connector_bots.stock.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
+        job_string = "openerp.addons.connector_bots.stock_warehouse.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
         job_ids = job_obj.search(self.cr, self.uid, [('func_string', '=', job_string)])
         self.assertEquals(len(job_ids), 1, 'One job should be created to import picking confirmations')
         res = self._run_job(job_ids[0])
@@ -451,7 +451,7 @@ class TestPickingOut(TestPicking):
 
         # 8. Create and run job to import confirmation
         self.backend_model._scheduler_import_stock_picking_out_conf(self.cr, self.uid, new_cr=False)
-        job_string = "openerp.addons.connector_bots.stock.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
+        job_string = "openerp.addons.connector_bots.stock_warehouse.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
         job_ids = job_obj.search(self.cr, self.uid, [('func_string', '=', job_string)])
         self.assertEquals(len(job_ids), 1, 'One job should be created to import picking confirmations')
         res = self._run_job(job_ids[0])
@@ -585,7 +585,7 @@ class TestPickingOut(TestPicking):
 
         # 6. Create and run job to import confirmation
         self.backend_model._scheduler_import_stock_picking_out_conf(self.cr, self.uid, new_cr=False)
-        job_string = "openerp.addons.connector_bots.stock.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
+        job_string = "openerp.addons.connector_bots.stock_warehouse.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
         job_ids = job_obj.search(self.cr, self.uid, [('func_string', '=', job_string)])
         self.assertEquals(len(job_ids), 1, 'One job should be created to import picking confirmations')
         res = self._run_job(job_ids[0])
@@ -609,7 +609,7 @@ class TestPickingOut(TestPicking):
 
         # 8. Create and run job to import confirmation for remaining stock
         self.backend_model._scheduler_import_stock_picking_out_conf(self.cr, self.uid, new_cr=False)
-        job_string = "openerp.addons.connector_bots.stock.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
+        job_string = "openerp.addons.connector_bots.stock_warehouse.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
         job_ids = job_obj.search(self.cr, self.uid, [('func_string', '=', job_string)])
         self.assertEquals(len(job_ids), 1, 'One job should be created to import picking confirmations')
         res = self._run_job(job_ids[0])
@@ -746,7 +746,7 @@ class TestPickingOut(TestPicking):
 
         # 6. Create and run job to import confirmation - should fail
         self.backend_model._scheduler_import_stock_picking_out_conf(self.cr, self.uid, new_cr=False)
-        job_string = "openerp.addons.connector_bots.stock.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
+        job_string = "openerp.addons.connector_bots.stock_warehouse.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
         job_ids = job_obj.search(self.cr, self.uid, [('func_string', '=', job_string)])
         self.assertEquals(len(job_ids), 1, 'One job should be created to import picking confirmations')
 
@@ -1136,7 +1136,7 @@ class TestPickingIn(TestPicking):
 
         # 6. Create and run job to import confirmation
         self.backend_model._scheduler_import_stock_picking_in_conf(self.cr, self.uid, new_cr=False)
-        job_string = "openerp.addons.connector_bots.stock.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
+        job_string = "openerp.addons.connector_bots.stock_warehouse.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
         job_ids = job_obj.search(self.cr, self.uid, [('func_string', '=', job_string)])
         self.assertEquals(len(job_ids), 1, 'One job should be created to import picking confirmations')
         res = self._run_job(job_ids[0])
@@ -1154,7 +1154,7 @@ class TestPickingIn(TestPicking):
 
         # 8. Create and run job to import confirmation
         self.backend_model._scheduler_import_stock_picking_in_conf(self.cr, self.uid, new_cr=False)
-        job_string = "openerp.addons.connector_bots.stock.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
+        job_string = "openerp.addons.connector_bots.stock_warehouse.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
         job_ids = job_obj.search(self.cr, self.uid, [('func_string', '=', job_string)])
         self.assertEquals(len(job_ids), 1, 'One job should be created to import picking confirmations')
         res = self._run_job(job_ids[0])
@@ -1288,7 +1288,7 @@ class TestPickingIn(TestPicking):
 
         # 6. Create and run job to import confirmation
         self.backend_model._scheduler_import_stock_picking_in_conf(self.cr, self.uid, new_cr=False)
-        job_string = "openerp.addons.connector_bots.stock.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
+        job_string = "openerp.addons.connector_bots.stock_warehouse.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
         job_ids = job_obj.search(self.cr, self.uid, [('func_string', '=', job_string)])
         self.assertEquals(len(job_ids), 1, 'One job should be created to import picking confirmations')
         res = self._run_job(job_ids[0])
@@ -1312,7 +1312,7 @@ class TestPickingIn(TestPicking):
 
         # 8. Create and run job to import confirmation for remaining stock
         self.backend_model._scheduler_import_stock_picking_in_conf(self.cr, self.uid, new_cr=False)
-        job_string = "openerp.addons.connector_bots.stock.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
+        job_string = "openerp.addons.connector_bots.stock_warehouse.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
         job_ids = job_obj.search(self.cr, self.uid, [('func_string', '=', job_string)])
         self.assertEquals(len(job_ids), 1, 'One job should be created to import picking confirmations')
         res = self._run_job(job_ids[0])
@@ -1449,7 +1449,7 @@ class TestPickingIn(TestPicking):
 
         # 6. Create and run job to import confirmation - should fail
         self.backend_model._scheduler_import_stock_picking_in_conf(self.cr, self.uid, new_cr=False)
-        job_string = "openerp.addons.connector_bots.stock.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
+        job_string = "openerp.addons.connector_bots.stock_warehouse.import_picking_confirmation('bots.warehouse', %s, ['in', 'out'], new_cr=False)" % (bots_warehouse.id,)
         job_ids = job_obj.search(self.cr, self.uid, [('func_string', '=', job_string)])
         self.assertEquals(len(job_ids), 1, 'One job should be created to import picking confirmations')
 

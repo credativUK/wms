@@ -18,11 +18,12 @@
 #
 ##############################################################################
 
-import logging
 from openerp.osv import orm, fields
+
 from .unit.binder import BotsBinder
 from .backend import bots
 
+import logging
 _logger = logging.getLogger(__name__)
 
 class BotsProduct(orm.Model):
