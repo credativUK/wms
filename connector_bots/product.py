@@ -25,23 +25,25 @@ from .backend import bots
 
 _logger = logging.getLogger(__name__)
 
-class BotsProductProduct(orm.Model):
-    _name = 'bots.product.product'
+class BotsProduct(orm.Model):
+    _name = 'bots.product'
     _inherit = 'bots.binding'
-    _inherits = {'product.product': 'openerp_id'}
-    _description = 'Bots Product'
+    _description = 'Bots Product Mapping'
 
     _columns = {
-        'openerp_id': fields.many2one('product.product',
-                                      string='Product',
-                                      required=True,
-                                      ondelete='restrict'),
-        }
+        'name': fields.char('Name', required=True),
+        'product_id': fields.many2one('product.product', 'Product', required=True),
+    }
+
+    _sql_constraints = [
+        ('bots_product_uniq', 'unique(backend_id, bots_id)',
+         'A product mapping with the same ID in Bots already exists.'),
+    ]
 
 @bots
 class BotsProductBinder(BotsBinder):
     _model_name = [
-            'bots.product.product',
+            'bots.product',
         ]
 
     def to_openerp(self, external_id, unwrap=False):

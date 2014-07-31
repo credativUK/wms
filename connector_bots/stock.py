@@ -329,7 +329,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
         else:
             raise NotImplementedError('Unable to adapt stock picking of type %s' % (self._picking_type,))
 
-        product_binder = self.get_binder_for_model('bots.product.product')
+        product_binder = self.get_binder_for_model('bots.product')
         picking_binder = self.get_binder_for_model(MODEL)
         bots_picking_obj = self.session.pool.get(MODEL)
         picking_obj = self.session.pool.get('stock.picking')
@@ -537,7 +537,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
     _model_name = 'bots.warehouse'
 
     def get_picking_conf(self, picking_types, new_cr=True):
-        product_binder = self.get_binder_for_model('bots.product.product')
+        product_binder = self.get_binder_for_model('bots.product')
         picking_in_binder = self.get_binder_for_model('bots.stock.picking.in')
         picking_out_binder = self.get_binder_for_model('bots.stock.picking.out')
         bots_picking_in_obj = self.session.pool.get('bots.stock.picking.in')
@@ -681,7 +681,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
         return res
 
     def get_stock_levels(self, warehouse_id, new_cr=True):
-        product_binder = self.get_binder_for_model('bots.product.product')
+        product_binder = self.get_binder_for_model('bots.product')
         inventory_binder = self.get_binder_for_model('bots.stock.inventory')
         bots_warehouse_obj = self.session.pool.get('bots.warehouse')
         product_obj = self.session.pool.get('product.product')

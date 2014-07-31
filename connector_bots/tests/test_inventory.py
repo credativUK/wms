@@ -26,7 +26,7 @@ from openerp.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
 
 from .common import SetUpBotsBase
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 DB = common.DB
 ADMIN_USER_ID = common.ADMIN_USER_ID
@@ -87,7 +87,6 @@ class TestInventory(SetUpBotsBase):
         job_obj.unlink(self.cr, self.uid, [job_ids[0],])
 
         product.refresh()
-        print product.qty_available
         inventory_id = inventory_obj.search(self.cr, self.uid, [], order='create_date desc', limit=1)
         self.assertEquals(len(inventory_id), 1, 'A new inventory should be created for imported file')
         inventory = inventory_obj.browse(self.cr, self.uid, inventory_id[0])
@@ -96,7 +95,7 @@ class TestInventory(SetUpBotsBase):
         self.assertEquals(product.qty_available, 10, 'Stock level should be 10')
 
         # 3. Import the same inventory and make sure a blank inventory is not created
-        time = datetime.now().strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+        time = (datetime.now() + timedelta(minutes=1)).strftime(DEFAULT_SERVER_DATETIME_FORMAT)
         conf = [{
             "inventory": {
                 "partner": [{
@@ -134,10 +133,9 @@ class TestInventory(SetUpBotsBase):
         job_obj.unlink(self.cr, self.uid, [job_ids[0],])
 
         product.refresh()
-        print product.qty_available
         inventory_id = inventory_obj.search(self.cr, self.uid, [], order='create_date desc', limit=1)
         inventory = inventory_obj.browse(self.cr, self.uid, inventory_id[0]) # We should be browsing the previous inventory here
-        self.assertTrue(time in inventory.name, 'A new inventory should not be created for imported file')
+        self.assertFalse(time in inventory.name, 'A new inventory should not be created for imported file')
         self.assertEquals(product.qty_available, 10, 'Stock level should be 10')
 
     def test_01_create_inventory_wrong_product(self):

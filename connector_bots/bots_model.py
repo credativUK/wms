@@ -157,18 +157,3 @@ class BotsWarehouse(orm.Model):
         ('bots_warehouse_single', 'unique(backend_id)',
          'Multiple warehouses per Bots backend is not currently supported.'),
     ]
-
-class BotsProduct(orm.Model):
-    _name = 'bots.product'
-    _inherit = 'bots.binding'
-    _description = 'Bots Product Mapping'
-
-    _columns = {
-        'name': fields.char('Name', required=True),
-        'product_id': fields.many2one('product.product', 'Product', required=True),
-    }
-
-    _sql_constraints = [
-        ('bots_product_uniq', 'unique(backend_id, bots_id)',
-         'A product mapping with the same ID in Bots already exists.'),
-    ]
