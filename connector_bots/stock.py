@@ -55,7 +55,7 @@ class StockPickingIn(orm.Model):
         exported = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel'))], context=context)
         if exported and cancel:
             exported_obj = self.pool.get('bots.stock.picking.in').browse(cr, uid, exported, context=context)
-            exported = [x.id for x in exported_obj if not x.backend_id.feat_picking_in_cancel]
+            exported = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_in_cancel]
         if exported and doraise:
             raise osv.except_osv(_('Error!'), _('This picking has been exported to an external WMS and cannot be modified directly in OpenERP.'))
         return exported or False
@@ -97,7 +97,7 @@ class StockPickingOut(orm.Model):
         exported = self.pool.get('bots.stock.picking.out').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel'))], context=context)
         if exported and cancel:
             exported_obj = self.pool.get('bots.stock.picking.out').browse(cr, uid, exported, context=context)
-            exported = [x.id for x in exported_obj if not x.backend_id.feat_picking_out_cancel]
+            exported = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_out_cancel]
         if exported and doraise:
             raise osv.except_osv(_('Error!'), _('This picking has been exported to an external WMS and cannot be modified directly in OpenERP.'))
         return exported or False
@@ -149,9 +149,9 @@ class StockPicking(orm.Model):
             exported.extend(self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel'))], context=context))
             if exported and cancel:
                 exported_obj = self.pool.get(MODEL).browse(cr, uid, exported, context=context)
-                exported = [x.id for x in exported_obj if not getattr(x.backend_id, PARAM)]
+                exported = [x.id for x in exported_obj if not x.bots_id or not getattr(x.backend_id, PARAM)]
             if exported and doraise:
-                raise osv.except_osv(_('Error!'), _('This picking has been exported to an external WMS and cannot be modified directly in OpenERP.'))
+                raise osv.except_osv(_('Error!'), _('This picking has been exported, or is pending export, to an external WMS and cannot be modified directly in OpenERP.'))
         return exported or False
 
     def cancel_assign(self, cr, uid, ids, context=None):
@@ -225,7 +225,7 @@ class StockMove(orm.Model):
         return res
 
     def unlink(self, cr, uid, ids, context=None):
-        self._test_exported(cr, uid, ids, doraise=True, context=context)
+        self.bots_test_exported(cr, uid, ids, doraise=True, context=context)
         res = super(StockMove, self).unlink(cr, uid, ids, context=context)
         return res
 
@@ -529,14 +529,14 @@ class StockPickingOutAdapter(StockPickingAdapter):
 
 @bots
 class StockPickingInAdapter(StockPickingAdapter):
-    _model_name = 'bot.stock.picking.in'
+    _model_name = 'bots.stock.picking.in'
     _picking_type = 'in'
 
 @bots
 class WarehouseAdapter(BotsCRUDAdapter):
     _model_name = 'bots.warehouse'
 
-    def get_picking_conf(self, picking_types):
+    def get_picking_conf(self, picking_types, new_cr=True):
         product_binder = self.get_binder_for_model('bots.product.product')
         picking_in_binder = self.get_binder_for_model('bots.stock.picking.in')
         picking_out_binder = self.get_binder_for_model('bots.stock.picking.out')
@@ -555,7 +555,10 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
         for file_id in file_ids:
             try:
-                _cr = pooler.get_db(self.session.cr.dbname).cursor()
+                if new_cr:
+                    _cr = pooler.get_db(self.session.cr.dbname).cursor()
+                else: # Do not use a new cursor for unit tests
+                    _cr = self.session.cr
                 file_data, mutex = self._read(file_id)
                 json_data = json.loads(file_data)
 
@@ -584,13 +587,10 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             # Get the first sane tracking reference
                             if tracking['type'] == 'shipping_ref' and picking['type'] == 'out' and tracking['id'] and tracking['id'] not in ('N/A',):
                                 tracking_number = tracking['id']
-                                break
                             if tracking['type'] == 'purchase_ref' and picking['type'] == 'in' and tracking['id'] and tracking['id'] not in ('N/A',):
                                 tracking_number = tracking['id']
-                                break
-                            if tracking['id'] and tracking['id'] not in ('N/A',):
+                            if tracking['id'] and tracking['id'] not in ('N/A',) and not tracking_number:
                                 tracking_number = tracking['id']
-                                break
 
                         if tracking_number:
                             bots_picking_obj.write(_cr, self.session.uid, picking_id, {'carrier_tracking_ref': tracking_number}, context=ctx)
@@ -655,18 +655,24 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
                 self._read_done(file_id, mutex)
                 mutex = None
-                _cr.commit()
+                if new_cr:
+                    _cr.commit()
             except Exception, e:
                 # Log error then continue processing files
                 exception = "%s: %s" % (e, traceback.format_exc())
-                if file_id:
-                    file = self.session.pool.get('bots.file').browse(_cr, SUPERUSER_ID, file_id, self.session.context)
-                    exception = "File: %s\n%s" % (file.full_path, exception)
+                try:
+                    if file_id:
+                        file = self.session.pool.get('bots.file').browse(_cr, SUPERUSER_ID, file_id, self.session.context)
+                        exception = "File: %s\n%s" % (file.full_path, exception)
+                except:
+                    pass
                 exceptions.append(exception)
-                _cr.rollback()
+                if new_cr:
+                    _cr.rollback()
                 continue
             finally:
-                _cr.close()
+                if new_cr:
+                    _cr.close()
 
         # If we hit any errors, fail the job with a list of all errors now
         if exceptions:
@@ -674,7 +680,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
         return res
 
-    def get_stock_levels(self, warehouse_id):
+    def get_stock_levels(self, warehouse_id, new_cr=True):
         product_binder = self.get_binder_for_model('bots.product.product')
         inventory_binder = self.get_binder_for_model('bots.stock.inventory')
         bots_warehouse_obj = self.session.pool.get('bots.warehouse')
@@ -691,7 +697,10 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
         for file_id in file_ids:
             try:
-                _cr = pooler.get_db(self.session.cr.dbname).cursor()
+                if new_cr:
+                    _cr = pooler.get_db(self.session.cr.dbname).cursor()
+                else: # Do not use a new cursor for unit tests
+                    _cr = self.session.cr
                 _session = ConnectorSession(_cr, self.session.uid, context=self.session.context)
                 file_data, mutex = self._read(file_id)
                 json_data = json.loads(file_data)
@@ -720,6 +729,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                         location_id = warehouse.warehouse_id.lot_stock_id.id
                         ctx = {
                                 'location': location_id,
+                                'compute_child': False,
                                 #'to_date': time, # FIXME: Any recent inventories, even backdated, will not be considered since the date is always when it is done. Core bug or feature?
                             }
                         prod = product_obj.browse(_cr, self.session.uid, product_id, context=ctx)
@@ -750,18 +760,24 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
                 self._read_done(file_id, mutex)
                 mutex = None
-                _cr.commit()
+                if new_cr:
+                    _cr.commit()
             except Exception, e:
                 # Log error then continue processing files
                 exception = "%s: %s" % (e, traceback.format_exc())
-                if file_id:
-                    file = self.session.pool.get('bots.file').browse(_cr, SUPERUSER_ID, file_id, self.session.context)
-                    exception = "File: %s\n%s" % (file.full_path, exception)
+                try:
+                    if file_id:
+                        file = self.session.pool.get('bots.file').browse(_cr, SUPERUSER_ID, file_id, self.session.context)
+                        exception = "File: %s\n%s" % (file.full_path, exception)
+                except:
+                    pass
                 exceptions.append(exception)
-                _cr.rollback()
+                if new_cr:
+                    _cr.rollback()
                 continue
             finally:
-                _cr.close()
+                if new_cr:
+                    _cr.close()
 
         # If we hit any errors, fail the job with a list of all errors now
         if exceptions:
@@ -826,17 +842,17 @@ class BotsPickingExport(ExportSynchronizer):
 class BotsWarehouseImport(ImportSynchronizer):
     _model_name = ['bots.warehouse']
 
-    def import_picking_confirmation(self, picking_types=('in', 'out')):
+    def import_picking_confirmation(self, picking_types=('in', 'out'), new_cr=True):
         """
         Import the picking confirmation from Bots
         """
-        self.backend_adapter.get_picking_conf(picking_types)
+        self.backend_adapter.get_picking_conf(picking_types, new_cr=new_cr)
 
-    def import_stock_levels(self, warehouse_id):
+    def import_stock_levels(self, warehouse_id, new_cr=True):
         """
         Import the picking confirmation from Bots
         """
-        self.backend_adapter.get_stock_levels(warehouse_id)
+        self.backend_adapter.get_stock_levels(warehouse_id, new_cr=new_cr)
 
 @on_record_create(model_names='bots.stock.picking.out')
 def delay_export_picking_out_available(session, model_name, record_id, vals):
@@ -868,21 +884,21 @@ def export_picking_cancel(session, model_name, record_id):
     return True
 
 @job
-def import_picking_confirmation(session, model_name, record_id, picking_types):
+def import_picking_confirmation(session, model_name, record_id, picking_types, new_cr=True):
     warehouse = session.browse(model_name, record_id)
     backend_id = warehouse.backend_id.id
     env = get_environment(session, model_name, backend_id)
     warehouse_importer = env.get_connector_unit(BotsWarehouseImport)
-    warehouse_importer.import_picking_confirmation(picking_types=picking_types)
+    warehouse_importer.import_picking_confirmation(picking_types=picking_types, new_cr=new_cr)
     return True
 
 @job
-def import_stock_levels(session, model_name, record_id):
+def import_stock_levels(session, model_name, record_id, new_cr=True):
     warehouse = session.browse(model_name, record_id)
     backend_id = warehouse.backend_id.id
     env = get_environment(session, model_name, backend_id)
     warehouse_importer = env.get_connector_unit(BotsWarehouseImport)
-    warehouse_importer.import_stock_levels(record_id)
+    warehouse_importer.import_stock_levels(record_id, new_cr=new_cr)
     return True
 
 @on_picking_out_available

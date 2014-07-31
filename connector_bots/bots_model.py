@@ -69,17 +69,28 @@ class BotsBackend(orm.Model):
         if ids:
             callback(cr, uid, ids, context=context)
 
-    def _scheduler_import_inventory(self, cr, uid, domain=None, context=None):
-        import ipdb; ipdb.set_trace()
-        self._bots_backend(cr, uid, self.import_inventory, domain=domain, context=context)
+    def _scheduler_import_inventory(self, cr, uid, domain=None, new_cr=True, context=None):
+        if not new_cr:
+            self._bots_backend(cr, uid, self.import_inventory_test, domain=domain, context=context)
+        else:
+            self._bots_backend(cr, uid, self.import_inventory, domain=domain, context=context)
 
-    def _scheduler_import_stock_picking_out_conf(self, cr, uid, domain=None, context=None):
-        self._bots_backend(cr, uid, self.import_picking, domain=domain, context=context)
+    def _scheduler_import_stock_picking_out_conf(self, cr, uid, domain=None, new_cr=True, context=None):
+        if not new_cr:
+            self._bots_backend(cr, uid, self.import_picking_test, domain=domain, context=context)
+        else:
+            self._bots_backend(cr, uid, self.import_picking, domain=domain, context=context)
 
-    def _scheduler_import_stock_picking_in_conf(self, cr, uid, domain=None, context=None):
-        self._bots_backend(cr, uid, self.import_picking, domain=domain, context=context)
+    def _scheduler_import_stock_picking_in_conf(self, cr, uid, domain=None, new_cr=True, context=None):
+        if not new_cr:
+            self._bots_backend(cr, uid, self.import_picking_test, domain=domain, context=context)
+        else:
+            self._bots_backend(cr, uid, self.import_picking, domain=domain, context=context)
 
-    def import_inventory(self, cr, uid, ids, context=None):
+    def import_inventory_test(self, cr, uid, ids, context=None):
+        return self.import_inventory(cr, uid, ids, new_cr=False, context=None)
+
+    def import_inventory(self, cr, uid, ids, new_cr=True, context=None):
         """ Import inventory from all warehouses """
         if not hasattr(ids, '__iter__'):
             ids = [ids]
@@ -89,10 +100,13 @@ class BotsBackend(orm.Model):
         for warehouse in warehouses:
             if warehouse.backend_id.feat_inventory_in:
                 session = ConnectorSession(cr, uid, context=context)
-                import_stock_levels.delay(session, 'bots.warehouse', warehouse.id)
+                import_stock_levels.delay(session, 'bots.warehouse', warehouse.id, new_cr=new_cr)
         return True
 
-    def import_picking(self, cr, uid, ids, picking_type=('in', 'out'), context=None):
+    def import_picking_test(self, cr, uid, ids, picking_type=('in', 'out'), context=None):
+        return self.import_picking(cr, uid, ids, picking_type=('in', 'out'), new_cr=False, context=None)
+
+    def import_picking(self, cr, uid, ids, picking_type=('in', 'out'), new_cr=True, context=None):
         """ Import Picking confirmations """
         if not hasattr(ids, '__iter__'):
             ids = [ids]
@@ -107,7 +121,7 @@ class BotsBackend(orm.Model):
                 picking_types.append('out')
             if picking_types:
                 session = ConnectorSession(cr, uid, context=context)
-                import_picking_confirmation.delay(session, 'bots.warehouse', warehouse.id, picking_types)
+                import_picking_confirmation.delay(session, 'bots.warehouse', warehouse.id, picking_types, new_cr=new_cr)
         return True
 
 class BotsFile(orm.TransientModel):
@@ -118,11 +132,13 @@ class BotsFile(orm.TransientModel):
     _columns = {
         'full_path': fields.char('Full Path', required=True),
         'temp_path': fields.char('Temporary/Archive Path', required=True),
+        'arch_path': fields.char('Archive Path', required=True),
     }
 
     _sql_constraints = [
         ('bots_file_uniq', 'unique(full_path)', 'A file already exists at this path.'),
         ('bots_temp_file_uniq', 'unique(temp_path)', 'A file already exists at this path.'),
+        ('bots_arch_file_uniq', 'unique(arch_path)', 'A file already exists at this path.'),
     ]
 
 class BotsWarehouse(orm.Model):

@@ -54,7 +54,14 @@ class BotsCRUDAdapter(CRUDAdapter):
                                        self.backend_record.location_archive,
                                        self.backend_record.location_out)
 
-    def _get_unique_filename(self, pattern):
+    def _get_unique_filename(self, pattern, location='out'):
+        if location == 'out':
+            loc = self.bots.location_out
+        elif location == 'archive':
+            loc = self.bots.location_archive
+        else:
+            loc = self.bots.location_in
+
         file_obj = self.session.pool.get('bots.file')
         _cr = pooler.get_db(self.session.cr.dbname).cursor()
         try:
@@ -64,7 +71,8 @@ class BotsCRUDAdapter(CRUDAdapter):
                 assert loop_counter < 50
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
                 file_name = pattern % (ts,)
-                full_path = os.path.join(self.bots.location_out, file_name)
+                full_path = os.path.join(loc, file_name)
+                arch_path = os.path.join(self.bots.location_archive, file_name)
 
                 files = file_obj.search(_cr, SUPERUSER_ID, [('full_path', '=', full_path)])
                 if files:
@@ -72,7 +80,7 @@ class BotsCRUDAdapter(CRUDAdapter):
                     time.sleep(0.1)
                     continue
 
-                new_file = file_obj.create(_cr, SUPERUSER_ID, {'full_path': full_path, 'temp_path': full_path + ".tmp"})
+                new_file = file_obj.create(_cr, SUPERUSER_ID, {'full_path': full_path, 'temp_path': full_path + ".tmp", 'arch_path': arch_path})
                 _cr.commit()
                 _cr.execute("SELECT id FROM bots_file WHERE id = %s FOR UPDATE NOWAIT" % (new_file,))
 
@@ -87,16 +95,23 @@ class BotsCRUDAdapter(CRUDAdapter):
         finally:
             _cr.close()
 
-    def _search(self, pattern):
+    def _search(self, pattern, location='in'):
         """
             Search the in location for the pattern, return a list of file names that match
             he new files will not appear in the session cursor, a new cursor must be created
         """
 
+        if location == 'out':
+            loc = self.bots.location_out
+        elif location == 'archive':
+            loc = self.bots.location_archive
+        else:
+            loc = self.bots.location_in
+
         file_obj = self.session.pool.get('bots.file')
         _cr = pooler.get_db(self.session.cr.dbname).cursor()
         try:
-            all = [(f, os.path.join(self.bots.location_in, f), os.path.join(self.bots.location_archive, f)) for f in os.listdir(self.bots.location_in)]
+            all = [(f, os.path.join(loc, f), os.path.join(self.bots.location_archive, f)) for f in os.listdir(loc)]
             matching_files = [x for x in all if re.match(pattern, x[0])]
             file_ids = []
             for file in matching_files:
@@ -104,7 +119,7 @@ class BotsCRUDAdapter(CRUDAdapter):
                 if file_id:
                     file_ids.extend(file_id)
                 else:
-                    file_id = file_obj.create(_cr, SUPERUSER_ID, {'full_path': file[1], 'temp_path': file[2]}, context=self.session.context)
+                    file_id = file_obj.create(_cr, SUPERUSER_ID, {'full_path': file[1], 'arch_path': file[2], 'temp_path': file[1] + ".tmp"}, context=self.session.context)
                     file_ids.append(file_id)
             _cr.commit()
         finally:
@@ -149,7 +164,7 @@ class BotsCRUDAdapter(CRUDAdapter):
         file_obj = self.session.pool.get('bots.file')
         try:
             file = file_obj.browse(mutex._cr, SUPERUSER_ID, filename_id)
-            os.rename(file.full_path, file.temp_path)
+            os.rename(file.full_path, file.arch_path)
             file_obj.unlink(mutex._cr, SUPERUSER_ID, filename_id)
         except Exception, e:
             del mutex
