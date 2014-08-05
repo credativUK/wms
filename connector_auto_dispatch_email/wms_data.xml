@@ -75,6 +75,16 @@
         </div>
         ]]>
     </field>
+    </record>
+
+   <!-- Add a server action -->
+    <record id="action_dispatch_email" model="ir.actions.server">
+            <field name="name">Customer's 'Order Dispatch</field>
+            <field name="model_id" ref="stock.model_stock_picking"/>
+            <field name="sequence">5</field>
+            <field name="condition">True</field>
+            <field name="state">code</field>
+            <field name="code">self.send_dispatch_email(cr,uid,[],context) </field>
         </record>
     </data>
 </openerp>

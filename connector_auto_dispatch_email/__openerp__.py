@@ -18,36 +18,23 @@
 #
 ##############################################################################
 
-{'name': 'Connector for WMS',
+{'name': 'WMS auto dispatch email',
  'version': '1.0.0',
  'category': 'Connector',
  'author': 'credativ Ltd',
  'website': 'http://www.credativ.co.uk',
  'license': 'AGPL-3',
  'description': """
-Connector for WMS
-=================
-
-This modules aims to be a common layer for the connectors dealing with
-Warehouse Management.
-
-It sits on top of the `connector`_ framework and is used by the
-WMS connectors.
-
-That's a technical module, which include amongst other things:
-
-Events
-
-    On which the connectors can subscribe consumers
-    (Picking assigned, ...)
-
+Send emails when dispatch is done.
+The email send event is triggered by wms connector.
 """,
  'depends': [
-     'connector',
-     'connector_ecommerce',
-     'delivery',
+     'connector_wms',
  ],
  'data': [
+     'wms_data.xml'
  ],
  'installable': True,
 }
+
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

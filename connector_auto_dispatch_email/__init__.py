@@ -18,36 +18,6 @@
 #
 ##############################################################################
 
-{'name': 'Connector for WMS',
- 'version': '1.0.0',
- 'category': 'Connector',
- 'author': 'credativ Ltd',
- 'website': 'http://www.credativ.co.uk',
- 'license': 'AGPL-3',
- 'description': """
-Connector for WMS
-=================
+import stock
 
-This modules aims to be a common layer for the connectors dealing with
-Warehouse Management.
-
-It sits on top of the `connector`_ framework and is used by the
-WMS connectors.
-
-That's a technical module, which include amongst other things:
-
-Events
-
-    On which the connectors can subscribe consumers
-    (Picking assigned, ...)
-
-""",
- 'depends': [
-     'connector',
-     'connector_ecommerce',
-     'delivery',
- ],
- 'data': [
- ],
- 'installable': True,
-}
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
