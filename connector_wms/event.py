@@ -20,10 +20,10 @@
 
 from openerp.addons.connector.event import Event
 
-on_picking_out_available = Event()
+on_picking_out_done = Event()
 """
-``on_picking_out_available`` is fired when an outgoing picking has been
-marked as confirmed.
+``on_picking_out_done`` is fired when an outgoing picking has been
+marked as done.
 
 Listeners should take the following arguments:
 
@@ -32,3 +32,50 @@ Listeners should take the following arguments:
  * record_id: id of the record
 """
 
+on_picking_out_available = Event()
+"""
+``on_picking_out_available`` is fired when an outgoing picking has been
+marked as available.
+
+Listeners should take the following arguments:
+
+ * session: `connector.session.ConnectorSession` object
+ * model_name: name of the model
+ * record_id: id of the record
+"""
+
+on_picking_in_available = Event()
+"""
+``on_picking_in_available`` is fired when an incoming picking has been
+marked as available.
+
+Listeners should take the following arguments:
+
+ * session: `connector.session.ConnectorSession` object
+ * model_name: name of the model
+ * record_id: id of the record
+"""
+
+on_picking_out_cancel = Event()
+"""
+``on_picking_out_cancel`` is fired when an outgoing picking has been
+cancelled.
+
+Listeners should take the following arguments:
+
+ * session: `connector.session.ConnectorSession` object
+ * model_name: name of the model
+ * record_id: id of the record
+"""
+
+on_picking_in_cancel = Event()
+"""
+``on_picking_in_cancel`` is fired when an incoming picking has been
+cancelled.
+
+Listeners should take the following arguments:
+
+ * session: `connector.session.ConnectorSession` object
+ * model_name: name of the model
+ * record_id: id of the record
+"""
