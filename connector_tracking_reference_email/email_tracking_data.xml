@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?> 
 <openerp>
-    <data>
-
+    <data noupdate="1">
         <record id="track_reference_template" model="email.template">
             <field name="name">Tracking reference</field>
             <field name="model_id" ref="stock.model_stock_picking"/>
@@ -11,14 +10,13 @@
             <field name="report_template" ref="delivery.report_shipping"/>
             <field name="body_html">
 Hello ${object.partner_id.name}
-                
+
 This is a confirmation of your order #${object.carrier_tracking_ref}
 
 Please find enclosed the delivery order.
-                
+
                 </field>
         </record>
-        
          <record id="track_reference_action" model="ir.actions.server">
            <field name="name">Send tracking reference</field>
             <field name="model_id" ref="stock.model_stock_picking"/>
@@ -31,6 +29,5 @@ ids = data_pool.search(cr, uid, [('model', '=', 'email.template'), ('name', '=',
 pool.get('email.template').send_mail(cr, uid, data_pool.browse(cr, uid, ids)[0].res_id, context['active_id'], context=context)
             </field>
         </record>
-
     </data>
 </openerp>
