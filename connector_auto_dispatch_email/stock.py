@@ -21,13 +21,13 @@
 from openerp.osv import orm
 
 from openerp.addons.connector.session import ConnectorSession
-from .event import on_picking_out_send_email
+from openerp.addons.connector_ecommerce.event import on_picking_out_done
 
 import sys
 import logging
 _logger = logging.getLogger(__name__)
 
-@on_picking_out_send_email
+@on_picking_out_done
 def picking_out_send_email(session, model_name, record_id):
     """Send email to customer when picking is done.
 
@@ -47,26 +47,6 @@ def picking_out_send_email(session, model_name, record_id):
 class stock_picking(orm.Model):
     _inherit = 'stock.picking'
 
-    def action_done(self, cr, uid, ids):
-        """Changes picking state to done.
-
-        This method is called at the end of the workflow by the activity "done".
-        @return: True
-        """
-
-        res = super(stock_picking, self).action_done(cr, uid, ids)
-        if res:
-            session = ConnectorSession(cr, uid, context=None)
-            picking_records = self.read(cr, uid, ids,
-                                    ['id', 'type'],
-                                    context=None)
-            for picking_vals in picking_records:
-                if picking_vals['type'] == 'out':
-                    on_picking_out_send_email.fire(session, self._name, picking_vals['id'])
-                else:
-                    continue
-        return res
-
     def send_dispatch_email(self, cr, uid, ids, context=None):
         '''Send email to customers'''
 
@@ -78,10 +58,8 @@ class stock_picking(orm.Model):
         try:
             template_id = ir_model_data.get_object_reference(cr, uid, 'connector_auto_dispatch_email', 'email_template_dispatch_customer')[1]
             for record_id in ids:
-                self.pool.get('email.template').send_mail(cr, uid, template_id, record_id, force_send=True, context=context)
+                self.pool.get('email.template').send_mail(cr, uid, template_id, record_id, force_send=False, context=context)
         except:
             _logger.error(sys.exc_info()[0])
-
-
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
