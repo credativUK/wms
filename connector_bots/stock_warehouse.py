@@ -155,12 +155,13 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             tracking_number = False
                             for tracking in picking.get('references', []):
                                 # Get the first sane tracking reference
-                                if tracking['type'] == 'shipping_ref' and picking['type'] == 'out' and tracking['id'] and tracking['id'] not in ('N/A',):
-                                    tracking_number = tracking['id']
-                                if tracking['type'] == 'purchase_ref' and picking['type'] == 'in' and tracking['id'] and tracking['id'] not in ('N/A',):
-                                    tracking_number = tracking['id']
-                                if tracking['id'] and tracking['id'] not in ('N/A',) and not tracking_number:
-                                    tracking_number = tracking['id']
+                                if tracking['id'] and tracking['id'] not in ('N/A',):
+                                    if tracking['type'] == 'purchase_ref' and picking['type'] == 'in':
+                                        tracking_number = tracking['id']
+                                    elif tracking['type'] == 'shipping_ref' and picking['type'] == 'out':
+                                        tracking_number = tracking['id']
+                                    elif not tracking_number:
+                                        tracking_number = tracking['id']
 
                             if tracking_number:
                                 bots_picking_obj.write(_cr, self.session.uid, picking_id, {'carrier_tracking_ref': tracking_number}, context=ctx)
