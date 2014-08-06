@@ -26,7 +26,7 @@ import openerp.tests.common as common
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import _unpickle, Job
 
-from ..unit.backend_adapter import BotsCRUDAdapter
+from ..unit.backend_adapter import BotsCRUDAdapter, file_to_process
 from ..connector import get_environment
 
 import tempfile
@@ -53,10 +53,8 @@ class SetUpBotsBase(common.TransactionCase):
         adapter = BotsCRUDAdapter(env)
         file_ids = adapter._search(pattern, location='out')
         for file_id in file_ids:
-            raw_data, mutex = adapter._read(file_id)
-            res['file_id'] = raw_data
-            adapter._read_done(file_id, mutex)
-            mutex = None
+            with file_to_process(self.session, file_id[0], new_cr=False) as f:
+                res[file_id] = f.read()
         return res
 
     def _set_file_data(self, model, pattern, data):

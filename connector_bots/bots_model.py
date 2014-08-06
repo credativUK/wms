@@ -133,6 +133,7 @@ class BotsFile(orm.TransientModel):
         'full_path': fields.char('Full Path', required=True),
         'temp_path': fields.char('Temporary/Archive Path', required=True),
         'arch_path': fields.char('Archive Path', required=True),
+        'processed': fields.boolean('Already processed'),
     }
 
     _sql_constraints = [

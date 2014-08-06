@@ -27,11 +27,60 @@ from openerp.addons.connector.unit.backend_adapter import CRUDAdapter
 from openerp.addons.connector.exception import NetworkRetryableError, RetryableJobError
 
 from datetime import datetime
+from contextlib import contextmanager
 import os
 import time
 import re
 
 _logger = logging.getLogger(__name__)
+
+@contextmanager
+def file_to_process(session, filename_id, new_cr=True):
+    """
+        Open file for reading and return the contents as a stream.
+
+        If new_cr is true, everything is handled in a separate transaction that
+        is committed on successful completion and file then moved away to the
+        archive location.
+
+        If new_cr is False, caller accepts the potential data loss arising from
+        the fact that the uncommitted state may still be rolled back after the
+        file and state has already been archived.
+    """
+    fd = None
+
+    file_obj = session.pool.get('bots.file')
+    try:
+        cr = pooler.get_db(session.cr.dbname).cursor()
+        if new_cr:
+            orig_cr = session.cr
+            session.cr = cr
+
+        cr.execute("SELECT id FROM bots_file WHERE id = %s FOR UPDATE NOWAIT" % (filename_id,))
+        file = file_obj.browse(cr, SUPERUSER_ID, filename_id)
+        fd = open(file.full_path, "rb")
+        yield fd
+        file_obj.write(cr, SUPERUSER_ID, filename_id, {'processed': True})
+        cr.commit()
+
+        # If we committed, the file is marked as successfully processed and
+        # noone else will try to do so again. It can be archived now but should
+        # that fail, nothing happens, really, as anyone can do the move later
+        os.rename(file.full_path, file.arch_path)
+        file_obj.unlink(cr, SUPERUSER_ID, filename_id)
+    except:
+        cr.rollback()
+        raise
+    finally:
+        if fd:
+            fd.close()
+
+        # we have already rolled back if there was an error
+        if new_cr:
+            session.cr = orig_cr
+
+        cr.commit()
+        cr.close()
 
 class BotsLocation(object):
 
@@ -117,65 +166,24 @@ class BotsCRUDAdapter(CRUDAdapter):
             for file in matching_files:
                 file_id = file_obj.search(_cr, SUPERUSER_ID, [('full_path', '=', file[1])], context=self.session.context)
                 if file_id:
-                    file_ids.extend(file_id)
+                    file_id = file_id[0]
+
+                    # Is this a leftover file that someone processed and could not move? Try again and log failure
+                    f = file_obj.read(_cr, SUPERUSER_ID, file_id, ['processed', 'arch_path'], context=self.session.context)
+                    if f['processed']:
+                        try:
+                            os.rename(file[1], f['arch_path'])
+                            file_obj.unlink(_cr, SUPERUSER_ID, file_id)
+                        except IOError, e:
+                            _logger.exception('Error trying to move file %s -> %s', file[1], f['arch_path'])
+                        continue
                 else:
                     file_id = file_obj.create(_cr, SUPERUSER_ID, {'full_path': file[1], 'arch_path': file[2], 'temp_path': file[1] + ".tmp"}, context=self.session.context)
-                    file_ids.append(file_id)
+                file_ids.append((file_id, file[1]))
             _cr.commit()
         finally:
             _cr.close()
         return file_ids
-
-    class _read_mutex(object):
-        _cr = None
-
-        def __init__(self, dbname):
-            self._cr = pooler.get_db(dbname).cursor()
-
-        def __del__(self):
-            self.free_cursor()
-
-        def free_cursor(self):
-            if self._cr:
-                self._cr.close()
-                self._cr = None
-
-    #FIXME: rewrite as a context manager
-    # reuse the parent cursor unless requested not to (then create one locally), add a new flag on the file table to indicate processing done
-    # when opening a file, check if already processed, if so, a rename failed, try a rename, catch a failure and log error as an error is half-expected
-    # commit the cursor on finish
-    def _read(self, filename_id):
-        """
-            Open file for reading and return the contents as a stream
-            Returns the raw data and a mutex class containing a cursor with a lock on the file
-        """
-        file_obj = self.session.pool.get('bots.file')
-        try:
-            mutex = self._read_mutex(self.session.cr.dbname)
-            mutex._cr.execute("SELECT id FROM bots_file WHERE id = %s FOR UPDATE NOWAIT" % (filename_id,))
-            file = file_obj.browse(mutex._cr, SUPERUSER_ID, filename_id)
-            in_fd = open(file.full_path, "rb")
-            data = in_fd.read()
-            in_fd.close()
-            return data, mutex
-        except Exception, e:
-            del mutex
-            raise e
-
-    def _read_done(self, filename_id, mutex):
-        """ Move the file to archive and remove the read lock """
-
-        file_obj = self.session.pool.get('bots.file')
-        try:
-            file = file_obj.browse(mutex._cr, SUPERUSER_ID, filename_id)
-            os.rename(file.full_path, file.arch_path)
-            file_obj.unlink(mutex._cr, SUPERUSER_ID, filename_id)
-        except Exception, e:
-            del mutex
-            raise e
-        mutex._cr.commit()
-        mutex.free_cursor()
-        return True
 
     def _write(self, filename_id, contents):
         """ Create a new file at the location. Input must be a stream."""
