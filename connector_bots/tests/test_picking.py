@@ -185,8 +185,9 @@ class TestPickingOut(TestPicking):
         # 3. Perform some invalid actions - should all fail
         with self.assertRaises(osv.except_osv):
             wf_service.trg_validate(self.uid, 'stock.picking', picking.id, 'button_cancel', self.cr)
-            picking.refresh()
-            self.assertNotEquals(picking.state, 'cancel', 'Picking should not be cancelled')
+        picking.refresh()
+        self.assertNotEquals(picking.state, 'cancel', 'Picking should not be cancelled')
+
         with self.assertRaises(osv.except_osv):
             picking.cancel_assign()
         with self.assertRaises(osv.except_osv):
@@ -888,8 +889,9 @@ class TestPickingIn(TestPicking):
         # 3. Perform some invalid actions - should all fail
         with self.assertRaises(osv.except_osv):
             wf_service.trg_validate(self.uid, 'stock.picking', picking.id, 'button_cancel', self.cr)
-            picking.refresh()
-            self.assertNotEquals(picking.state, 'cancel', 'Picking should not be cancelled')
+        picking.refresh()
+        self.assertNotEquals(picking.state, 'cancel', 'Picking should not be cancelled')
+
         with self.assertRaises(osv.except_osv):
             picking.cancel_assign()
         with self.assertRaises(osv.except_osv):
