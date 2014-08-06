@@ -48,7 +48,7 @@ class BotsProductBinder(BotsBinder):
         ]
 
     def to_openerp(self, external_id, unwrap=False):
-        '''Match the SKU from Bots to the OpenERP product. Since product master sync is not yet implimented we will attempt to match directly on SKU with overrides'''
+        '''Match the SKU from Bots to the OpenERP product. Since product master sync is not yet implemented we will attempt to match directly on SKU with overrides'''
         # Attempt to get overriding mappings
         bots_product_ids = self.session.search('bots.product', [('bots_id', '=', str(external_id)), ('backend_id', '=', self.backend_record.id)])
         if bots_product_ids:

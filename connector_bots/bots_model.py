@@ -88,7 +88,7 @@ class BotsBackend(orm.Model):
             self._bots_backend(cr, uid, self.import_picking, domain=domain, context=context)
 
     def import_inventory_test(self, cr, uid, ids, context=None):
-        return self.import_inventory(cr, uid, ids, new_cr=False, context=None)
+        return self.import_inventory(cr, uid, ids, new_cr=False, context=context)
 
     def import_inventory(self, cr, uid, ids, new_cr=True, context=None):
         """ Import inventory from all warehouses """
@@ -103,10 +103,10 @@ class BotsBackend(orm.Model):
                 import_stock_levels.delay(session, 'bots.warehouse', warehouse.id, new_cr=new_cr)
         return True
 
-    def import_picking_test(self, cr, uid, ids, picking_type=('in', 'out'), context=None):
-        return self.import_picking(cr, uid, ids, picking_type=('in', 'out'), new_cr=False, context=None)
+    def import_picking_test(self, cr, uid, ids, context=None):
+        return self.import_picking(cr, uid, ids, new_cr=False, context=context)
 
-    def import_picking(self, cr, uid, ids, picking_type=('in', 'out'), new_cr=True, context=None):
+    def import_picking(self, cr, uid, ids, new_cr=True, context=None):
         """ Import Picking confirmations """
         if not hasattr(ids, '__iter__'):
             ids = [ids]
