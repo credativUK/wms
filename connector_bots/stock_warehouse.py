@@ -225,10 +225,9 @@ class WarehouseAdapter(BotsCRUDAdapter):
                         # Done, next line please
                         continue
 
-                self._read_done(file_id, mutex)
-                mutex = None
                 if new_cr:
                     _cr.commit()
+                self._read_done(file_id, mutex)
             except Exception, e:
                 # Log error then continue processing files
                 exception = "%s: %s" % (e, traceback.format_exc())
@@ -330,10 +329,9 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             'bots_id': '%s %s' % (self.backend_record.name, time,),})
                         add_checkpoint(_session, 'stock.inventory', inventory_id, self.backend_record.id)
 
-                self._read_done(file_id, mutex)
-                mutex = None
                 if new_cr:
                     _cr.commit()
+                self._read_done(file_id, mutex)
             except Exception, e:
                 # Log error then continue processing files
                 exception = "%s: %s" % (e, traceback.format_exc())

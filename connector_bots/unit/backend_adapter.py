@@ -140,6 +140,10 @@ class BotsCRUDAdapter(CRUDAdapter):
                 self._cr.close()
                 self._cr = None
 
+    #FIXME: rewrite as a context manager
+    # reuse the parent cursor unless requested not to (then create one locally), add a new flag on the file table to indicate processing done
+    # when opening a file, check if already processed, if so, a rename failed, try a rename, catch a failure and log error as an error is half-expected
+    # commit the cursor on finish
     def _read(self, filename_id):
         """
             Open file for reading and return the contents as a stream
