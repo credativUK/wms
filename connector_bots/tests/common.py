@@ -78,6 +78,11 @@ class SetUpBotsBase(common.TransactionCase):
             self.backend_id = backend_ids[0]
         else:
             __, warehouse_id = self.get_ref('stock', 'warehouse0')
+
+            self.location_in = tempfile.mkdtemp(prefix = 'bots_test_in_')
+            self.location_archive = tempfile.mkdtemp(prefix = 'bots_test_archive_')
+            self.location_out = tempfile.mkdtemp(prefix = 'bots_test_out_')
+
             self.backend_id = self.backend_model.create(
                 self.cr,
                 self.uid,
@@ -86,9 +91,9 @@ class SetUpBotsBase(common.TransactionCase):
                     'version': '3.1.0',
                     'name_from': 'Bots Test',
                     'name_to': 'OpenERP Test',
-                    'location_in': tempfile.mkdtemp(prefix = 'bots_test_in_'),
-                    'location_archive': tempfile.mkdtemp(prefix = 'bots_test_archive_'),
-                    'location_out': tempfile.mkdtemp(prefix = 'bots_test_out_'),
+                    'location_in': self.location_in,
+                    'location_archive': self.location_archive,
+                    'location_out': self.location_out,
                     'feat_picking_out': True,
                     'feat_picking_in': True,
                     'feat_picking_out_cancel': True,
@@ -109,8 +114,7 @@ class SetUpBotsBase(common.TransactionCase):
                 })
 
     def tearDown(self):
-        backend = self.backend_model.browse(self.cr, self.uid, self.backend_id)
-        shutil.rmtree(backend.location_in)
-        shutil.rmtree(backend.location_archive)
-        shutil.rmtree(backend.location_out)
+        shutil.rmtree(self.location_in)
+        shutil.rmtree(self.location_archive)
+        shutil.rmtree(self.location_out)
         super(SetUpBotsBase, self).tearDown()
