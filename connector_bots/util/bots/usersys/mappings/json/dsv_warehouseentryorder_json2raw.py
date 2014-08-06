@@ -125,17 +125,17 @@ def main(inn,out):
             SEGMENT = "32"
             rec_counts[SEGMENT] = rec_counts.setdefault(SEGMENT, 0) + 1
 
-            PART_NAME = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'name': None})
-            PART_STREET1 = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'street1': None})
-            PART_STREET2 = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'street2': None})
-            PART_CITY = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'city': None})
-            PART_ZIP = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'zip': None})
-            PART_COUNTRY = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'country': None})
-            PART_STATE = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'state': None})
-            PART_PHONE = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'phone': None})
-            PART_FAX = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'fax': None})
-            PART_LANG = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'language': None})
-            PART_VAT = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'vat': None})
+            PART_NAME = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'name': None}) or ''
+            PART_STREET1 = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'street1': None}) or ''
+            PART_STREET2 = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'street2': None}) or ''
+            PART_CITY = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'city': None}) or ''
+            PART_ZIP = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'zip': None}) or ''
+            PART_COUNTRY = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'country': None}) or ''
+            PART_STATE = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'state': None}) or ''
+            PART_PHONE = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'phone': None}) or ''
+            PART_FAX = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'fax': None}) or ''
+            PART_LANG = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'language': None}) or ''
+            PART_VAT = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'vat': None}) or ''
 
             d = OrderedDict([
                 ('Segment_Number', SEGMENT),

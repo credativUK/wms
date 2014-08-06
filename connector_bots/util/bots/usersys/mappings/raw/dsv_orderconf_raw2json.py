@@ -250,6 +250,11 @@ def main(inn,out):
                     oidout.put({'BOTSID':'references', 'desc': ORDLID_DESC})
                     oidout.put({'BOTSID':'references', 'type': ORDLID_TYPE})
 
+                # == ORDER LINE DETAILS - WOC83R ==
+                for ORDLD in ORDL.get('WOC83R', []):
+                    rec_counts['83'] = rec_counts.setdefault('83', 0) + 1
+                    # FIXME: Unused but count for validation
+
                 # == ORDER LINE DETAILS - WOC85R ==
                 for ORDLD in ORDL.get('WOC85R', []):
                     rec_counts['85'] = rec_counts.setdefault('85', 0) + 1

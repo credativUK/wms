@@ -279,7 +279,7 @@
 
     <xs:simpleType name="Field_N15_6">
         <xs:restriction base="xs:string">
-            <xs:pattern value="[0-9]{0,15}\.[0-9]{0,2}"/>
+            <xs:pattern value="[0-9]{0,15}(\.[0-9]{0,6})?"/>
             <xs:maxLength value="18"/>
         </xs:restriction>
     </xs:simpleType>
@@ -370,6 +370,7 @@
                 <xs:enumeration value=""/>
                 <xs:enumeration value="P"/>
                 <xs:enumeration value="O"/>
+                <xs:enumeration value="I"/>
             </xs:restriction>
         </xs:simpleType>
     </xs:element>
@@ -390,6 +391,8 @@
                 <xs:enumeration value="945"/> <!-- Entry Shipping Confirmation -->
                 <xs:enumeration value="944 E"/> <!-- Entry Order Confirmation -->
                 <xs:enumeration value="945 E"/> <!-- Entry Shipping Confirmation -->
+                <xs:enumeration value="944 L"/> <!-- Entry Order Confirmation -->
+                <xs:enumeration value="945 L"/> <!-- Entry Shipping Confirmation -->
             </xs:restriction>
         </xs:simpleType>
     </xs:element>
@@ -438,6 +441,7 @@
                 <xs:enumeration value="N"/>
                 <xs:enumeration value="S"/>
                 <xs:enumeration value="E"/>
+                <xs:enumeration value="L"/>
             </xs:restriction>
         </xs:simpleType>
     </xs:element>
@@ -528,7 +532,9 @@
             <xs:enumeration value="CON"/>
             <xs:enumeration value="ABO"/>
             <xs:enumeration value="PO"/>
+            <xs:enumeration value="SO"/>
             <xs:enumeration value="SI"/>
+            <xs:enumeration value="ACD"/>
         </xs:restriction>
     </xs:simpleType>
 
@@ -925,6 +931,7 @@
                 <xs:enumeration value="AV2"/>
                 <xs:enumeration value="AV3"/>
                 <xs:enumeration value="COM"/>
+                <xs:enumeration value="UPC"/>
             </xs:restriction>
         </xs:simpleType>
     </xs:element>
