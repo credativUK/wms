@@ -97,7 +97,7 @@ class BotsCRUDAdapter(CRUDAdapter):
 
     def _search(self, pattern, location='in'):
         """
-            Search the in location for the pattern, return a list of file names that match
+            Search the 'in' location for the pattern, return a list of file names that match
             he new files will not appear in the session cursor, a new cursor must be created
         """
 
