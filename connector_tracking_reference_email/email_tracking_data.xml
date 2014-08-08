@@ -29,5 +29,6 @@ ids = data_pool.search(cr, uid, [('model', '=', 'email.template'), ('name', '=',
 pool.get('email.template').send_mail(cr, uid, data_pool.browse(cr, uid, ids)[0].res_id, context['active_id'], context=context)
             </field>
         </record>
+
     </data>
 </openerp>
