@@ -35,7 +35,9 @@
         'update_xml' : [
             ],
         'data' : [
-           'email_tracking_data.xml'
+           'email_tracking_data.xml',
+           'security/ir.model.access.csv',
+           'security/connector_security.xml'
             ],
         'installable' : True,
         'active' : False,
