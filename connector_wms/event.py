@@ -55,3 +55,27 @@ Listeners should take the following arguments:
  * model_name: name of the model
  * record_id: id of the record
 """
+
+on_picking_out_cancel = Event()
+"""
+``on_picking_out_cancel`` is fired when an outgoing picking has been
+cancelled.
+
+Listeners should take the following arguments:
+
+ * session: `connector.session.ConnectorSession` object
+ * model_name: name of the model
+ * record_id: id of the record
+"""
+
+on_picking_in_cancel = Event()
+"""
+``on_picking_in_cancel`` is fired when an incoming picking has been
+cancelled.
+
+Listeners should take the following arguments:
+
+ * session: `connector.session.ConnectorSession` object
+ * model_name: name of the model
+ * record_id: id of the record
+"""
