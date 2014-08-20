@@ -507,11 +507,26 @@ def picking_available(session, model_name, record_id, picking_type, location_typ
     # If so create binding, else return
     if not picking.state == 'assigned': # Handle only deliveries which are assigned
         return
+
+    location_ids = []
     if location_type == 'src':
-        location_id = picking.location_id.id or picking.move_lines and picking.move_lines[0].location_id.id
+        location = picking.location_id or picking.move_lines and picking.move_lines[0].location_id
+        while location and location.id not in location_ids:
+            location_ids.append(location.id)
+            if location.chained_picking_type != 'in':
+                location = location.chained_location_id
     else:
-        location_id = picking.location_dest_id.id or picking.move_lines and picking.move_lines[0].location_dest_id.id
-    warehouse_ids = warehouse_obj.search(session.cr, session.uid, [('lot_stock_id', '=', location_id)])
+        location = picking.location_dest_id or picking.move_lines and picking.move_lines[0].location_dest_id
+        while location and location.id not in location_ids:
+            location_ids.append(location.id)
+            if location.chained_picking_type != 'out':
+                location = location.chained_location_id
+
+    for location_id in location_ids:
+        warehouse_ids = warehouse_obj.search(session.cr, session.uid, ['|', ('lot_stock_id', '=', location_id), ('lot_output_id', '=', location_id)])
+        if warehouse_ids:
+            break
+
     bots_warehouse_ids = bots_warehouse_obj.search(session.cr, session.uid, [('warehouse_id', 'in', warehouse_ids)])
     bots_warehouse = bots_warehouse_obj.browse(session.cr, session.uid, bots_warehouse_ids)
     for warehouse in bots_warehouse:
