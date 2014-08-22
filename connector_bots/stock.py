@@ -382,6 +382,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 order_line['desc'] = move.note
 
             order_lines.append(order_line)
+            seq += 1
 
         if not order_lines:
             raise MappingError(_('Unable to export any order lines on export of Bots picking %s.') % (picking_id,))

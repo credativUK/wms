@@ -142,14 +142,14 @@ def main(inn,out):
                 ('Company_Name_1', PART_NAME),
                 ('Address_3', PART_STREET2),
                 ('Postal_Code', PART_ZIP),
-                ('Place_Name', PART_STATE),
+                ('Place_Name', PART_CITY),
                 ('Country_Code', PART_COUNTRY),
                 ('Language_code', get_dsv_lang(PART_LANG)),
                 ('Telephone_Number', PART_PHONE),
                 ('Telefax_Number', PART_FAX),
                 ('VAT-number', PART_VAT),
                 ('Address_2', PART_STREET1),
-                ('Address_4', PART_CITY),
+                ('Address_4', PART_STATE),
             ])
             party_root.setdefault(ELEMENT, []).append(d)
 
@@ -172,17 +172,13 @@ def main(inn,out):
                 LINE_PRICE_UNIT = pline.get({'BOTSID': 'line', 'price_unit': None})
                 LINE_CURRENCY = pline.get({'BOTSID': 'line', 'price_currency': None})
                 LINE_CUSTOMS_FROM = pline.get({'BOTSID': 'line', 'customs_free_from': None})
-                LINE_CUSTOMS_TO = pline.get({'BOTSID': 'line', 'customs_free_to': None})
                 LINE_CUSTOMS_FROM = (LINE_CUSTOMS_FROM in ("1", "True", None) and 'FR') or 'T1'
-                LINE_CUSTOMS_TO = (LINE_CUSTOMS_TO in ("1", "True", None) and 'FR') or 'T1'
 
                 line_root = OrderedDict([
                     ('Segment_Number', SEGMENT),
                     ('Orderline_ID', LINE_SEQ),
-                    ('Article_Ref', LINE_PRODUCT),
                     ('SKU_Reference', LINE_PRODUCT),
                     ('Customs_Status_from', LINE_CUSTOMS_FROM),
-                    ('Customs_Status_to', LINE_CUSTOMS_TO),
                     ('Currency_customs_val', LINE_CURRENCY),
                     ('Type_of_package', LINE_TYPE),
                     ('Measure_unit_specifier', 'PCE'), # FIXME: We only support units UoM currently

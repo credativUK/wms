@@ -159,14 +159,14 @@ def main(inn,out):
                 ('Company_Name_1', PART_NAME),
                 ('Address_3', PART_STREET2),
                 ('Postal_Code', PART_ZIP),
-                ('Place_Name', PART_STATE),
+                ('Place_Name', PART_CITY),
                 ('Country_Code', PART_COUNTRY),
                 ('Language_code', get_dsv_lang(PART_LANG)),
                 ('Telephone_Number', PART_PHONE),
                 ('Telefax_Number', PART_FAX),
                 ('VAT-number', PART_VAT),
                 ('Address_2', PART_STREET1),
-                ('Address_4', PART_CITY),
+                ('Address_4', PART_STATE),
             ])
             party_root.setdefault(ELEMENT, []).append(d)
 
@@ -192,7 +192,7 @@ def main(inn,out):
                 line_root = OrderedDict([
                     ('Segment_Number', SEGMENT),
                     ('Orderline_ID', LINE_SEQ),
-                    ('Article_Ref', LINE_PRODUCT),
+                    ('SKU_Reference', LINE_PRODUCT),
                     ('Type_of_package', LINE_TYPE),
                     ('Number_of_packages', LINE_QTY),
                     ('Number_of_units_measure_unit_specifier', LINE_QTY),
