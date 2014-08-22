@@ -816,7 +816,7 @@
                 <xs:element name="Packages" type="Field_N6" minOccurs="0"/>
                 <xs:element name="Units_MUS" type="Field_N11" minOccurs="0"/>
                 <xs:element name="Date_executed" type="Field_CC_YYMMDD" minOccurs="0"/>
-                <xs:element name="Time_executed" type="Field_HHMMSS"/>
+                <xs:element name="Time_executed" type="Field_HHMMSS" minOccurs="0"/>
                 <xs:element name="Orderline_reference" type="Field_AN17" minOccurs="0"/>
                 <xs:element name="Picking_date" type="Field_YYMMDD" minOccurs="0"/>
                 <xs:element name="Picking_time" type="Field_HHMMSS" minOccurs="0"/>
