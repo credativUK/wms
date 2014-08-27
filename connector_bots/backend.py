@@ -18,6 +18,10 @@
 #
 ##############################################################################
 
-import stock_picking
+import openerp.addons.connector.backend as backend
 
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+bots = backend.Backend('bots')
+""" Generic Bots Backend """
+
+bots_3_1_0 = backend.Backend(parent=bots, version='3.1.0')
+""" Bots 3.1.0 Backend """

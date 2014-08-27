@@ -18,6 +18,9 @@
 #
 ##############################################################################
 
-import stock_picking
-
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+import connector
+import backend
+import bots_model
+import product
+import stock_warehouse
+import stock

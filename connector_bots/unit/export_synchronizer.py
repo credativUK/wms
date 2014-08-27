@@ -18,6 +18,10 @@
 #
 ##############################################################################
 
-import stock_picking
+import logging
+from openerp.addons.connector.unit.synchronizer import ExportSynchronizer
 
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+_logger = logging.getLogger(__name__)
+
+class BotsBaseExporter(ExportSynchronizer):
+    """ Base exporter for Bots """

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Copyright 2014 credativ Ltd
+#    Author: Guewen Baconnier
+#    Copyright 2013 Camptocamp SA
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,6 +19,7 @@
 #
 ##############################################################################
 
-import stock_picking
+from openerp.addons.connector.connector import install_in_connector
 
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+
+install_in_connector()

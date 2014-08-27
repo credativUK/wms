@@ -18,6 +18,29 @@
 #
 ##############################################################################
 
-import stock_picking
+{'name': 'Connector for Bots EDI server',
+ 'version': '1.0.0',
+ 'category': 'Connector',
+ 'author': 'credativ Ltd',
+ 'website': 'http://www.credativ.co.uk',
+ 'license': 'AGPL-3',
+ 'description': """
+Connector for Bots EDI server
+=============================
 
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+This module provides a way for OpenERP to communicate with EDI
+systems through Bots which is used to translate to the specific
+data format for the external EDI system.
+""",
+ 'depends': [
+     'connector',
+     'connector_wms',
+ ],
+ 'data': [
+     'bots_model_view.xml',
+     'bots_menu.xml',
+     'bots_data.xml',
+     'security/ir.model.access.csv',
+ ],
+ 'installable': True,
+}

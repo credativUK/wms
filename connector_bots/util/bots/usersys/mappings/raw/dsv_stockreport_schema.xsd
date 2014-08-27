@@ -1,0 +1,731 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- XSD File Created by credativ based on DSV Specifications -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <!-- Generic Types -->
+    <xs:simpleType name="Field_AN1">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN2">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN3">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="3"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN4">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="3"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN6">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="6"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN8">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="8"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN9">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="8"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN10">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="10"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN12">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="10"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN14">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="14"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN17">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="17"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN20">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="20"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN21">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="21"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN22">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="22"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN25">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="25"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN26">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="26"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN35">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="35"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN60">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="60"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN80">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="80"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN128">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="128"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN256">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="256"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN9U">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Z0-9 ]*"/>
+            <xs:maxLength value="9"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN10U">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Z0-9 ]*"/>
+            <xs:maxLength value="10"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_AN20U">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Z0-9 ]*"/>
+            <xs:maxLength value="20"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N1">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N2">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N3">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="3"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N4">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="4"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N5">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="5"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N6">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="6"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N7">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="7"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N8">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="8"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N11">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="11"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N17">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]*"/>
+            <xs:maxLength value="17"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N5_2">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,5}(\.[0-9]{0,2})?"/>
+            <xs:maxLength value="8"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N6_4">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,6}(\.[0-9]{0,4})?"/>
+            <xs:maxLength value="11"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N9_3">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,9}(\.[0-9]{0,3})?"/>
+            <xs:maxLength value="13"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N9_6">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,9}(\.[0-9]{0,6})?"/>
+            <xs:maxLength value="16"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N11_3">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,11}(\.[0-9]{0,3})?"/>
+            <xs:maxLength value="15"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N11_6">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,11}(\.[0-9]{0,6})?"/>
+            <xs:maxLength value="18"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N14_6">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,14}(\.[0-9]{0,6})?"/>
+            <xs:maxLength value="21"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N15_2">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,15}(\.[0-9]{0,2})?"/>
+            <xs:maxLength value="18"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N15_6">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,15}(\.[0-9]{0,2})?"/>
+            <xs:maxLength value="18"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_N19_8">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{0,19}(\.[0-9]{0,8})?"/>
+            <xs:maxLength value="28"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_CCYYMMDD">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{8}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_CC_YYMMDD">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="([0-9]{2})?[0-9]{6}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_YYMMDD">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{6}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_HHMMSS">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{6}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_HHMM">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{4}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_YN">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Y"/>
+            <xs:enumeration value="N"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_Gender">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="M"/>
+            <xs:enumeration value="F"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_Order_Reference16">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="16"/>
+            <xs:pattern value="[a-zA-Z0-9 ]*"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_Order_Reference17">
+        <xs:restriction base="xs:string">
+            <xs:maxLength value="17"/>
+            <xs:pattern value="[a-zA-Z0-9 ]*"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Field_Customs">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value=""/>
+            <xs:enumeration value="FR"/>
+            <xs:enumeration value="T1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <!-- Header Element -->
+    <xs:simpleType name="Segment_number00">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="00"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Sender_Identification">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="[0-9]*"/>
+                <xs:maxLength value="6"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Message_Identification">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <!-- FIXME: maxLength should be 10, but to validate with DSV's examples 13 is used -->
+                <xs:maxLength value="13"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Message_type-Identifier">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="846"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="SR00R">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Segment_number" type="Segment_number00"/>
+                <xs:element ref="Sender_Identification" minOccurs="0"/>
+                <xs:element ref="Message_Identification"/>
+                <xs:element name="Message_date" type="Field_CCYYMMDD"/>
+                <xs:element name="Message_time" type="Field_HHMM"/>
+                <xs:element ref="Message_type-Identifier"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Party Details -->
+    <xs:simpleType name="Segment_number72">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="72"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Address_1">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:maxLength value="25"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="House_number">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="[0-9 ]*"/>
+                <xs:maxLength value="5"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="House_number_extension">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="[a-zA-Z ]*"/>
+                <xs:maxLength value="3"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Postal_code">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="[a-zA-Z0-9 ]*"/>
+                <xs:maxLength value="9"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Country_code">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:maxLength value="2"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Language_code">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:maxLength value="1"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Telephone_number">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:maxLength value="25"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Telefax_number">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:maxLength value="25"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="VAT-number">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="[A-Z0-9 ]*"/>
+                <xs:maxLength value="20"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Name_abbreviated">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="[A-Z0-9 ]*"/>
+                <xs:maxLength value="10"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="SR72R">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Segment_number" type="Segment_number72"/>
+                <xs:element name="Company_name_1" type="Field_AN35"/>
+                <xs:element name="Company_name_2" type="Field_AN35" minOccurs="0"/>
+                <xs:element ref="Address_1" minOccurs="0"/>
+                <xs:element ref="House_number" minOccurs="0"/>
+                <xs:element ref="House_number_extension" minOccurs="0"/>
+                <xs:element name="Address_3" type="Field_AN35" minOccurs="0"/>
+                <xs:element ref="Postal_code"/>
+                <xs:element name="Place_name" type="Field_AN35"/>
+                <xs:element ref="Country_code"/>
+                <xs:element ref="Language_code"/>
+                <xs:element ref="Telephone_number" minOccurs="0"/>
+                <xs:element ref="Telefax_number" minOccurs="0"/>
+                <xs:element ref="VAT-number" minOccurs="0"/>
+                <xs:element ref="Name_abbreviated" minOccurs="0"/>
+                <xs:element name="Address_2" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Address_4" type="Field_AN35" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Party Identification -->
+    <xs:simpleType name="Segment_number70">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="70"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Party_qualifier">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="WH"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Party_external_reference">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="[A-Z]*"/>
+                <xs:maxLength value="17"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="SR70R">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Segment_number" type="Segment_number70"/>
+                <xs:element ref="Party_qualifier"/>
+                <xs:element ref="Party_external_reference"/>
+                <xs:element ref="SR72R"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Stock Details -->
+    <xs:simpleType name="Segment_number8A">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="8A"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="Qualifier">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="M"/>
+                <xs:enumeration value="P"/>
+                <xs:enumeration value="S"/>
+                <xs:enumeration value="1"/>
+                <xs:enumeration value="2"/>
+                <xs:enumeration value="3"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Custom_Status">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:maxLength value="2"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Article_reference">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:maxLength value="17"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Sub_inventory_code">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:maxLength value="2"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Product_code_qualifier">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="EAN"/>
+                <xs:enumeration value="UPC"/>
+                <xs:enumeration value="BPC"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Product_code">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:maxLength value="17"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Article_typ_pack_id">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="G"/>
+                <xs:enumeration value="B"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Article_typ_pack_cd">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:maxLength value="4"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="ptop_reference_to_top">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:maxLength value="10"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="SR8AR">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Segment_number" type="Segment_number8A"/>
+                <xs:element name="Lot_external_reference" type="Field_AN35"/>
+                <xs:element ref="Qualifier"/>
+                <!-- FIXME: minOccurs should be default, but to validate with DSV's examples 0 is used -->
+                <xs:element name="Expected_in" type="Field_N11" minOccurs="0"/>
+                <xs:element name="Physical_stock_available" type="Field_N11"/>
+                <!-- FIXME: minOccurs should be default, but to validate with DSV's examples 0 is used -->
+                <xs:element name="Expected_out" type="Field_N11" minOccurs="0"/>
+                <!-- FIXME: minOccurs should be default, but to validate with DSV's examples 0 is used -->
+                <xs:element name="Reserved_sufficient" type="Field_N11" minOccurs="0"/>
+                <!-- FIXME: minOccurs should be default, but to validate with DSV's examples 0 is used -->
+                <xs:element name="Reserved_insufficient" type="Field_N11" minOccurs="0"/>
+                <xs:element name="Number_of_units_physical_stock_in_MUS" type="Field_N11"/>
+                <xs:element name="Date_the_stock_was_determined" type="Field_YYMMDD"/>
+                <xs:element name="Time_the_stock_was_determined" type="Field_HHMMSS"/>
+                <xs:element ref="Custom_Status" minOccurs="0"/>
+                <xs:element ref="Article_reference" minOccurs="0"/>
+                <xs:element name="Article_description" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Work_in_Progress_Stock" type="Field_N11" minOccurs="0"/>
+                <xs:element ref="Sub_inventory_code" minOccurs="0"/>
+                <xs:element name="SKU_allocation_date" type="Field_CCYYMMDD" minOccurs="0"/>
+                <xs:element name="Manufacturer_lot_reference" type="Field_AN35" minOccurs="0"/>
+                <xs:element name="Lot_aspect_value_1" type="Field_AN8" minOccurs="0"/>
+                <xs:element name="Lot_aspect_value_2" type="Field_AN8" minOccurs="0"/>
+                <xs:element name="Lot_aspect_value_3" type="Field_AN8" minOccurs="0"/>
+                <xs:element name="Article_Description_in_foreign_language" type="Field_AN35" minOccurs="0"/>
+                <xs:element ref="Product_code_qualifier" minOccurs="0"/>
+                <xs:element ref="Product_code" minOccurs="0"/>
+                <xs:element ref="Article_typ_pack_id" minOccurs="0"/>
+                <xs:element ref="Article_typ_pack_cd" minOccurs="0"/>
+                <xs:element ref="ptop_reference_to_top" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Footer Element -->
+    <xs:simpleType name="Segment_number99">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="99"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:element name="RecordType">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="70"/>
+                <xs:enumeration value="72"/>
+                <xs:enumeration value="8A"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="Total_Nbrs_of_Rec">
+        <xs:simpleType>
+            <xs:restriction base="xs:string">
+                <xs:pattern value="[0-9]*"/>
+                <xs:maxLength value="6"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:element>
+
+    <xs:element name="SR99R">
+        <xs:complexType>
+            <xs:sequence maxOccurs="unbounded">
+                <xs:element name="Segment_number" type="Segment_number99"/>
+                <xs:element ref="RecordType"/>
+                <xs:element ref="Total_Nbrs_of_Rec"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Main Element -->
+    <xs:element name="SR">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="SR00R" minOccurs="0"/>
+                <xs:element ref="SR70R"/>
+                <xs:element ref="SR8AR" minOccurs="0" maxOccurs="unbounded" />
+                <!-- FIXME: maxOccurs should be default, but to validate with DSV's examples unbounded is used -->
+                <xs:element ref="SR99R" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

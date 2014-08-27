@@ -18,6 +18,13 @@
 #
 ##############################################################################
 
-import stock_picking
+import test_picking
+import test_inventory
 
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+fast_suite = [
+]
+
+checks = [
+    test_picking,
+    test_inventory,
+]

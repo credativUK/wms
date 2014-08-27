@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Copyright 2014 credativ Ltd
+#    Author: Ondrej Kuznik
+#    Copyright 2014 credativ ltd.
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,6 +19,27 @@
 #
 ##############################################################################
 
-import stock_picking
+{'name': 'Magento coalesce warehouse stock',
+ 'version': '1.0.0',
+ 'category': 'Connector',
+ 'depends': ['magentoerpconnect',
+             ],
+ 'author': 'credativ ltd.',
+ 'license': 'AGPL-3',
+ 'description': """
+Magento coalesce warehouse stock
+================================
 
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+Makes it possible to export the cumulative stock image of multiple warehouses
+to a single shop.
+
+Might make order import request more stock than available in the default
+warehouse, this has to be reallocated manually.
+""",
+ 'data': [
+     "magento_store.xml",
+     ],
+ 'installable': True,
+ 'application': False,
+}
+

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+  <data>
+
+    <menuitem id="menu_bots_root"
+        parent="connector.menu_connector_root"
+        name="Bots"
+        sequence="10"
+        groups="connector.group_connector_manager"/>
+
+    <menuitem id="menu_bots_backend"
+        name="Backends"
+        parent="menu_bots_root"
+        action="action_bots_backend"/>
+
+    <menuitem id="menu_bots_warehouse"
+        name="Warehouses"
+        parent="menu_bots_root"
+        sequence="20"
+        action="action_bots_warehouse"/>
+
+    <menuitem id="menu_bots_product"
+        name="Products"
+        parent="menu_bots_root"
+        sequence="20"
+        action="action_bots_product"/>
+
+  </data>
+</openerp>

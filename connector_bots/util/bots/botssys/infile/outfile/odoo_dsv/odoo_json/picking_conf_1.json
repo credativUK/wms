@@ -1,0 +1,83 @@
+[{
+  "orderconf": {
+    "shipment": [
+      {
+        "date_ship": "2013-09-24 00:00:00", 
+        "confirmed": "Y", 
+        "name": "00007435", 
+        "date_delivery": "20130924", 
+        "references": [
+          {
+            "type": "purchase_ref", 
+            "id": "N/A"
+          }, 
+          {
+            "type": "shipping_ref", 
+            "id": "98970478"
+          }
+        ], 
+        "invoice": [
+          {
+            "currency": "EUR", 
+            "payment_term": "C"
+          }
+        ], 
+        "partner": [
+          {
+            "city": "", 
+            "street1": "", 
+            "street2": "", 
+            "id": "RELID005215"
+          }, 
+          {
+            "city": "", 
+            "street1": "", 
+            "street2": "", 
+            "id": "RELID005216"
+          }
+        ], 
+        "line": [
+          {
+            "product": "FDB4182", 
+            "seq": "1", 
+            "qty_real": "9", 
+            "qty_expected": "10", 
+            "references": [
+              {
+                "type": "orig_ref", 
+                "id": "DE"
+              }
+            ], 
+            "type": "out", 
+            "id": "000010/900001"
+          }, 
+          {
+            "product": "FDB1083", 
+            "seq": "2", 
+            "qty_real": "12", 
+            "qty_expected": "13", 
+            "references": [
+              {
+                "type": "orig_ref", 
+                "id": "CZ"
+              }
+            ], 
+            "type": "out", 
+            "id": "000020/900002"
+          }
+        ], 
+        "type": "out", 
+        "id": "0007719475"
+      }
+    ], 
+    "header": [
+      {
+        "msg_id2": "WOC_F9000115.O", 
+        "test": "False", 
+        "msg_id": "60", 
+        "type": "945 E", 
+        "state": "O"
+      }
+    ]
+  }
+}]

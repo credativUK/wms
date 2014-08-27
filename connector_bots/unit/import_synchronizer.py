@@ -18,6 +18,18 @@
 #
 ##############################################################################
 
-import stock_picking
+import logging
+from openerp.addons.connector.unit.synchronizer import ImportSynchronizer
 
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+_logger = logging.getLogger(__name__)
+
+class BotsImportSynchronizer(ImportSynchronizer):
+    """ Base importer for Bots """
+
+    def _before_import(self):
+        """ Hook called before the import, when we have the Bots data"""
+
+    def _after_import(self, binding_id):
+        """ Hook called at the end of the import """
+        return
+

@@ -18,6 +18,26 @@
 #
 ##############################################################################
 
-import stock_picking
-
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+{
+        'name' : 'Tracking reference email button',
+        'version' : '0.1',
+        'author' : 'credativ Ltd',
+        'description' : """
+        Adds a button on Delivery Orders which can be used to manually
+        trigger the sending of a tracking reference email to customers.
+        """,
+        'website' : 'http://credativ.co.uk',
+        'depends' : [
+            'stock',
+            'connector_tracking_reference_email',
+            ],
+        'init_xml' : [
+            ],
+        'update_xml' : [
+            'stock_view.xml',
+            ],
+        'data' : [
+            ],
+        'installable' : True,
+        'active' : False,
+}

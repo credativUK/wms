@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Copyright 2014 credativ Ltd
+#    Author: Ondrej Kuznik
+#    Copyright 2014 credativ ltd.
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,6 +19,14 @@
 #
 ##############################################################################
 
-import stock_picking
+from openerp.osv import orm, fields
 
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+class magento_backend(orm.Model):
+    _inherit = 'magento.backend'
+
+    _columns = {
+        'warehouse_ids': fields.many2many('stock.warehouse', 'magento_backend_warehouse_rel',
+                                        'backend_id', 'warehouse_id', 'Additional Warehouses',
+                                        help='Warehouse whose stock is added to exported '
+                                             'stock quantities.'),
+    }
