@@ -176,7 +176,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 product_id = product_binder.to_openerp(line['product'])
                                 if not product_id:
                                     raise NoExternalId("Product %s could not be found in OpenERP" % (line['product'],))
-                                prod_counts[product_id] = prod_counts.get(product_id, 0) + int(line['qty_real'])
+                                prod_counts[product_id] = prod_counts.get(product_id, 0) + int('qty_real' in line and line['qty_real'] or line['uom_qty'])
 
                             # Orgainise into done, partial and extra
                             moves_part = []
