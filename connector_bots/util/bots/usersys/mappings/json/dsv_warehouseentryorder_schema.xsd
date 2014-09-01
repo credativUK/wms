@@ -422,7 +422,7 @@
         <xs:complexType>
             <xs:sequence minOccurs="0" maxOccurs="unbounded">
                 <xs:element name="Segment_Number" type="Segment_Number05"/>
-                <xs:element name="Order_Reference" type="Field_Order_Reference17"/>
+                <xs:element name="Order_reference" type="Field_Order_Reference17"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>

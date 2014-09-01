@@ -66,7 +66,7 @@ def main(inn,out):
 
             d = OrderedDict([
                 ('Segment_Number', SEGMENT),
-                ('Order_Reference', ORD_ID),
+                ('Order_reference', ORD_ID),
             ])
             root.setdefault(ELEMENT, []).append(d)
 
