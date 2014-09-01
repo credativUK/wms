@@ -163,6 +163,21 @@ def main(inn,out):
                 ovalout.put({'BOTSID':'values', 'total': ORDID_TOTAL})
                 ovalout.put({'BOTSID':'values', 'currency': ORDVAL_CURRENCY})
 
+            # == PAL DETAILS - WOC54R ==
+            for ORDLD in ORD.get('WOC54R', []):
+                rec_counts['54'] = rec_counts.setdefault('54', 0) + 1
+                # FIXME: Unused but count for validation
+
+            # == BOX DETAILS - WOC56R ==
+            for ORDLD in ORD.get('WOC56R', []):
+                rec_counts['56'] = rec_counts.setdefault('56', 0) + 1
+                # FIXME: Unused but count for validation
+
+            # == SERVICE DETAILS - WOC59R ==
+            for ORDLD in ORD.get('WOC59R', []):
+                rec_counts['59'] = rec_counts.setdefault('59', 0) + 1
+                # FIXME: Unused but count for validation
+
             # == PARTNER REFERENCE - WOC70R ==
             for PART in ORD.get('WOC70R', []):
                 rec_counts['70'] = rec_counts.setdefault('70', 0) + 1
