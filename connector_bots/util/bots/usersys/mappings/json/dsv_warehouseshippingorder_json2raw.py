@@ -154,6 +154,16 @@ def main(inn,out):
             PART_LANG = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'language': None}) or ''
             PART_VAT = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'vat': None}) or ''
 
+            # Spill the first address line over to the second if too long, else truncate
+            if len(PART_STREET1) > 35 and not PART_STREET2:
+                space = PART_STREET1.rfind(' ', 0, 35)
+                if space:
+                    OLD_STREET1 = PART_STREET1
+                    PART_STREET1 = OLD_STREET1[:space]
+                    PART_STREET2 = OLD_STREET1[space+1:]
+            PART_STREET1 = PART_STREET1[:35]
+            PART_STREET2 = PART_STREET2[:35]
+
             d = OrderedDict([
                 ('Segment_Number', SEGMENT),
                 ('Company_Name_1', PART_NAME),
