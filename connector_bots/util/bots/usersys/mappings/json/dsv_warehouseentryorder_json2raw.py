@@ -149,7 +149,7 @@ def main(inn,out):
 
             d = OrderedDict([
                 ('Segment_Number', SEGMENT),
-                ('Company_Name_1', PART_NAME),
+                ('Company_Name_1', PART_NAME[:35]),
                 ('Address_3', PART_STREET2),
                 ('Postal_Code', PART_ZIP),
                 ('Place_Name', PART_CITY),
