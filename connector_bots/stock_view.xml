@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="view_picking_in_form_customs" model="ir.ui.view">
+            <field name="name">stock.picking.in.form.customs</field>
+            <field name="model">stock.picking.in</field>
+            <field name="inherit_id" ref="stock.view_picking_in_form"/>
+            <field name="arch" type="xml">
+                <field name="auto_picking" position="after">
+                    <field name="bots_customs"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</openerp>

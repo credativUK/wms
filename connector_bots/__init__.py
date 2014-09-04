@@ -24,3 +24,4 @@ import bots_model
 import product
 import stock_warehouse
 import stock
+import purchase

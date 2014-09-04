@@ -18,31 +18,20 @@
 #
 ##############################################################################
 
-{'name': 'Connector for Bots EDI server',
- 'version': '1.1.0',
- 'category': 'Connector',
- 'author': 'credativ Ltd',
- 'website': 'http://www.credativ.co.uk',
- 'license': 'AGPL-3',
- 'description': """
-Connector for Bots EDI server
-=============================
+from openerp.osv import orm, fields, osv
 
-This module provides a way for OpenERP to communicate with EDI
-systems through Bots which is used to translate to the specific
-data format for the external EDI system.
-""",
- 'depends': [
-     'connector',
-     'connector_wms',
- ],
- 'data': [
-     'bots_model_view.xml',
-     'bots_menu.xml',
-     'bots_data.xml',
-     'stock_view.xml',
-     'purchase_view.xml',
-     'security/ir.model.access.csv',
- ],
- 'installable': True,
-}
+class PurchaseOrder(orm.Model):
+    _inherit = 'purchase.order'
+
+    _columns = {
+            'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties.', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+        }
+
+    _defaults = {
+            'bots_customs':  lambda *a: False,
+        }
+
+    def _prepare_order_picking(self, cr, uid, order, context=None):
+        res = super(PurchaseOrder, self)._prepare_order_picking(cr, uid, order, context=context)
+        res['bots_customs'] = order.bots_customs
+        return res

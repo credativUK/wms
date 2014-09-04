@@ -43,6 +43,14 @@ import re
 class StockPickingIn(orm.Model):
     _inherit = 'stock.picking.in'
 
+    _columns = {
+            'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties.', states={'done':[('readonly', True)], 'cancel':[('readonly',True)], 'assigned':[('readonly',True)]}),
+        }
+
+    _defaults = {
+            'bots_customs':  lambda *a: False,
+        }
+
     def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
         context = context or {}
         if context.get('wms_bots', False):
@@ -85,6 +93,14 @@ class StockPickingIn(orm.Model):
 class StockPickingOut(orm.Model):
     _inherit = 'stock.picking.out'
 
+    _columns = {
+            'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties.', states={'done':[('readonly', True)], 'cancel':[('readonly',True)], 'assigned':[('readonly',True)]}),
+        }
+
+    _defaults = {
+            'bots_customs':  lambda *a: False,
+        }
+
     def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
         context = context or {}
         if context.get('wms_bots', False):
@@ -126,6 +142,14 @@ class StockPickingOut(orm.Model):
 
 class StockPicking(orm.Model):
     _inherit = 'stock.picking'
+
+    _columns = {
+            'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties.', states={'done':[('readonly', True)], 'cancel':[('readonly',True)], 'assigned':[('readonly',True)]}),
+        }
+
+    _defaults = {
+            'bots_customs':  lambda *a: False,
+        }
 
     def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
         context = context or {}
@@ -380,6 +404,8 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 order_line['weight_net'] = move.product_id.weight_net
             if move.note:
                 order_line['desc'] = move.note
+            if TYPE == 'in':
+                order_line['customs_free_from'] = not picking.bots_customs
 
             order_lines.append(order_line)
             seq += 1
