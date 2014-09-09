@@ -379,6 +379,7 @@
         <xs:simpleType>
             <xs:restriction base="xs:string">
                 <xs:enumeration value=""/>
+                <xs:enumeration value=" "/>
                 <xs:enumeration value="1"/>
             </xs:restriction>
         </xs:simpleType>
