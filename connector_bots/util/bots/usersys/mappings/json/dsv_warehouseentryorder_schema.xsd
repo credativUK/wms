@@ -571,15 +571,6 @@
         </xs:simpleType>
     </xs:element>
 
-    <xs:element name="Postal_Code">
-        <xs:simpleType>
-            <xs:restriction base="xs:string">
-                <xs:pattern value="[a-zA-Z0-9 ]*"/>
-                <xs:maxLength value="9"/>
-            </xs:restriction>
-        </xs:simpleType>
-    </xs:element>
-
     <xs:element name="Country_Code">
         <xs:simpleType>
             <xs:restriction base="xs:string">
@@ -631,7 +622,7 @@
                 <xs:element ref="House_Number" minOccurs="0"/>
                 <xs:element ref="House_Number_Extsn" minOccurs="0"/>
                 <xs:element name="Address_3" type="Field_AN35" minOccurs="0"/>
-                <xs:element ref="Postal_Code"/>
+                <xs:element name="Postal_Code" type="Field_AN10"/>
                 <xs:element name="Place_Name" type="Field_AN35"/>
                 <xs:element ref="Country_Code"/>
                 <xs:element ref="Language_code"/>
