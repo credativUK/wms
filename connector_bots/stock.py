@@ -415,7 +415,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
 
         # Split picking depending on order policy
         if not picking_complete:
-            picking_policy = picking.sale_id and picking.sale_id.picking_policy or 'direct'
+            picking_policy = picking.move_type or picking.sale_id and picking.sale_id.picking_policy or 'direct'
             if picking_policy != 'direct':
                 raise InvalidDataError(_('Unable to export picking %s. Picking policy does not allow it to be split and is not fully complete or some products are not mapped for export.') % (picking_id,))
             # Split the picking
