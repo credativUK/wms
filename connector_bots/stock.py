@@ -540,13 +540,13 @@ def picking_available(session, model_name, record_id, picking_type, location_typ
         location = picking.location_id or picking.move_lines and picking.move_lines[0].location_id
         while location and location.id not in location_ids:
             location_ids.append(location.id)
-            if location.chained_picking_type != 'in':
+            if location.chained_picking_type != 'in' and location.chained_auto_packing == 'auto':
                 location = location.chained_location_id
     else:
         location = picking.location_dest_id or picking.move_lines and picking.move_lines[0].location_dest_id
         while location and location.id not in location_ids:
             location_ids.append(location.id)
-            if location.chained_picking_type != 'out':
+            if location.chained_picking_type != 'out' and location.chained_auto_packing == 'auto':
                 location = location.chained_location_id
 
     for location_id in location_ids:
