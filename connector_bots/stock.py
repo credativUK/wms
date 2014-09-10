@@ -55,7 +55,7 @@ class StockPickingIn(orm.Model):
         context = context or {}
         if context.get('wms_bots', False):
             return False
-        exported = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel'))], context=context)
+        exported = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False)], context=context)
         if exported and cancel:
             exported_obj = self.pool.get('bots.stock.picking.in').browse(cr, uid, exported, context=context)
             exported = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_in_cancel]
@@ -105,7 +105,7 @@ class StockPickingOut(orm.Model):
         context = context or {}
         if context.get('wms_bots', False):
             return False
-        exported = self.pool.get('bots.stock.picking.out').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel'))], context=context)
+        exported = self.pool.get('bots.stock.picking.out').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False)], context=context)
         if exported and cancel:
             exported_obj = self.pool.get('bots.stock.picking.out').browse(cr, uid, exported, context=context)
             exported = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_out_cancel]
@@ -165,7 +165,7 @@ class StockPicking(orm.Model):
                 PARAM = 'feat_picking_out_cancel'
             else:
                 continue
-            exported.extend(self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel'))], context=context))
+            exported.extend(self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False)], context=context))
             if exported and cancel:
                 exported_obj = self.pool.get(MODEL).browse(cr, uid, exported, context=context)
                 exported = [x.id for x in exported_obj if not x.bots_id or not getattr(x.backend_id, PARAM)]
@@ -263,12 +263,25 @@ class BotsStockPickingOut(orm.Model):
                                       string='Bots Warehouse',
                                       required=True,
                                       ondelete='restrict'),
+        'bots_override': fields.boolean('Override Bots Restrictions', help='Allow all normal Bots constraints to be ignored, eg when completing or cancelling.'),
         }
 
     _sql_constraints = [
         ('bots_picking_out_uniq', 'unique(backend_id, openerp_id)',
          'A Bots picking already exists for this picking for the same backend.'),
     ]
+
+    def reexport_order(self, cr, uid, ids, context=None):
+        session = ConnectorSession(cr, uid, context=context)
+        for id in ids:
+            export_picking_available.delay(session, self._name, id)
+        return True
+
+    def reexport_cancel(self, cr, uid, ids, context=None):
+        session = ConnectorSession(cr, uid, context=context)
+        for id in ids:
+            export_picking_cancel.delay(session, self._name, id)
+        return True
 
 class BotsStockPickingIn(orm.Model):
     _name = 'bots.stock.picking.in'
@@ -285,12 +298,25 @@ class BotsStockPickingIn(orm.Model):
                                       string='Bots Warehouse',
                                       required=True,
                                       ondelete='restrict'),
+        'bots_override': fields.boolean('Override Bots Restrictions', help='Allow all normal Bots constraints to be ignored, eg when completing or cancelling.'),
         }
 
     _sql_constraints = [
         ('bots_picking_in_uniq', 'unique(backend_id, openerp_id)',
          'A Bots picking already exists for this picking for the same backend.'),
     ]
+
+    def reexport_order(self, cr, uid, ids, context=None):
+        session = ConnectorSession(cr, uid, context=context)
+        for id in ids:
+            export_picking_available.delay(session, self._name, id)
+        return True
+
+    def reexport_cancel(self, cr, uid, ids, context=None):
+        session = ConnectorSession(cr, uid, context=context)
+        for id in ids:
+            export_picking_cancel.delay(session, self._name, id)
+        return True
 
 @bots
 class BotsStockPickingOutBinder(BotsModelBinder):
