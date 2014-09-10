@@ -257,18 +257,25 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
                     _session = ConnectorSession(self.session.cr, self.session.uid, context=self.session.context)
                     inventory_lines = {}
+                    file_exceptions = []
 
                     json_data = json_data if type(json_data) in (list, tuple) else [json_data,]
                     for inventory in json_data:
                         for line in inventory['inventory']['inventory_line']:
                             product_id = product_binder.to_openerp(line['product'])
                             if not product_id:
-                                raise NoExternalId("Product %s could not be found in OpenERP" % (line['product'],))
+                                file_exceptions.append(NoExternalId("Product %s could not be found in OpenERP" % (line['product'],)))
+                                continue
                             # Check the stock level for this warehouse at this time
                             time = datetime.strptime(line['datetime'], '%Y-%m-%d %H:%M:%S')
                             qty = int(line['qty_available'])
-                            assert inventory_lines.setdefault(time.strftime(DEFAULT_SERVER_DATETIME_FORMAT), {}).get('product_id', None) == None, "Product %s, ID %s appears twice in the inventory for %s" % (line['product'], product_id, time)
+                            if inventory_lines.setdefault(time.strftime(DEFAULT_SERVER_DATETIME_FORMAT), {}).get('product_id', None):
+                                file_exceptions.append(AssertionError("Product %s, ID %s appears twice in the inventory for %s" % (line['product'], product_id, time)))
+                                continue
                             inventory_lines.setdefault(time.strftime(DEFAULT_SERVER_DATETIME_FORMAT), {})[product_id] = qty
+
+                    if file_exceptions:
+                        raise AssertionError("Errors were encountered on inventory import:\n%s" % ("\n".join([repr(x) for x in file_exceptions])))
 
                     inventory_lines = sorted(inventory_lines.items(), key=lambda x: x[0])
                     for time, products in inventory_lines:
