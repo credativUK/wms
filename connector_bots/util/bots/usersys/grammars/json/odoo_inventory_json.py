@@ -71,6 +71,7 @@ recorddefs = {
             ['product_article_no', 'C', 64, 'AN'],
             ['product_other', 'C', 64, 'AN'],
             ['product_other_type', 'C', 64, 'AN'],
+            ['qty_total', 'C', 64, 'N'],
             ['qty_incoming', 'C', 64, 'N'],
             ['qty_available', 'M', 64, 'N'],
             ['qty_outgoing', 'C', 64, 'N'],

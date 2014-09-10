@@ -268,7 +268,12 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 continue
                             # Check the stock level for this warehouse at this time
                             time = datetime.strptime(line['datetime'], '%Y-%m-%d %H:%M:%S')
-                            qty = int(line['qty_available'])
+                            if 'qty_total' in line and line['qty_total'].isdigit(): # Take the absolule stock in the warehouse
+                                qty = int(line['qty_total'])
+                            else: # Else if not available, work out from available + outgoing available
+                                qty = int(line['qty_available'])
+                                if 'qty_outgoing_available' in line and line['qty_outgoing_available'].isdigit():
+                                    qty += int(line['qty_outgoing_available'])
                             if inventory_lines.setdefault(time.strftime(DEFAULT_SERVER_DATETIME_FORMAT), {}).get('product_id', None):
                                 file_exceptions.append(AssertionError("Product %s, ID %s appears twice in the inventory for %s" % (line['product'], product_id, time)))
                                 continue
