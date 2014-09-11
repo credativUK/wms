@@ -419,7 +419,11 @@ class StockPickingAdapter(BotsCRUDAdapter):
             if picking_policy != 'direct':
                 raise InvalidDataError(_('Unable to export picking %s. Picking policy does not allow it to be split and is not fully complete or some products are not mapped for export.') % (picking_id,))
             # Split the picking
-            new_picking_id = picking_obj.copy(self.session.cr, self.session.uid, picking.openerp_id.id, context=ctx)
+            new_picking_id = picking_obj.copy(self.session.cr, self.session.uid, picking.openerp_id.id,
+                                              {
+                                                  'move_lines': [],
+                                              },
+                                              context=ctx)
             move_obj.write(self.session.cr, self.session.uid, moves_to_split, {'picking_id': new_picking_id}, context=ctx)
             wf_service.trg_validate(self.session.uid, 'stock.picking', new_picking_id, 'button_confirm', self.session.cr)
 
