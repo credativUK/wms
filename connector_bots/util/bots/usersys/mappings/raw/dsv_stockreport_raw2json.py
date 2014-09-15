@@ -109,7 +109,7 @@ def main(inn,out):
             sout.put({'BOTSID':'inventory_line', 'product_article_no': SL_PRODUCT_ARTICLE})
             sout.put({'BOTSID':'inventory_line', 'product_other': SL_PRODUCT_CODE})
             sout.put({'BOTSID':'inventory_line', 'product_other_type': SL_PRODUCT_CODE_TYPE})
-            sout.put({'BOTSID':'inventory_line', 'qty_total': SL_QTY_TOTAL})
+            #sout.put({'BOTSID':'inventory_line', 'qty_total': SL_QTY_TOTAL}) # This may be in a different UoM from DSV, so do not include it since the other qty fields are mandatory
             sout.put({'BOTSID':'inventory_line', 'qty_incoming': SL_QTY_INCOMING})
             sout.put({'BOTSID':'inventory_line', 'qty_available': SL_QTY_AVAILABLE})
             sout.put({'BOTSID':'inventory_line', 'qty_outgoing': SL_QTY_OUTGOING})
