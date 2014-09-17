@@ -220,6 +220,11 @@ def main(inn,out):
                 assert (ord_root.get('Currency_COD-amount', LINE_CURRENCY) or LINE_CURRENCY) == LINE_CURRENCY, 'Multiple currencies per order is not supported'
                 ord_root.update({'Currency_COD-amount': LINE_CURRENCY})
 
+                try:
+                    LINE_PRICE_UNIT = "%.2f" % (round(float(LINE_PRICE_UNIT), 2),)
+                except ValueError:
+                    LINE_PRICE_UNIT = ""
+
                 d = OrderedDict([
                     ('Segment_Number', SEGMENT),
                     ('Goods_invoice_amount', LINE_PRICE_UNIT),
