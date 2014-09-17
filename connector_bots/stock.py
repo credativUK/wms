@@ -403,7 +403,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
             if move.product_id.weight_net:
                 order_line['weight_net'] = move.product_id.weight_net
             if move.note:
-                order_line['desc'] = move.note
+                order_line['desc'] = move.note and move.note[:64]
             if TYPE == 'in':
                 order_line['customs_free_from'] = not picking.bots_customs
 
@@ -454,7 +454,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 'line': order_lines,
             }
         if picking.note:
-            picking_data['desc'] = picking.note
+            picking_data['desc'] = picking.note and picking.note[:64]
         if picking.partner_id.vat:
             picking_data['partner']['vat'] = picking.partner_id.vat
 
