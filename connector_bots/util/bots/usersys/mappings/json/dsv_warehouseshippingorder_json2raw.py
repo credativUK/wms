@@ -89,7 +89,7 @@ def main(inn,out):
                 ('COD_amount', '0.0'),
                 ('Currency_COD-amount', ''),
                 ('Order_Category', 'N'), # N = New
-                ('Order_priority', '9'), # 9 = low, 0 = high
+                ('Order_priority', '4'), # 4 = Use delivery date
                 ('Delivery_date', ORD_DELIVERY_DATE),
                 ('Remark', ORD_REMARK), # FIXME: We add this last to validate against DSV's example messages, it should come just before priority
             ])
