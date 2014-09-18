@@ -413,13 +413,11 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "uom": move.product_uom.name,
                     "product_uos_qty": int(move.product_uos_qty),
                     "uos": move.product_uos.name,
-                    "price_unit": move.price_unit \
-                        or move.sale_line_id and move.sale_line_id.price_unit \
+                    "price_unit": move.sale_line_id and move.sale_line_id.price_unit \
                         or move.purchase_line_id and move.purchase_line_id.price_unit \
                         or move.product_id.standard_price,
-                    "price_currency": move.price_unit and move.price_currency_id.name \
-                        or move.sale_line_id.price_unit and move.sale_line_id.company_id.currency_id.name \
-                        or move.purchase_line_id.price_unit and move.purchase_line_id.company_id.currency_id.name \
+                    "price_currency": move.sale_line_id and move.sale_line_id.price_unit and move.sale_line_id.company_id.currency_id.name \
+                        or move.purchase_line_id and move.purchase_line_id.price_unit and move.purchase_line_id.company_id.currency_id.name \
                         or default_company.currency_id.name,
                 }
             if move.product_id.volume:
