@@ -227,8 +227,8 @@ def main(inn,out):
                 ORDL_PRODUCT = ORDL.get('SKU-reference')
                 ORDL_QTY_UOM = ORDL.get('Quantity')
                 ORDL_UOM = ORDL.get('Unit_of_Measure')
-                ORDL_QTY_REAL = ORDL.get('Units_MUS')
-                ORDL_QTY_EXPECTED = ORDL.get('Original_MUS')
+                ORDL_QTY_REAL = ORDL.get('Packages') or ORDL.get('Units_MUS')
+                ORDL_QTY_EXPECTED = ORDL.get('Original_packages') or ORDL.get('Original_MUS')
 
                 olout = oout.putloop({'BOTSID': 'shipment'}, {'BOTSID':'line'})
                 olout.put({'BOTSID':'line', 'id': ORDL_ID})
