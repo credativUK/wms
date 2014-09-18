@@ -38,10 +38,10 @@ data format for the external EDI system.
  ],
  'data': [
      'bots_model_view.xml',
-     'bots_menu.xml',
      'bots_data.xml',
      'stock_view.xml',
      'purchase_view.xml',
+     'bots_menu.xml',
      'security/ir.model.access.csv',
  ],
  'installable': True,

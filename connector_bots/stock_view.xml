@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+        <!-- Stock Picking In -->
         <record id="view_picking_in_form_customs" model="ir.ui.view">
             <field name="name">stock.picking.in.form.customs</field>
             <field name="model">stock.picking.in</field>
@@ -11,5 +12,154 @@
                 </field>
             </field>
         </record>
+
+        <!-- Bots Stock Picking Out -->
+        <record id="view_picking_out_search_bots" model="ir.ui.view">
+            <field name="name">bots.stock.picking.out.search</field>
+            <field name="model">bots.stock.picking.out</field>
+            <field name="inherit_id" ref="stock.view_picking_out_search"/>
+            <field name="arch" type="xml">
+                <field name="name" position="replace">
+                    <field name="name" string="Delivery Order" filter_domain="['|','|',('name','ilike',self),('origin','ilike',self),('bots_id','ilike',self)]"/>
+                    <field name="warehouse_id" string="Bots Warehouse"/>
+                </field>
+                <filter string="Journal" position="after">
+                    <filter string="Bots Warehouse" icon="terp-go-home" domain="[]" context="{'group_by':'warehouse_id'}"/>
+                </filter>
+            </field>
+        </record>
+        <record id="view_picking_out_tree_bots" model="ir.ui.view">
+            <field name="name">bots.stock.picking.out.tree</field>
+            <field name="model">bots.stock.picking.out</field>
+            <field name="inherit_id" ref="stock.view_picking_out_tree"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="bots_id"/>
+                    <field name="warehouse_id"/>
+                </field>
+            </field>
+        </record>
+        <record id="view_picking_out_form_bots" model="ir.ui.view">
+            <field name="name">bots.stock.picking.out.form</field>
+            <field name="model">bots.stock.picking.out</field>
+            <field name="arch" type="xml">
+                <form string="Bots Delivery Order" version="7.0">
+                    <header>
+                    </header>
+                    <sheet>
+                        <h1>
+                            <label string="Bots Delivery Order"/>
+                        </h1>
+                        <group>
+                            <group>
+                                <field name="bots_id"/>
+                                <field name="warehouse_id" readonly="1"/>
+                                <field name="openerp_id" context="{'wms_bots': True}"/>
+                                <field name="bots_override"/>
+                                <button string="(Re-)Export Order to Bots" name="reexport_order" type="object" colspan="2"/>
+                                <button string="(Re-)Export Cancelation to Bots" name="reexport_cancel" type="object" colspan="2"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="action_picking_tree_out_bots" model="ir.actions.act_window">
+            <field name="name">Bots Delivery Orders</field>
+            <field name="res_model">bots.stock.picking.out</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('type','=','out')]</field>
+            <field name="context">{'contact_display': 'partner_address', 'wms_bots': True}</field>
+            <field name="search_view_id" ref="view_picking_out_search_bots"/>
+        </record>
+        <record id="action_picking_out_view1_bots" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_picking_out_tree_bots"/>
+            <field name="act_window_id" ref="action_picking_tree_out_bots"/>
+        </record>
+        <record id="action_picking_out_view2_bots" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_picking_out_form_bots"/>
+            <field name="act_window_id" ref="action_picking_tree_out_bots"/>
+        </record>
+
+        <!-- Bots Stock Picking In -->
+        <record id="view_picking_in_search_bots" model="ir.ui.view">
+            <field name="name">bots.stock.picking.in.search</field>
+            <field name="model">bots.stock.picking.in</field>
+            <field name="inherit_id" ref="stock.view_picking_in_search"/>
+            <field name="arch" type="xml">
+                <field name="name" position="replace">
+                    <field name="name" string="Incoming Shipments" filter_domain="['|','|',('name','ilike',self),('origin','ilike',self),('bots_id','ilike',self)]"/>
+                    <field name="warehouse_id" string="Bots Warehouse"/>
+                </field>
+                <filter string="Journal" position="after">
+                    <filter string="Bots Warehouse" icon="terp-go-home" domain="[]" context="{'group_by':'warehouse_id'}"/>
+                </filter>
+            </field>
+        </record>
+        <record id="view_picking_in_tree_bots" model="ir.ui.view">
+            <field name="name">bots.stock.picking.in.tree</field>
+            <field name="model">bots.stock.picking.in</field>
+            <field name="inherit_id" ref="stock.view_picking_in_tree"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="bots_id"/>
+                    <field name="warehouse_id"/>
+                </field>
+            </field>
+        </record>
+        <record id="view_picking_in_form_bots" model="ir.ui.view">
+            <field name="name">bots.stock.picking.in.form</field>
+            <field name="model">bots.stock.picking.in</field>
+            <field name="arch" type="xml">
+                <form string="Bots Incoming Shipment" version="7.0">
+                    <header>
+                    </header>
+                    <sheet>
+                        <h1>
+                            <label string="Bots Incoming Shipment"/>
+                        </h1>
+                        <group>
+                            <group>
+                                <field name="bots_id"/>
+                                <field name="warehouse_id" readonly="1"/>
+                                <field name="openerp_id" context="{'wms_bots': True}"/>
+                                <field name="bots_override"/>
+                                <button string="(Re-)Export Order to Bots" name="reexport_order" type="object" colspan="2"/>
+                                <button string="(Re-)Export Cancelation to Bots" name="reexport_cancel" type="object" colspan="2"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="action_picking_tree_in_bots" model="ir.actions.act_window">
+            <field name="name">Bots Incoming Shipments</field>
+            <field name="res_model">bots.stock.picking.in</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form,calendar</field>
+            <field name="domain">[('type','=','in')]</field>
+            <field name="context">{'contact_display': 'partner_address', 'wms_bots': True}</field>
+            <field name="search_view_id" ref="view_picking_in_search_bots"/>
+        </record>
+        <record id="action_picking_in_view1_bots" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_picking_in_tree_bots"/>
+            <field name="act_window_id" ref="action_picking_tree_in_bots"/>
+        </record>
+        <record id="action_picking_in_view2_bots" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_picking_in_form_bots"/>
+            <field name="act_window_id" ref="action_picking_tree_in_bots"/>
+        </record>
+
     </data>
 </openerp>

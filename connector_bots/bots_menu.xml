@@ -19,11 +19,17 @@
         sequence="20"
         action="action_bots_warehouse"/>
 
-    <menuitem id="menu_bots_product"
-        name="Products"
+    <menuitem id="menu_bots_picking_out"
+        name="Delivery Orders"
         parent="menu_bots_root"
         sequence="20"
-        action="action_bots_product"/>
+        action="action_picking_tree_out_bots"/>
+
+    <menuitem id="menu_bots_picking_in"
+        name="Incoming Shipments"
+        parent="menu_bots_root"
+        sequence="20"
+        action="action_picking_tree_in_bots"/>
 
   </data>
 </openerp>
