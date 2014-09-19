@@ -22,6 +22,7 @@ import connector
 import backend
 import bots_model
 import product
+import sale
 import stock_warehouse
 import stock
 import purchase

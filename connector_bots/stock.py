@@ -93,8 +93,33 @@ class StockPickingIn(orm.Model):
 class StockPickingOut(orm.Model):
     _inherit = 'stock.picking.out'
 
+    # we redefine the min_date field, so these functions have to exist
+    def get_min_max_date(self, *args, **kwargs):
+        return super(StockPickingOut, self).get_min_max_date(*args, **kwargs)
+
+    def _set_minimum_date(self, *args, **kwargs):
+        return super(StockPickingOut, self)._set_minimum_date(*args, **kwargs)
+
+    def _get_stock_move_changes(self, *args, **kwargs):
+        return super(StockPickingOut, self)._get_stock_move_changes(*args, **kwargs)
+
     _columns = {
             'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties.', states={'done':[('readonly', True)], 'cancel':[('readonly',True)], 'assigned':[('readonly',True)]}),
+            'move_lines': fields.one2many('stock.move', 'picking_id', 'Internal Moves', readonly=True, states={'draft':[('readonly',False)]},),
+            'partner_id': fields.many2one('res.partner', 'Destination Address ', help="Optional address where goods are to be delivered, specifically used for allotment", readonly=True, states={'draft':[('readonly',False)]},),
+            'min_date': fields.function(
+                get_min_max_date,
+                fnct_inv=_set_minimum_date, multi='min_max_date',
+                store={
+                    'stock.move': (
+                        _get_stock_move_changes,
+                        ['date_expected'], 10,
+                    )
+                },
+                type='datetime', string='Scheduled Time', select=True,
+                readonly=True, states={'draft':[('readonly',False)]},
+                help="Scheduled time for the shipment to be processed"
+            ),
         }
 
     _defaults = {
