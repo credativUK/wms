@@ -439,6 +439,8 @@ class StockPickingAdapter(BotsCRUDAdapter):
 
         # Split picking depending on order policy
         if not picking_complete:
+            if TYPE == 'in':
+                raise NotImplementedError(_('Exporting a partial incoming picking is not implemented'))
             sale_policy = picking.sale_id and picking.sale_id.picking_policy or 'direct'
             picking_policy = picking.move_type or sale_policy
             if picking_policy != 'direct':
