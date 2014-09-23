@@ -299,10 +299,6 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 }
                             prod = product_obj.browse(_cr, self.session.uid, product_id, context=ctx)
 
-                            if int(qty) == int(prod.qty_available):
-                                # We match, no need to create an inventory line
-                                continue
-
                             inventory_line = {
                                     'product_id': product_id,
                                     'location_id': location_id,
