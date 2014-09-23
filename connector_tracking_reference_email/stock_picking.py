@@ -29,15 +29,12 @@ from openerp.osv import orm, fields
 _logger = logging.getLogger(__name__)
 
 @on_picking_out_done
-def picking_confirmed(session, model_name, picking_id):
+def picking_confirmed(session, model_name, picking_id, server_action_id):
     _logger.debug('Creating job for picking ' + picking_id.__str__())
     picking = session.pool.get('stock.picking').read(session.cr, session.uid, picking_id, ['carrier_tracking_ref',])
     eta = 0
     if not picking['carrier_tracking_ref']:
         eta = 60*60*24
-    server_action_id = session.pool.get('ir.model.data').get_object_reference(session.cr, session.uid, 'connector_tracking_reference_email', 'track_reference_action')
-    context = {'active_id':record_id,'active_ids':[record_id]}
-
     generate_email.delay(session, model_name, picking_id, server_action_id,eta=eta)
 
 @on_tracking_number_added
