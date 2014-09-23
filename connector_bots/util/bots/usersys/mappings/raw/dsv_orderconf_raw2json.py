@@ -215,9 +215,18 @@ def main(inn,out):
             for ORDL in ORD.get('WOC80R', []):
                 rec_counts['80'] = rec_counts.setdefault('80', 0) + 1
 
-                ORDL_DATE = HEAD.get('Picking_date')
-                ORDL_TIME = HEAD.get('Picking_time')
-                ORDL_DATETIME = get_datetime(ORDL_DATE, ORDL_TIME)
+                ORDL_DATE = HEAD.get('Date_executed')
+                ORDL_TIME = HEAD.get('Time_executed')
+                ORDL_PICK_DATE = HEAD.get('Picking_date')
+                ORDL_PICK_TIME = HEAD.get('Picking_time')
+                # take the one that is more precise with the picking time having precedence
+                if ORDL_PICK_DATE and ORDL_PICK_TIME:
+                    ORDL_DATETIME = get_datetime(ORDL_PICK_DATE, ORDL_PICK_TIME)
+                elif ORDL_DATE and ORDL_TIME:
+                    ORDL_DATETIME = get_datetime(ORDL_DATE, ORDL_TIME)
+                else:
+                    ORDL_DATETIME = get_datetime(ORDL_PICK_DATE, ORDL_PICK_TIME) or get_datetime(ORDL_DATE, ORDL_TIME)
+
                 ORDL_ID = ORDL.get('Orderline_reference')
                 ORDL_SEQ = ORDL.get('FL_order_line_nr')
                 ORDL_TYPE = {
