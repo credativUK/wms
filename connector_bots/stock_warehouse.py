@@ -258,6 +258,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                     _session = ConnectorSession(self.session.cr, self.session.uid, context=self.session.context)
                     inventory_lines = {}
                     file_exceptions = []
+                    create_inventory = False
 
                     json_data = json_data if type(json_data) in (list, tuple) else [json_data,]
                     for inventory in json_data:
@@ -299,6 +300,10 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 }
                             prod = product_obj.browse(_cr, self.session.uid, product_id, context=ctx)
 
+                            if int(qty) != int(prod.qty_available):
+                                # We have a difference and will need to post an inventory
+                                create_inventory = True
+
                             inventory_line = {
                                     'product_id': product_id,
                                     'location_id': location_id,
@@ -307,7 +312,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 }
                             inventory['inventory_line_id'].append([0, False, inventory_line])
 
-                        if inventory['inventory_line_id']:
+                        if create_inventory:
                             # We have a difference in inventory so we must create and validate a new inventory
                             inventory_id = inventory_obj.create(_cr, self.session.uid, inventory, context=self.session.context)
                             inventory_obj.action_confirm(_cr, self.session.uid, [inventory_id], context=self.session.context)
