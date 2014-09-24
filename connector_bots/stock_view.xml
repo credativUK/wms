@@ -161,5 +161,25 @@
             <field name="act_window_id" ref="action_picking_tree_in_bots"/>
         </record>
 
+        <!-- making sure individual stock moves are not manipulated when
+             picking is exported -->
+        <record id="view_move_picking_form" model="ir.ui.view">
+            <field name="name">stock.move.form</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_picking_form"/>
+            <field name="arch" type="xml">
+                <field name="date" position="after">
+                    <field name="pick_state"/> <!-- invisible="1"/>-->
+                </field>
+                <button name="force_assign" position="attributes">
+                    <attribute name="states"/>
+                    <attribute name="attrs">{'invisible': ['|', ('state', 'in', ['confirmed']), ('pick_state', '!=', False)]}</attribute>
+                </button>
+                <button name="cancel_assign" position="attributes">
+                    <attribute name="states"/>
+                    <attribute name="attrs">{'invisible': ['|', ('state', 'in', ['assigned']), ('pick_state', '!=', False)]}</attribute>
+                </button>
+            </field>
+        </record>
     </data>
 </openerp>
