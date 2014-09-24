@@ -9,7 +9,7 @@
   </WSO00R>
   <WSO05R>
     <Segment_Number>05</Segment_Number>
-    <Order_Reference>REFABC456</Order_Reference>
+    <Order_reference>REFABC456</Order_reference>
   </WSO05R>
   <WSO10R>
     <Segment_Number>10</Segment_Number>
@@ -21,7 +21,7 @@
     <COD_amount>0.0</COD_amount>
     <Currency_COD-amount>GBP</Currency_COD-amount>
     <Order_Category>N</Order_Category>
-    <Order_priority>9</Order_priority>
+    <Order_priority>4</Order_priority>
     <Delivery_date>20140731</Delivery_date>
     <Remark>Leave at back door</Remark>
     <WSO20R>
@@ -44,20 +44,20 @@
         <Company_Name_1>The Delivery Address</Company_Name_1>
         <Address_3></Address_3>
         <Postal_Code>CV1 1AA</Postal_Code>
-        <Place_Name>West Midlands</Place_Name>
+        <Place_Name>Some City</Place_Name>
         <Country_Code>GB</Country_Code>
         <Language_code>E</Language_code>
         <Telephone_Number>01234</Telephone_Number>
         <Telefax_Number>01234</Telefax_Number>
         <VAT-number>123</VAT-number>
         <Address_2>1 The Street</Address_2>
-        <Address_4>Some City</Address_4>
+        <Address_4>West Midlands</Address_4>
       </WSO32R>
     </WSO30R>
     <WSO40R>
       <Segment_Number>40</Segment_Number>
       <Orderline_ID>001</Orderline_ID>
-      <Article_Ref>ITEMA</Article_Ref>
+      <SKU_Reference>ITEMA</SKU_Reference>
       <Type_of_package>*FIRST</Type_of_package>
       <Number_of_packages>5</Number_of_packages>
       <Number_of_units_measure_unit_specifier>5</Number_of_units_measure_unit_specifier>
@@ -73,7 +73,7 @@
     <WSO40R>
       <Segment_Number>40</Segment_Number>
       <Orderline_ID>002</Orderline_ID>
-      <Article_Ref>ITEMB</Article_Ref>
+      <SKU_Reference>ITEMB</SKU_Reference>
       <Type_of_package>*FIRST</Type_of_package>
       <Number_of_packages>10</Number_of_packages>
       <Number_of_units_measure_unit_specifier>10</Number_of_units_measure_unit_specifier>

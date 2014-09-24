@@ -35,23 +35,21 @@
         <Company_Name_1>The Delivery Address</Company_Name_1>
         <Address_3></Address_3>
         <Postal_Code>CV1 1AA</Postal_Code>
-        <Place_Name>West Midlands</Place_Name>
+        <Place_Name>Some City</Place_Name>
         <Country_Code>GB</Country_Code>
         <Language_code>E</Language_code>
         <Telephone_Number>01234</Telephone_Number>
         <Telefax_Number>01234</Telefax_Number>
         <VAT-number>123</VAT-number>
         <Address_2>1 The Street</Address_2>
-        <Address_4>Some City</Address_4>
+        <Address_4>West Midlands</Address_4>
       </WEO32R>
     </WEO30R>
     <WEO40R>
       <Segment_Number>40</Segment_Number>
       <Orderline_ID>001</Orderline_ID>
-      <Article_Ref>ITEMA</Article_Ref>
       <SKU_Reference>ITEMA</SKU_Reference>
       <Customs_Status_from>FR</Customs_Status_from>
-      <Customs_Status_to>FR</Customs_Status_to>
       <Currency_customs_val>GBP</Currency_customs_val>
       <Type_of_package>*FIRST</Type_of_package>
       <Measure_unit_specifier>PCE</Measure_unit_specifier>
@@ -70,10 +68,8 @@
     <WEO40R>
       <Segment_Number>40</Segment_Number>
       <Orderline_ID>002</Orderline_ID>
-      <Article_Ref>ITEMB</Article_Ref>
       <SKU_Reference>ITEMB</SKU_Reference>
       <Customs_Status_from>FR</Customs_Status_from>
-      <Customs_Status_to>FR</Customs_Status_to>
       <Currency_customs_val>GBP</Currency_customs_val>
       <Type_of_package>*FIRST</Type_of_package>
       <Measure_unit_specifier>PCE</Measure_unit_specifier>
