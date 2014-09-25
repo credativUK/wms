@@ -30,6 +30,8 @@ from openerp.addons.connector.unit.synchronizer import ExportSynchronizer
 from openerp.addons.connector.event import on_record_create
 from openerp.addons.connector_wms.event import on_picking_out_available, on_picking_in_available, on_picking_out_cancel, on_picking_in_cancel
 
+from openerp.addons.stock import stock_picking as stock_StockPicking
+
 from .unit.binder import BotsModelBinder
 from .unit.backend_adapter import BotsCRUDAdapter
 from .backend import bots
@@ -51,7 +53,10 @@ class StockPickingIn(orm.Model):
         return super(StockPickingIn, self)._set_minimum_date(*args, **kwargs)
 
     def _get_stock_move_changes(self, *args, **kwargs):
-        return super(StockPickingIn, self)._get_stock_move_changes(*args, **kwargs)
+        # self is a 'stock.move' object, so we have no way of finding out where
+        # we are in the inheritance DAG
+        self = self.pool.get('stock.picking.in')
+        return stock_StockPicking._get_stock_move_changes(self, *args, **kwargs)
 
     _columns = {
             'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties.', states={'done':[('readonly', True)], 'cancel':[('readonly',True)], 'assigned':[('readonly',True)]}),
@@ -126,7 +131,10 @@ class StockPickingOut(orm.Model):
         return super(StockPickingOut, self)._set_minimum_date(*args, **kwargs)
 
     def _get_stock_move_changes(self, *args, **kwargs):
-        return super(StockPickingOut, self)._get_stock_move_changes(*args, **kwargs)
+        # self is a 'stock.move' object, so we have no way of finding out where
+        # we are in the inheritance DAG
+        self = self.pool.get('stock.picking.out')
+        return stock_StockPicking._get_stock_move_changes(self, *args, **kwargs)
 
     _columns = {
             'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties.', states={'done':[('readonly', True)], 'cancel':[('readonly',True)], 'assigned':[('readonly',True)]}),
