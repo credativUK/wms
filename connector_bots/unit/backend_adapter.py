@@ -67,7 +67,6 @@ def file_to_process(session, filename_id, new_cr=True):
         # noone else will try to do so again. It can be archived now but should
         # that fail, nothing happens, really, as anyone can do the move later
         os.rename(file.full_path, file.arch_path)
-        file_obj.unlink(cr, SUPERUSER_ID, filename_id)
     except:
         cr.rollback()
         raise
@@ -173,7 +172,6 @@ class BotsCRUDAdapter(CRUDAdapter):
                     if f['processed']:
                         try:
                             os.rename(file[1], f['arch_path'])
-                            file_obj.unlink(_cr, SUPERUSER_ID, file_id)
                         except IOError, e:
                             _logger.exception('Error trying to move file %s -> %s', file[1], f['arch_path'])
                         continue

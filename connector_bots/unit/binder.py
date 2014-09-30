@@ -52,10 +52,11 @@ class BotsModelBinder(BotsBinder):
                  or None if the external_id is not mapped
         :rtype: int
         """
-        binding_ids = self.session.search(
-                self.model._name,
-                [('bots_id', '=', str(external_id)),
-                 ('backend_id', '=', self.backend_record.id)])
+        binding_ids = self.session.search( self.model._name, [
+            ('bots_id', '=', str(external_id)),
+            ('backend_id', '=', self.backend_record.id),
+            ('active', '=', True),
+        ])
         if not binding_ids:
             return None
         assert len(binding_ids) == 1, "Several records found: %s" % binding_ids
@@ -79,8 +80,9 @@ class BotsModelBinder(BotsBinder):
         """
         if wrap:
             erp_id = self.session.search(self.model._name, [
-                ['openerp_id', '=', record_id],
-                ['bots_id', '=', self.backend_record.id]
+                ('openerp_id', '=', record_id),
+                ('bots_id', '=', self.backend_record.id),
+                ('active', '=', True),
             ])
             if erp_id:
                 record_id = erp_id[0]

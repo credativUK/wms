@@ -53,6 +53,7 @@
                         <group>
                             <group>
                                 <field name="bots_id"/>
+                                <field name="active"/>
                                 <field name="warehouse_id" readonly="1"/>
                                 <field name="openerp_id" context="{'wms_bots': True}"/>
                                 <field name="bots_override"/>
@@ -127,6 +128,7 @@
                         <group>
                             <group>
                                 <field name="bots_id"/>
+                                <field name="active"/>
                                 <field name="warehouse_id" readonly="1"/>
                                 <field name="openerp_id" context="{'wms_bots': True}"/>
                                 <field name="bots_override"/>

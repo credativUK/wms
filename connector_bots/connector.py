@@ -44,6 +44,11 @@ class BotsBinding(orm.AbstractModel):
             required=True,
             ondelete='restrict'),
         'bots_id': fields.char('ID on Bots'),
+        'active': fields.boolean('Active'),
+    }
+
+    _defaults = {
+        'active': True,
     }
 
 def add_checkpoint(session, model_name, record_id, backend_id):

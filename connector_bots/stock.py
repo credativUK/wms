@@ -333,10 +333,16 @@ class BotsStockPickingOut(orm.Model):
         'bots_override': fields.boolean('Override Bots Restrictions', help='Allow all normal Bots constraints to be ignored, eg when completing or cancelling.'),
         }
 
-    _sql_constraints = [
-        ('bots_picking_out_uniq', 'unique(backend_id, openerp_id)',
-         'A Bots picking already exists for this picking for the same backend.'),
-    ]
+    def __init__(self, pool, cr):
+        super(BotsStockPickingOut, self).__init__(pool, cr)
+        pool._sql_error[self._table+'_'+'bots_picking_out_uniq'] = "An active Bots picking already exists for this picking for the same backend."
+
+    def init(self, cr):
+        constraint_name = self._table + '_' + 'bots_picking_out_uniq'
+        cr.execute('ALTER TABLE "%s" DROP CONSTRAINT IF EXISTS "%s"' % (self._table, constraint_name))
+        cr.execute('DROP INDEX IF EXISTS "%s"' % constraint_name)
+        cr.execute('CREATE UNIQUE INDEX "%s" ON "%s" (backend_id, openerp_id, NULLIF(active, False))' % (constraint_name, self._table))
+        cr.commit()
 
     def reexport_order(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
@@ -368,10 +374,16 @@ class BotsStockPickingIn(orm.Model):
         'bots_override': fields.boolean('Override Bots Restrictions', help='Allow all normal Bots constraints to be ignored, eg when completing or cancelling.'),
         }
 
-    _sql_constraints = [
-        ('bots_picking_in_uniq', 'unique(backend_id, openerp_id)',
-         'A Bots picking already exists for this picking for the same backend.'),
-    ]
+    def __init__(self, pool, cr):
+        super(BotsStockPickingIn, self).__init__(pool, cr)
+        pool._sql_error[self._table+'_'+'bots_picking_in_uniq'] = "An active Bots picking already exists for this picking for the same backend."
+
+    def init(self, cr):
+        constraint_name = self._table + '_' + 'bots_picking_in_uniq'
+        cr.execute('ALTER TABLE "%s" DROP CONSTRAINT IF EXISTS "%s"' % (self._table, constraint_name))
+        cr.execute('DROP INDEX IF EXISTS "%s"' % constraint_name)
+        cr.execute('CREATE UNIQUE INDEX "%s" ON "%s" (backend_id, openerp_id, NULLIF(active, False))' % (constraint_name, self._table))
+        cr.commit()
 
     def reexport_order(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
@@ -718,7 +730,7 @@ def export_picking_cancel(session, model_name, record_id):
     backend_id = picking.backend_id.id
     env = get_environment(session, model_name, backend_id)
     picking_exporter = env.get_connector_unit(BotsPickingExport)
-    picking_exporter.delete(record_id)
+    picking.write({'active': False})
     return True
 
 @on_picking_out_available
