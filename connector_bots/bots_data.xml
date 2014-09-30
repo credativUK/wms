@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-    <data>
+    <data noupdate="1">
         <record forcecreate="True" id="ir_cron_import_inventory" model="ir.cron">
             <field name="name">Bots - Import Inventory</field>
             <field eval="False" name="active"/>
