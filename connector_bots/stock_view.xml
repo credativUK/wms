@@ -169,17 +169,58 @@
             <field name="inherit_id" ref="stock.view_move_picking_form"/>
             <field name="arch" type="xml">
                 <field name="date" position="after">
-                    <field name="pick_state"/> <!-- invisible="1"/>-->
+                    <field name="pick_state" invisible="1"/>
+                    <field name="bots_exported"/>
                 </field>
                 <button name="force_assign" position="attributes">
                     <attribute name="states"/>
-                    <attribute name="attrs">{'invisible': ['|', ('state', 'in', ['confirmed']), ('pick_state', '!=', False)]}</attribute>
+                    <attribute name="attrs">{'invisible': ['|', ('state', 'not in', ['confirmed']), ('bots_exported', '!=', False)]}</attribute>
                 </button>
                 <button name="cancel_assign" position="attributes">
                     <attribute name="states"/>
-                    <attribute name="attrs">{'invisible': ['|', ('state', 'in', ['assigned']), ('pick_state', '!=', False)]}</attribute>
+                    <attribute name="attrs">{'invisible': ['|', ('state', 'not in', ['assigned']), ('bots_exported', '!=', False)]}</attribute>
                 </button>
             </field>
         </record>
+
+        <record id="view_move_tree_bots" model="ir.ui.view">
+            <field name="name">stock.move.tree.bots</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_tree"/>
+            <field name="arch" type="xml">
+                <field name="state" position="after">
+                    <field name="bots_exported"/>
+                    <button name="force_assign" string="Force Availability" type="object" groups="base.group_user" attrs="{'invisible': ['|', ('state', 'not in', ['confirmed']), ('bots_exported', '!=', False)]}" icon="terp-camera_test"/>
+                    <button name="cancel_assign" string="Cancel Availability" type="object" groups="base.group_user" attrs="{'invisible': ['|', ('state', 'not in', ['assigned']), ('bots_exported', '!=', False)]}" icon="terp-dialog-close"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="view_move_picking_tree_bots" model="ir.ui.view">
+            <field name="name">stock.move.tree.bots</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_picking_tree"/>
+            <field name="arch" type="xml">
+                <field name="state" position="after">
+                    <field name="bots_exported"/>
+                    <button name="force_assign" string="Force Availability" type="object" groups="base.group_user" attrs="{'invisible': ['|', ('state', 'not in', ['confirmed']), ('bots_exported', '!=', False)]}" icon="terp-camera_test"/>
+                    <button name="cancel_assign" string="Cancel Availability" type="object" groups="base.group_user" attrs="{'invisible': ['|', ('state', 'not in', ['assigned']), ('bots_exported', '!=', False)]}" icon="terp-dialog-close"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="view_move_tree_reception_picking_bots" model="ir.ui.view">
+            <field name="name">stock.move.tree2.bots</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_tree_reception_picking"/>
+            <field name="arch" type="xml">
+                <field name="state" position="after">
+                    <field name="bots_exported"/>
+                    <button name="force_assign" string="Force Availability" type="object" groups="base.group_user" attrs="{'invisible': ['|', ('state', 'not in', ['confirmed']), ('bots_exported', '!=', False)]}" icon="terp-camera_test"/>
+                    <button name="cancel_assign" string="Cancel Availability" type="object" groups="base.group_user" attrs="{'invisible': ['|', ('state', 'not in', ['assigned']), ('bots_exported', '!=', False)]}" icon="terp-dialog-close"/>
+                </field>
+            </field>
+        </record>
+
     </data>
 </openerp>
