@@ -447,7 +447,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
             raise MappingError(_('Missing address when attempting to export Bots picking %s.') % (picking_id,))
 
         # Get a unique name for the picking
-        BOTS_ID_MAX_LEN = 18
+        BOTS_ID_MAX_LEN = 16
         bots_id = re.sub(r'[\\/_-]', r'', order_number.upper())[:BOTS_ID_MAX_LEN]
         # Test if this ID is unique, if not increment it
         suffix_counter = 0
