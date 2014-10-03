@@ -158,10 +158,10 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 # Get the first sane tracking reference
                                 tracking_code = tracking.get('id') or tracking.get('desc')
                                 tracking_ref = tracking.get('desc') or tracking.get('id')
-                                if tracking['type'] == 'consignment' and tracking_ref and tracking_ref not in ('N/A',):
+                                if tracking.get('type') == 'consignment' and tracking_ref and tracking_ref not in ('N/A',):
                                     tracking_numbers['consignment'] = tracking_ref
-                                elif ((tracking['type'] == 'purchase_ref' and picking['type'] == 'in') or \
-                                        (tracking['type'] == 'shipping_ref' and picking['type'] == 'out')) and \
+                                elif ((tracking.get('type') == 'purchase_ref' and picking['type'] == 'in') or \
+                                        (tracking.get('type') == 'shipping_ref' and picking['type'] == 'out')) and \
                                         tracking_code and tracking_code not in ('N/A',):
                                     tracking_numbers['pick_ref'] = tracking_code
                                 elif tracking_code and tracking_code not in ('N/A',):
