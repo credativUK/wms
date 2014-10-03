@@ -60,7 +60,7 @@ class StockPickingIn(orm.Model):
 
     _columns = {
             'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties.', states={'done':[('readonly', True)], 'cancel':[('readonly',True)], 'assigned':[('readonly',True)]}),
-            'move_lines': fields.one2many('stock.move', 'picking_id', 'Internal Moves', readonly=True, states={'draft':[('readonly',False)]},),
+            'move_lines': fields.one2many('stock.move', 'picking_id', 'Internal Moves', readonly=True, states={'draft':[('readonly',False)], 'confirmed':[('readonly',False)]},),
             'partner_id': fields.many2one('res.partner', 'Destination Address ', help="Optional address where goods are to be delivered, specifically used for allotment", readonly=True, states={'draft':[('readonly',False)]},),
             'min_date': fields.function(
                 get_min_max_date,
@@ -72,7 +72,7 @@ class StockPickingIn(orm.Model):
                     )
                 },
                 type='datetime', string='Scheduled Time', select=True,
-                readonly=True, states={'draft':[('readonly',False)]},
+                readonly=True, states={'draft':[('readonly',False)], 'confirmed':[('readonly',False)]},
                 help="Scheduled time for the shipment to be processed"
             ),
         }
@@ -138,7 +138,7 @@ class StockPickingOut(orm.Model):
 
     _columns = {
             'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties.', states={'done':[('readonly', True)], 'cancel':[('readonly',True)], 'assigned':[('readonly',True)]}),
-            'move_lines': fields.one2many('stock.move', 'picking_id', 'Internal Moves', readonly=True, states={'draft':[('readonly',False)]},),
+            'move_lines': fields.one2many('stock.move', 'picking_id', 'Internal Moves', readonly=True, states={'draft':[('readonly',False)], 'confirmed':[('readonly',False)]},),
             'partner_id': fields.many2one('res.partner', 'Destination Address ', help="Optional address where goods are to be delivered, specifically used for allotment", readonly=True, states={'draft':[('readonly',False)]},),
             'min_date': fields.function(
                 get_min_max_date,
@@ -150,7 +150,7 @@ class StockPickingOut(orm.Model):
                     )
                 },
                 type='datetime', string='Scheduled Time', select=True,
-                readonly=True, states={'draft':[('readonly',False)]},
+                readonly=True, states={'draft':[('readonly',False)], 'confirmed':[('readonly',False)]},
                 help="Scheduled time for the shipment to be processed"
             ),
         }
@@ -266,6 +266,12 @@ class StockPicking(orm.Model):
 class StockMove(orm.Model):
     _inherit = 'stock.move'
 
+    def _bots_test_exported(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for id in ids:
+            res[id] = self.bots_test_exported(cr, uid, [id], doraise=False, cancel=False, context=context) and True or False
+        return res
+
     _columns = {
         'pick_state': fields.related(
                 'picking_id', 'state',
@@ -273,6 +279,7 @@ class StockMove(orm.Model):
                 readonly=True,
                 string='Picking state',
             ),
+        'bots_exported': fields.function(_bots_test_exported, type='boolean', string='Exported to Bots', readonly=True, help="Has this move been exported to Bots"),
     }
 
     def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
