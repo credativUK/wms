@@ -30,6 +30,7 @@
                             <field name="feat_picking_out_conf"/>
                             <field name="feat_picking_in_conf"/>
                             <field name="feat_inventory_in"/>
+                            <field name="feat_reexport_backorder"/>
                         </group>
                         <group name="main_configuration" string="Main Configuration">
                             <field name="warehouse_ids"/>

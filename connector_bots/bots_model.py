@@ -50,6 +50,9 @@ class BotsBackend(orm.Model):
         'feat_picking_out_conf': fields.boolean('Import Delivery Order Confirmation', help='Import delivery confirmation and tracking details for delivery orders'),
         'feat_picking_in_conf': fields.boolean('Import Shipment Confirmation', help='Import receipt confirmation for shipments'),
         'feat_inventory_in': fields.boolean('Import Inventory', help='Import inventories for this warehouse'),
+        'feat_reexport_backorder': fields.boolean('Re-export Back Orders', help='When we receive a partial delivery from the 3PL,\n' \
+                                                  'if True this will re-export the remaining undelivered stock,\n' \
+                                                  'if False it will assume the 3PL is handling the remaining items and will send subsequent confirmations with the same order reference.'),
     }
 
     _defaults = {
@@ -60,6 +63,7 @@ class BotsBackend(orm.Model):
         'feat_picking_out_conf': True,
         'feat_picking_in_conf': True,
         'feat_inventory_in': True,
+        'feat_reexport_backorder': True,
     }
 
     def _bots_backend(self, cr, uid, callback, domain=None, context=None):

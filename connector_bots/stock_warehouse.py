@@ -220,6 +220,19 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             if stock_picking.backorder_id:
                                 if stock_picking.backorder_id.state != 'done' and stock_picking.state != 'assigned':
                                     raise JobError('Error while creating backorder for picking %s imported from Bots' % (stock_picking.name,))
+                                bots_picking_obj.write(_cr, self.session.uid, picking_id, {'carrier_tracking_ref': tracking_number}, context=ctx)
+                                if stock_picking.backend_id.feat_reexport_backorder:
+                                    # 3PLs such as DSV assume that once they confirm delivery of part of the order, the remaining items should be ignored
+                                    # Because of this we need to re-export the remaining undelivered stock as part of a backorder so it gets delivered
+                                    backorder_picking_id = bots_picking_obj.search(_cr, self.session.uid, [('openerp_id', '=', stock_picking.backorder_id.id)], context=ctx)
+                                    picking_binder.unbind(picking_id)
+                                    picking_binder.bind(picking['id'], backorder_picking_id)
+                                    picking_obj.action_assign_wkf(_cr, self.session.uid, [stock_picking.openerp_id.id], context=ctx)
+                                else:
+                                    # For other 3PLs which will continue to deliver the remaining outstanding items we should take no action
+                                    # The remaining items keep using the same Bots ID and subsequent confirmations should be for this ID
+                                    pass
+
                                 add_checkpoint(self.session, stock_picking.openerp_id._name, stock_picking.openerp_id.id, self.backend_record.id)
 
             except Exception, e:
