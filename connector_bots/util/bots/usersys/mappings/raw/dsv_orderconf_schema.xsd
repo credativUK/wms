@@ -529,6 +529,7 @@
 
     <xs:simpleType name="Reference_qualifier51">
         <xs:restriction base="xs:string">
+            <xs:enumeration value="IPF"/>
             <xs:enumeration value="EPF"/>
             <xs:enumeration value="CON"/>
             <xs:enumeration value="ABO"/>
