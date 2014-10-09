@@ -220,7 +220,6 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             if stock_picking.backorder_id:
                                 if stock_picking.backorder_id.state != 'done' and stock_picking.state != 'assigned':
                                     raise JobError('Error while creating backorder for picking %s imported from Bots' % (stock_picking.name,))
-                                bots_picking_obj.write(_cr, self.session.uid, picking_id, {'carrier_tracking_ref': tracking_number}, context=ctx)
                                 if stock_picking.backend_id.feat_reexport_backorder:
                                     # 3PLs such as DSV assume that once they confirm delivery of part of the order, the remaining items should be ignored
                                     # Because of this we need to re-export the remaining undelivered stock as part of a backorder so it gets delivered
