@@ -29,12 +29,18 @@ from openerp.osv import orm, fields
 _logger = logging.getLogger(__name__)
 
 @on_picking_out_done
-def picking_confirmed(session, model_name, picking_id, server_action_id):
+def picking_confirmed(session, model_name, picking_id, picking_method):
     _logger.debug('Creating job for picking ' + picking_id.__str__())
+    import ipdb; ipdb.set_trace()
     picking = session.pool.get('stock.picking').read(session.cr, session.uid, picking_id, ['carrier_tracking_ref',])
     eta = 0
     if not picking['carrier_tracking_ref']:
         eta = 60*60*24
+    server_action_id = session.pool.get('ir.model.data').get_object_reference(
+            session.cr, session.uid,
+            'connector_tracking_reference_email',
+            'track_reference_action')[1]
+
     generate_email.delay(session, model_name, picking_id, server_action_id,eta=eta)
 
 @on_tracking_number_added
@@ -53,6 +59,8 @@ def tracking_number_added(session, model_name, record_id):
 @job
 def generate_email(session, model_name, picking_id, server_action_id):
     _logger.debug('Executing job for picking %s' % (picking_id,))
+    if not hasattr(server_action_id, '__iter__'):
+        server_action_id = [server_action_id]
     action_context = dict(session.context, active_id=picking_id)
     session.pool.get('ir.actions.server').run(session.cr, session.uid, server_action_id, action_context)
 
