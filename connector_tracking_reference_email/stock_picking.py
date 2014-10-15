@@ -31,7 +31,6 @@ _logger = logging.getLogger(__name__)
 @on_picking_out_done
 def picking_confirmed(session, model_name, picking_id, picking_method):
     _logger.debug('Creating job for picking ' + picking_id.__str__())
-    import ipdb; ipdb.set_trace()
     picking = session.pool.get('stock.picking').read(session.cr, session.uid, picking_id, ['carrier_tracking_ref',])
     eta = 0
     if not picking['carrier_tracking_ref']:
