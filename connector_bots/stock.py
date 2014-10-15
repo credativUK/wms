@@ -677,8 +677,18 @@ def picking_cancel(session, model_name, record_id, picking_type):
     bots_warehouse_obj = session.pool.get('bots.warehouse')
     picking_ids = session.search(picking_type, [('openerp_id', '=', record_id)])
     pickings = session.browse(picking_type, picking_ids)
+
+    late_pickings = []
+
     for picking in pickings:
+        if datetime.now().strftime('%Y-%m-%d') == \
+                datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT).strftime('%Y-%m-%d'):
+            late_pickings.append(picking.name)
+            continue
         export_picking_cancel.delay(session, picking_type, picking.id)
+
+    if late_pickings:
+        raise osv.except_osv(_('Error!'), _('Could not cancel the following pickings, they might have already been delivered by the warehouse: %s') % ", ".join(late_pickings))
 
 @bots
 class BotsPickingExport(ExportSynchronizer):
