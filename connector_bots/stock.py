@@ -68,7 +68,7 @@ class StockPickingIn(orm.Model):
                 store={
                     'stock.move': (
                         _get_stock_move_changes,
-                        ['date_expected'], 10,
+                        ['date_expected', 'picking_id'], 10,
                     )
                 },
                 type='datetime', string='Scheduled Time', select=True,
@@ -146,7 +146,7 @@ class StockPickingOut(orm.Model):
                 store={
                     'stock.move': (
                         _get_stock_move_changes,
-                        ['date_expected'], 10,
+                        ['date_expected', 'picking_id'], 10,
                     )
                 },
                 type='datetime', string='Scheduled Time', select=True,
