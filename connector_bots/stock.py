@@ -279,7 +279,7 @@ class StockMove(orm.Model):
                 readonly=True,
                 string='Picking state',
             ),
-        'bots_exported': fields.function(_bots_test_exported, type='boolean', string='Exported to Bots', readonly=True, help="Has this move been exported to Bots"),
+        'bots_exported': fields.function(_bots_test_exported, type='boolean', string='Exported to 3PL', readonly=True, help="Has this move been exported to 3PL/Bots"),
     }
 
     def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
