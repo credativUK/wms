@@ -426,6 +426,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
         picking_obj = self.session.pool.get('stock.picking')
         move_obj = self.session.pool.get('stock.move')
         bots_warehouse_obj = self.session.pool.get('bots.warehouse')
+        currency_obj = self.session.pool.get('res.currency')
         wf_service = netsvc.LocalService("workflow")
 
         picking = bots_picking_obj.browse(self.session.cr, self.session.uid, picking_id)
@@ -480,6 +481,22 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 picking_complete = False
                 moves_to_split.append(move.id)
                 continue
+
+            if move.sale_line_id and move.sale_line_id.price_unit:
+                price_unit = move.sale_line_id.price_unit
+                currency = move.sale_line_id.company_id.currency_id
+                discount = move.sale_line_id.discount
+            elif move.purchase_line_id and move.purchase_line_id.price_unit:
+                price_unit = move.purchase_line_id.price_unit
+                currency = move.purchase_line_id.company_id.currency_id
+                discount = move.purchase_line_id.discount
+            else:
+                price_unit = move.product_id.standard_price
+                currency = default_company.currency_id
+                discount = 0
+
+            price = currency_obj.round(self.session.cr, self.session.uid, currency, (1 - (discount/100.0)) * price_unit)
+
             order_line = {
                     "id": "%sS%s" % (bots_id, seq),
                     "seq": seq,
@@ -488,12 +505,8 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "uom": move.product_uom.name,
                     "product_uos_qty": int(move.product_uos_qty),
                     "uos": move.product_uos.name,
-                    "price_unit": move.sale_line_id and move.sale_line_id.price_unit \
-                        or move.purchase_line_id and move.purchase_line_id.price_unit \
-                        or move.product_id.standard_price,
-                    "price_currency": move.sale_line_id and move.sale_line_id.price_unit and move.sale_line_id.company_id.currency_id.name \
-                        or move.purchase_line_id and move.purchase_line_id.price_unit and move.purchase_line_id.company_id.currency_id.name \
-                        or default_company.currency_id.name,
+                    "price_unit": price,
+                    "price_currency": currency.name,
                 }
             if move.product_id.volume:
                 order_line['volume_net'] = move.product_id.volume
