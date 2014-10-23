@@ -413,10 +413,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
             MODEL = 'bots.stock.picking.in'
             TYPE = 'in'
             FILENAME = 'picking_in_%s.json'
+            ALLOWED_STATES = ('waiting', 'confirmed', 'assigned',)
         elif self._picking_type == 'out':
             MODEL = 'bots.stock.picking.out'
             TYPE = 'out'
             FILENAME = 'picking_out_%s.json'
+            ALLOWED_STATES = ('assigned',)
         else:
             raise NotImplementedError('Unable to adapt stock picking of type %s' % (self._picking_type,))
 
@@ -472,7 +474,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
         order_lines = []
         seq = 1
         for move in picking.move_lines:
-            if move.state != 'assigned':
+            if move.state not in ALLOWED_STATES:
                 picking_complete = False
                 moves_to_split.append(move.id)
                 continue
