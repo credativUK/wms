@@ -169,7 +169,7 @@ def main(inn,out):
                 ('Company_Name_1', PART_NAME[:35]),
                 ('Address_3', PART_STREET2),
                 ('Postal_Code', PART_ZIP),
-                ('Place_Name', PART_CITY),
+                ('Place_Name', PART_CITY[:35]),
                 ('Country_Code', PART_COUNTRY),
                 ('Language_code', get_dsv_lang(PART_LANG)),
                 ('Telephone_Number', PART_PHONE),
