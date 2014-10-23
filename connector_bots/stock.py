@@ -483,11 +483,11 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 continue
 
             discount = 0
-            if move.sale_line_id and move.sale_line_id.price_unit:
+            if move.sale_line_id:
                 price_unit = move.sale_line_id.price_unit
                 currency = move.sale_line_id.order_id.currency_id
                 discount = move.sale_line_id.discount
-            elif move.purchase_line_id and move.purchase_line_id.price_unit:
+            elif move.purchase_line_id:
                 price_unit = move.purchase_line_id.price_unit
                 currency = move.purchase_line_id.order_id.currency_id
             else:
