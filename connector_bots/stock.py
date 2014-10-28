@@ -675,6 +675,7 @@ def picking_available(session, model_name, record_id, picking_type, location_typ
         if warehouse_ids:
             break
 
+    warehouse_ids = []
     bots_warehouse_ids = bots_warehouse_obj.search(session.cr, session.uid, [('warehouse_id', 'in', warehouse_ids)])
     bots_warehouse = bots_warehouse_obj.browse(session.cr, session.uid, bots_warehouse_ids)
     for warehouse in bots_warehouse:
