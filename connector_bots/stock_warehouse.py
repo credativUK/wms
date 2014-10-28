@@ -153,22 +153,25 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 raise NoExternalId("Picking %s could not be found in OpenERP" % (picking['id'],))
                             stock_picking = bots_picking_obj.browse(_cr, self.session.uid, picking_id, context=ctx)
 
-                            tracking_numbers = {}
-                            for tracking in picking.get('references', []):
-                                # Get the first sane tracking reference
-                                tracking_code = tracking.get('id') or tracking.get('desc')
-                                tracking_ref = tracking.get('desc') or tracking.get('id')
-                                if tracking.get('type') == 'consignment' and tracking_ref and tracking_ref not in ('N/A',):
-                                    tracking_numbers['consignment'] = tracking_ref
-                                elif ((tracking.get('type') == 'purchase_ref' and picking['type'] == 'in') or \
-                                        (tracking.get('type') == 'shipping_ref' and picking['type'] == 'out')) and \
-                                        tracking_code and tracking_code not in ('N/A',):
-                                    tracking_numbers['pick_ref'] = tracking_code
-                                elif tracking_code and tracking_code not in ('N/A',):
-                                    tracking_numbers['other_ref'] = tracking_code
-                            tracking_number = tracking_numbers.get('consignment') or tracking_numbers.get('pick_ref') or tracking_numbers.get('other_ref') or False
+                            if picking.get('tracking_number'):
+                                tracking_number = picking.get('tracking_number')
+                            else:
+                                tracking_numbers = {}
+                                for tracking in picking.get('references', []):
+                                    # Get the first sane tracking reference
+                                    tracking_code = tracking.get('id') or tracking.get('desc')
+                                    tracking_ref = tracking.get('desc') or tracking.get('id')
+                                    if tracking.get('type') == 'consignment' and tracking_ref and tracking_ref not in ('N/A',):
+                                        tracking_numbers['consignment'] = tracking_ref
+                                    elif ((tracking.get('type') == 'purchase_ref' and picking['type'] == 'in') or \
+                                            (tracking.get('type') == 'shipping_ref' and picking['type'] == 'out')) and \
+                                            tracking_code and tracking_code not in ('N/A',):
+                                        tracking_numbers['pick_ref'] = tracking_code
+                                    elif tracking_code and tracking_code not in ('N/A',):
+                                        tracking_numbers['other_ref'] = tracking_code
+                                tracking_number = tracking_numbers.get('consignment') or tracking_numbers.get('pick_ref') or tracking_numbers.get('other_ref') or False
 
-                            carrier = picking.get('carrier')
+                            carrier = picking.get('service_carrier') or picking.get('carrier')
                             if carrier:
                                 carrier_ids = carrier_obj.search(_cr, self.session.uid, [('name', 'like', carrier),], context=ctx)
                                 if carrier_ids:
