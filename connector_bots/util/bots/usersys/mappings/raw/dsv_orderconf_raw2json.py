@@ -176,7 +176,65 @@ def main(inn,out):
             # == SERVICE DETAILS - WOC59R ==
             for ORDLD in ORD.get('WOC59R', []):
                 rec_counts['59'] = rec_counts.setdefault('59', 0) + 1
-                # FIXME: Unused but count for validation
+
+                CARRIER_TYPE = {
+                'A': 'Allport',
+                'B': 'DPD',
+                'C': 'Coca Cola',
+                'D': 'Dachser',
+                'E': 'Exel',
+                'F': 'Dufa transport',
+                'G': 'Graveleau',
+                'H': 'DHL',
+                'I': 'Chronopost',
+                'J': 'XP France',
+                'K': 'Selektvracht',
+                'L': 'Distrilogistics',
+                'M': 'DSV (Frans Maas)',
+                'N': 'Normal',
+                'O': 'DSV',
+                'P': 'TPG',
+                'Q': 'Mory',
+                'R': 'Nunner',
+                'S': 'Sernam',
+                'T': 'TNT',
+                'U': 'UPS',
+                'V': 'van Gend & Loos',
+                'W': 'MIT Transport',
+                'X': 'Fedex',
+                'Y': 'New Poney Express',
+                'Z': 'CORPCO',
+                '1': 'DSV Road',
+                '2': 'CIBLEX',
+                '3': 'Trans-o-Flex',
+                '4': 'AZKAR',
+                '5': 'NightFreight',
+                '6': 'GLS',
+                '7': 'Bosman',
+                '8': 'XPACK',
+                '9': 'Ship It Smarter',
+                '(': 'GEPC Intercompany',
+                ')': 'DynaLogic',
+                '-': 'DB Schenker',
+                }.get(ORDLD.get('Carrier'))
+                SERVICE_LEVEL_CODE = ORDLD.get('Service_Level_Code')
+                CONSIGNMENT_NUMBER = ORDLD.get('Consignment_number')
+                SERVICE_LEVEL_DESC = ORDLD.get('Service_Level_Description')
+                SERVICE_LEVEL_LABEL = ORDLD.get('Service_Level_Description_Label')
+                SERVICE_LEVEL_TEXT = ORDLD.get('Service_Level_Description_Text')
+                SERVICE_IND_1 = ORDLD.get('Service_Indicator_01') or ''
+                SERVICE_IND_2 = ORDLD.get('Service_Indicator_02') or ''
+                SERVICE_IND_3 = ORDLD.get('Service_Indicator_03') or ''
+                LEAD_TRACKING_NUMBER = ORDLD.get('Lead_package_tracking_number')
+
+                oout.put({'BOTSID':'shipment', 'service_carrier': CARRIER_TYPE})
+                oout.put({'BOTSID':'shipment', 'service_level_code': SERVICE_LEVEL_CODE})
+                oout.put({'BOTSID':'shipment', 'service_level_desc': SERVICE_LEVEL_DESC})
+                oout.put({'BOTSID':'shipment', 'service_level_label': SERVICE_LEVEL_LABEL})
+                oout.put({'BOTSID':'shipment', 'service_level_text': SERVICE_LEVEL_TEXT})
+                oout.put({'BOTSID':'shipment', 'service_indicators': "%s,%s,%s" % (SERVICE_IND_1,SERVICE_IND_2,SERVICE_IND_3)})
+                oout.put({'BOTSID':'shipment', 'consignment_number': LEAD_TRACKING_NUMBER})
+                oout.put({'BOTSID':'shipment', 'tracking_number': LEAD_TRACKING_NUMBER})
 
             # == PARTNER REFERENCE - WOC70R ==
             for PART in ORD.get('WOC70R', []):
