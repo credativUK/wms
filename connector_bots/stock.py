@@ -670,12 +670,12 @@ def picking_available(session, model_name, record_id, picking_type, location_typ
             if location.chained_picking_type != 'out' and location.chained_auto_packing == 'auto':
                 location = location.chained_location_id
 
+    warehouse_ids = []
     for location_id in location_ids:
         warehouse_ids = warehouse_obj.search(session.cr, session.uid, ['|', ('lot_stock_id', '=', location_id), ('lot_output_id', '=', location_id)])
         if warehouse_ids:
             break
 
-    warehouse_ids = []
     bots_warehouse_ids = bots_warehouse_obj.search(session.cr, session.uid, [('warehouse_id', 'in', warehouse_ids)])
     bots_warehouse = bots_warehouse_obj.browse(session.cr, session.uid, bots_warehouse_ids)
     for warehouse in bots_warehouse:
