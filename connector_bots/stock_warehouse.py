@@ -216,6 +216,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 raise NotImplementedError("Unable to process unexpected incoming stock for %s: %s" % (picking['id'], moves_extra,))
 
                             # Prepare and complete the picking wizard
+                            old_backorder_id = stock_picking.backorder_id and stock_picking.backorder_id.id or False
                             moves_to_ship = {}
                             for move, qty in moves_part:
                                 moves_to_ship['move%s' % (move.id)] = {
@@ -229,7 +230,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
                             # If there is a backorder, we need to assert that the current picking remains available
                             # The backorder should be flagged for a checkpoint
-                            if stock_picking.backorder_id:
+                            if stock_picking.backorder_id and not stock_picking.backorder_id.id == old_backorder_id:
                                 if stock_picking.backorder_id.state != 'done' and stock_picking.state != 'assigned':
                                     raise JobError('Error while creating backorder for picking %s imported from Bots' % (stock_picking.name,))
                                 if stock_picking.backend_id.feat_reexport_backorder:
