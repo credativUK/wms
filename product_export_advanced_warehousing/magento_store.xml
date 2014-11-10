@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="view_magento_backend_form" model="ir.ui.view">
+            <field name="name">magento.backend.form</field>
+            <field name="model">magento.backend</field>
+            <field name="inherit_id" ref="magentoerpconnect.view_magento_backend_form"/>
+            <field name="arch" type="xml">
+                <group name="main_configuration" position="inside">
+                    <field name="location_ids"/>
+                </group>
+            </field>
+        </record>
+
+        <record id="view_magento_stock_location_form" model="ir.ui.view">
+            <field name="name">magento.stock.location.form</field>
+            <field name="model">magento.stock.location</field>
+            <field name="arch" type="xml">
+                <form string="Magento Location" version="7.0">
+                    <sheet>
+                        <h1>
+                            <field name="magento_id" class="oe_inline"/>
+                        </h1>
+                        <group string="Information">
+                            <field name="backend_id"/>
+                            <field name="openerp_id"/>
+                        </group>
+                        <group string="Options">
+                            <field name="no_stock_sync"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_magento_stock_location_tree" model="ir.ui.view">
+            <field name="name">magento.stock.location.tree</field>
+            <field name="model">magento.stock.location</field>
+            <field name="arch" type="xml">
+                <tree string="Magento stock location" version="7.0">
+                    <field name="magento_id"/>
+                    <field name="backend_id"/>
+                    <field name="openerp_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_magento_stock_location" model="ir.actions.act_window">
+            <field name="name">Magento Locations</field>
+            <field name="res_model">magento.stock.location</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_magento_stock_location_tree"/>
+        </record>
+
+        <menuitem id="menu_magento_stock_location"
+            name="Locations"
+            parent="magentoerpconnect.menu_magento_root"
+            sequence="50"
+            action="action_magento_stock_location"/>
+
+    </data>
+</openerp>
