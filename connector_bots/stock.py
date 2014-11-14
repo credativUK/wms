@@ -696,8 +696,8 @@ def picking_cancel(session, model_name, record_id, picking_type):
     late_pickings = []
 
     for picking in pickings:
-        if datetime.now().strftime('%Y-%m-%d') == \
-                datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT).strftime('%Y-%m-%d'):
+        min_date = datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT)
+        if datetime.now().date() >= min_date.date():
             late_pickings.append(picking.name)
             continue
         export_picking_cancel.delay(session, picking_type, picking.id)
