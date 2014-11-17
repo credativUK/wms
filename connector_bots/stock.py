@@ -501,7 +501,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 elif move.picking_id.purchase_id and move.picking_id.purchase_id.currency_id:
                     currency = move.picking_id.purchase_id.currency_id
                 if currency.id != default_currency.id:
-                    price_unit = currency_obj.compute(cr, uid, default_currency.id, currency.id, price_unit, round=False, context=context)
+                    price_unit = currency_obj.compute(self.session.cr, self.session.uid, default_currency.id, currency.id, price_unit, round=False, context=ctx)
 
             price = currency_obj.round(self.session.cr, self.session.uid, currency, (1 - (discount/100.0)) * price_unit)
 
