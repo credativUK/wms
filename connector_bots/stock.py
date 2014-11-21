@@ -409,6 +409,14 @@ class StockPickingAdapter(BotsCRUDAdapter):
 
     def create(self, picking_id):
 
+        def _find_pricelist_cost(cr, uid, pl_id, prod_id, partner, uom, date, context=None):
+            pl_obj = self.pool.get('product.pricelist')
+            price = pl_obj.price_get(cr, uid, [pl_id], prod_id, 1.0, partner, {
+                'uom' : uom,
+                'date' : date,
+                })[pl_id]
+            return price
+
         if self._picking_type == 'in':
             MODEL = 'bots.stock.picking.in'
             TYPE = 'in'
@@ -485,6 +493,8 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 continue
 
             discount = 0
+            price_unit = move.product_id.standard_price
+            currency = default_company.currency_id
             if move.sale_line_id:
                 price_unit = move.sale_line_id.price_unit
                 currency = move.sale_line_id.order_id.currency_id
@@ -492,9 +502,28 @@ class StockPickingAdapter(BotsCRUDAdapter):
             elif move.purchase_line_id:
                 price_unit = move.purchase_line_id.price_unit
                 currency = move.purchase_line_id.order_id.currency_id
-            else:
-                price_unit = move.product_id.standard_price
-                currency = default_company.currency_id
+            elif move.picking_id:
+                default_currency = currency
+                order = False
+                if move.picking_id.sale_id and move.picking_id.sale_id.currency_id:
+                    currency = move.picking_id.sale_id.currency_id
+                    order = move.picking_id.sale_id
+                elif move.picking_id.purchase_id and move.picking_id.purchase_id.currency_id:
+                    currency = move.picking_id.purchase_id.currency_id
+                    order = move.picking_id.purchase_id
+
+                pricelist_price = False
+                if order:
+                    pricelist_price = _find_pricelist_cost(self.session.cr, self.session.uid, order.pricelist_id.id, move.product_id.id, move.partner_id.id, move.product_uom.id, order.date_order, context=ctx)
+
+                if pricelist_price:
+                    # Currency will already be correct since the field on the order
+                    # is related to the field on the same pricelist.
+                    price_unit = pricelist_price
+                elif currency.id != default_currency.id:
+                    # Fallback - no price could be found on the pricelist.
+                    # Convery standard_price to the correct currency.
+                    price_unit = currency_obj.compute(self.session.cr, self.session.uid, default_currency.id, currency.id, price_unit, round=False, context=ctx)
 
             price = currency_obj.round(self.session.cr, self.session.uid, currency, (1 - (discount/100.0)) * price_unit)
 
