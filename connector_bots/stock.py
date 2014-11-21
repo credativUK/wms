@@ -410,7 +410,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
     def create(self, picking_id):
 
         def _find_pricelist_cost(cr, uid, pl_id, prod_id, partner, uom, date, context=None):
-            pl_obj = self.pool.get('product.pricelist')
+            pl_obj = self.session.pool.get('product.pricelist')
             price = pl_obj.price_get(cr, uid, [pl_id], prod_id, 1.0, partner, {
                 'uom' : uom,
                 'date' : date,
