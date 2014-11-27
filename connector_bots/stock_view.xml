@@ -71,7 +71,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[('type','=','out')]</field>
-            <field name="context">{'contact_display': 'partner_address', 'wms_bots': True}</field>
+            <field name="context">{'contact_display': 'partner_address', 'wms_bots': True, 'search_default_available':1}</field>
             <field name="search_view_id" ref="view_picking_out_search_bots"/>
         </record>
         <record id="action_picking_out_view1_bots" model="ir.actions.act_window.view">
