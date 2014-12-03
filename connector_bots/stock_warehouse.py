@@ -222,12 +222,18 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             old_backorder_id = stock_picking.backorder_id and stock_picking.backorder_id.id or False
                             moves_to_ship = {}
                             for move, qty in moves_part:
+                                move_currency = move.price_currency_id.id
+                                move_currency = move_currency or (move.picking_id.sale_id and move.picking_id.sale_id.currency_id.id)
+                                move_currency = move_currency or (move.picking_id.purchase_id and move.picking_id.purchase_id.currency_id.id)
                                 moves_to_ship['move%s' % (move.id)] = {
                                     'product_id': move.product_id.id,
                                     'product_qty': qty,
                                     'product_uom': move.product_uom.id,
                                     'prodlot_id': move.prodlot_id.id,
+                                    'product_price' : move.price_unit,
+                                    'product_currency' : move_currency,
                                 }
+                            ctx.update({'company_id' : stock_picking.openerp_id.company_id})
                             split = picking_obj.do_partial(_cr, self.session.uid, [stock_picking.openerp_id.id], moves_to_ship, context=ctx)
                             stock_picking.refresh()
 
