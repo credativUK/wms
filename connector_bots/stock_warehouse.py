@@ -152,6 +152,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             if not picking_id:
                                 raise NoExternalId("Picking %s could not be found in OpenERP" % (picking['id'],))
                             stock_picking = bots_picking_obj.browse(_cr, self.session.uid, picking_id, context=ctx)
+                            ctx.update({'company_id' : stock_picking.openerp_id.company_id.id})
 
                             if picking.get('tracking_number'):
                                 tracking_number = picking.get('tracking_number')
@@ -233,7 +234,6 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                     'product_price' : move.price_unit,
                                     'product_currency' : move_currency,
                                 }
-                            ctx.update({'company_id' : stock_picking.openerp_id.company_id})
                             split = picking_obj.do_partial(_cr, self.session.uid, [stock_picking.openerp_id.id], moves_to_ship, context=ctx)
                             stock_picking.refresh()
 
