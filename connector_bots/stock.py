@@ -573,6 +573,40 @@ class StockPickingAdapter(BotsCRUDAdapter):
             move_obj.write(self.session.cr, self.session.uid, moves_to_split, {'picking_id': new_picking_id}, context=ctx)
             wf_service.trg_validate(self.session.uid, 'stock.picking', new_picking_id, 'button_confirm', self.session.cr)
 
+        partner_data = {
+            "id": "P%d" % (picking.partner_id.id),
+            "code": picking.partner_id.code or '',
+            "name": picking.partner_id.name or '',
+            "street1": picking.partner_id.street or '',
+            "street2": picking.partner_id.street2 or '',
+            "city": picking.partner_id.city or '',
+            "zip": picking.partner_id.zip or '',
+            "country": picking.partner_id.country_id and picking.partner_id.country_id.code or '',
+            "state": picking.partner_id.state_id and picking.partner_id.state_id.name or '',
+            "phone": picking.partner_id.phone or '',
+            "fax": picking.partner_id.fax or '',
+            "email": picking.partner_id.email or '',
+            "language": picking.partner_id.lang or '',
+        }
+
+        billing_data = {}
+        if picking.sale_id and picking.sale_id.partner_invoice_id:
+            billing_data = {
+                "id": "P%d" % (picking.sale_id.partner_invoice_id.id),
+                "code": picking.sale_id.partner_invoice_id.code or '',
+                "name": picking.sale_id.partner_invoice_id.name or '',
+                "street1": picking.sale_id.partner_invoice_id.street or '',
+                "street2": picking.sale_id.partner_invoice_id.street2 or '',
+                "city": picking.sale_id.partner_invoice_id.city or '',
+                "zip": picking.sale_id.partner_invoice_id.partner_id.zip or '',
+                "country": picking.sale_id.partner_invoice_id.country_id and picking.sale_id.partner_invoice_id.country_id.code or '',
+                "state": picking.sale_id.partner_invoice_id.state_id and picking.sale_id.partner_invoice_id.state_id.name or '',
+                "phone": picking.sale_id.partner_invoice_id.phone or '',
+                "fax": picking.sale_id.partner_invoice_id.fax or '',
+                "email": picking.sale_id.partner_invoice_id.email or '',
+                "language": picking.sale_id.partner_invoice_id.lang or '',
+            }
+
         picking_data = {
                 'id': bots_id,
                 'name': bots_id,
@@ -580,23 +614,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 'state': 'new',
                 'type': TYPE,
                 'date': datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT).strftime('%Y-%m-%d'),
-                'partner':
-                    {
-                        "id": "P%d" % (picking.partner_id.id),
-                        "name": picking.partner_id.name or '',
-                        "street1": picking.partner_id.street or '',
-                        "street2": picking.partner_id.street2 or '',
-                        "city": picking.partner_id.city or '',
-                        "zip": picking.partner_id.zip or '',
-                        "country": picking.partner_id.country_id and picking.partner_id.country_id.code or '',
-                        "state": picking.partner_id.state_id and picking.partner_id.state_id.name or '',
-                        "phone": picking.partner_id.phone or '',
-                        "fax": picking.partner_id.fax or '',
-                        "email": picking.partner_id.email or '',
-                        "language": picking.partner_id.lang or '',
-                    },
+                'partner': partner_data,
                 'line': order_lines,
             }
+        if billing_data:
+            picking_data['partner_bill'] = billing_data
+
         if picking.note:
             picking_data['desc'] = picking.note and picking.note[:64]
         if picking.partner_id.vat:

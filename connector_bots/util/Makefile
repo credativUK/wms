@@ -1,10 +1,12 @@
 pwd := $(shell pwd)
 
-all: base dsv_tests
+all: base dsv_tests prism_tests
 
 base: bots_odoo_base_plugin.zip
 
 dsv_tests: bots_odoo_dsv_plugin.zip
+
+prism_tests: bots_odoo_prism_plugin.zip
 
 bots_odoo_base_plugin.zip:
 	cd bots && \
@@ -15,5 +17,10 @@ bots_odoo_dsv_plugin.zip: bots_odoo_base_plugin.zip $(shell find ./tests/dsv/)
 	cd tests/dsv && \
 	zip -r $(pwd)/bots_odoo_dsv_plugin.zip *
 
+bots_odoo_prism_plugin.zip: bots_odoo_base_plugin.zip $(shell find ./tests/prism/)
+	cp bots_odoo_base_plugin.zip bots_odoo_prism_plugin.zip && \
+	cd tests/prism && \
+	zip -r $(pwd)/bots_odoo_prism_plugin.zip *
+
 clean:
-	rm -f bots_odoo_base_plugin.zip bots_odoo_dsv_plugin.zip
+	rm -f bots_odoo_base_plugin.zip bots_odoo_dsv_plugin.zip bots_odoo_prism_plugin.zip
