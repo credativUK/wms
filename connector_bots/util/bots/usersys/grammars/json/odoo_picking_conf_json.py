@@ -81,7 +81,7 @@ recorddefs = {
             ['service_level_text', 'C', 64, 'AN'],
             ['service_indicators', 'C', 64, 'AN'],
             ['consignment_number', 'C', 64, 'AN'],
-            ['tracking_number', 'C', 64, 'AN'],
+            ['tracking_number', 'C', 99999, 'AN'],
           ],
     'invoice':[
             ['BOTSID', 'M', 64, 'AN'],
@@ -123,6 +123,7 @@ recorddefs = {
             ['id','C',64,'AN'],
             ['seq', 'C', 64, 'AN'],
             ['type', 'C', 64, 'AN'],
+            ['status', 'C', 64, 'AN'],
             ['datetime', 'C', 64, 'AN'],
             ['product', 'C', 64, 'AN'],
             ['uom_qty', 'C', 64, 'AN'],

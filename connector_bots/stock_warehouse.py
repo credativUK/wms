@@ -189,11 +189,25 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
                             # Count products in the incoming file
                             prod_counts = {}
+                            prod_cancel = {}
+                            prod_return = {}
+                            prod_refund = {}
                             for line in picking['line']:
                                 product_id = product_binder.to_openerp(line['product'])
                                 if not product_id:
                                     raise NoExternalId("Product %s could not be found in OpenERP" % (line['product'],))
-                                prod_counts[product_id] = prod_counts.get(product_id, 0) + int('qty_real' in line and line['qty_real'] or line['uom_qty'])
+                                if not line.get('status') or line.get('status') == 'DONE':
+                                    prod_counts[product_id] = prod_counts.get(product_id, 0) + int('qty_real' in line and line['qty_real'] or line['uom_qty'])
+                                elif line.get('status') == 'CANCELLED':
+                                    prod_cancel[product_id] = prod_cancel.get(product_id, 0) + int('qty_real' in line and line['qty_real'] or line['uom_qty'])
+                                elif line.get('status') == 'RETURNED':
+                                    prod_return[product_id] = prod_return.get(product_id, 0) + int('qty_real' in line and line['qty_real'] or line['uom_qty'])
+                                elif line.get('status') == 'REFUNDED':
+                                    prod_refund[product_id] = prod_refund.get(product_id, 0) + int('qty_real' in line and line['qty_real'] or line['uom_qty'])
+
+                            # TODO: Handle special cases for cancels, returns and refunds:
+                            if prod_cancel or prod_return or prod_refund:
+                                raise NotImplementedError('Handling cancelled, returned or refunded lines is not currently supported')
 
                             # Orgainise into done, partial and extra
                             moves_part = []
