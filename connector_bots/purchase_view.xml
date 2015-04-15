@@ -8,6 +8,7 @@
             <field name="arch" type="xml">
                 <field name="date_approve" position="after">
                     <field name="bots_customs"/>
+                    <field name="bots_cross_dock"/>
                 </field>
             </field>
         </record>

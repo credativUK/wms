@@ -20,7 +20,6 @@
 ##############################################################################
 
 import re
-from util import get_datetime
 
 def main(inn,out):
 
@@ -39,7 +38,7 @@ def main(inn,out):
             raise NotImplementedError('Unable to handle order with state %s' % (ORD_STATE,))
 
         ORD_REMARK = pick.get({'BOTSID': 'pickings', 'desc': None})
-        ORD_DELIVERY_DATE, dummy = get_datetime(pick.get({'BOTSID': 'pickings', 'date': None}) + ' 00:00:00.00000')
+        ORD_DELIVERY_DATE = pick.get({'BOTSID': 'pickings', 'date': None}) + ' 00:00:00'
         ORDER_ATTRS = {}
 
         # == PARTNER ==

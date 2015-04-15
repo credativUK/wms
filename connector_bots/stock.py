@@ -492,9 +492,16 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 moves_to_split.append(move.id)
                 continue
 
+            product_supplier_sku = product_bots_id
+            for supplier in move.product_id.seller_ids:
+                if supplier.product_code and supplier.name.id == move.partner_id.id:
+                    product_supplier_sku = supplier.product_code
+                    break
+
             discount = 0
             price_unit = move.product_id.standard_price
             currency = default_company.currency_id
+            cross_dock = 0
             if move.sale_line_id:
                 price_unit = move.sale_line_id.price_unit
                 currency = move.sale_line_id.order_id.currency_id
@@ -502,6 +509,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
             elif move.purchase_line_id:
                 price_unit = move.purchase_line_id.price_unit
                 currency = move.purchase_line_id.order_id.currency_id
+                cross_dock = move.purchase_line_id.order_id.bots_cross_dock and 1 or 0
             elif move.picking_id:
                 default_currency = currency
                 order = False
@@ -531,7 +539,8 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "id": "%sS%s" % (bots_id, seq),
                     "seq": seq,
                     "move_id": move.id,
-                    "product": product_bots_id, 
+                    "product": product_bots_id,
+                    "product_supplier_sku": product_supplier_sku,
                     "product_qty": int(move.product_qty),
                     "uom": move.product_uom.name,
                     "product_uos_qty": int(move.product_uos_qty),
@@ -615,6 +624,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 'order': bots_id,
                 'state': 'new',
                 'type': TYPE,
+                'crossdock': cross_dock,
                 'date': datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT).strftime('%Y-%m-%d'),
                 'partner': partner_data,
                 'line': order_lines,

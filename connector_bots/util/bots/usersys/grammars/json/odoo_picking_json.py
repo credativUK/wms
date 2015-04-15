@@ -65,6 +65,7 @@ recorddefs = {
             ['state', 'C', 64, 'AN'],
             ['type', 'C', 64, 'AN'],
             ['date', 'C', 64, 'AN'],
+            ['crossdock', 'C', 1, 'N'],
           ],
     'partner':[
             ['BOTSID', 'M', 64, 'AN'],
@@ -106,6 +107,7 @@ recorddefs = {
             ['seq', 'C', 64, 'AN'],
             ['move_id', 'C', 64, 'AN'],
             ['product', 'C', 64, 'AN'],
+            ['product_supplier_sku', 'C', 64, 'AN'],
             ['product_qty', 'C', 64, 'AN'],
             ['uom', 'C', 64, 'AN'],
             ['product_uos_qty', 'C', 64, 'AN'],

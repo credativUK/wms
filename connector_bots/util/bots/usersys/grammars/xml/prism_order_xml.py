@@ -73,7 +73,7 @@ recorddefs = {
             ['subChannel', 'C', 10, 'A'],
             ['currency', 'M', 3, 'A'],
             ['sourceCode', 'C', 10, 'A'],
-            ['orderDate', 'M', 19, 'D'],
+            ['orderDate', 'M', 19, 'A'],
             ['orderNumber', 'M', 10, 'A'],
             ['externalDocumentRef1', 'C', 25, 'A'],
             ['externalDocumentRef2', 'C', 25, 'A'],
