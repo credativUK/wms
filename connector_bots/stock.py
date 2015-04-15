@@ -530,6 +530,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
             order_line = {
                     "id": "%sS%s" % (bots_id, seq),
                     "seq": seq,
+                    "move_id": move.id,
                     "product": product_bots_id, 
                     "product_qty": int(move.product_qty),
                     "uom": move.product_uom.name,
@@ -537,6 +538,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "uos": move.product_uos.name,
                     "price_unit": price,
                     "price_currency": currency.name,
+                    "customs_commodity_code": move.product_id.customs_commodity_code,
                 }
             if move.product_id.volume:
                 order_line['volume_net'] = move.product_id.volume

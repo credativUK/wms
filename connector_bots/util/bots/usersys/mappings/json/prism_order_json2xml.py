@@ -41,7 +41,6 @@ def main(inn,out):
         ORD_REMARK = pick.get({'BOTSID': 'pickings', 'desc': None})
         ORD_DELIVERY_DATE, dummy = get_datetime(pick.get({'BOTSID': 'pickings', 'date': None}) + ' 00:00:00.00000')
         ORDER_ATTRS = {}
-        ORDER_PAYMENTS = [] # FIXME: We are not currently receiving payment details
 
         # == PARTNER ==
 
@@ -86,8 +85,10 @@ def main(inn,out):
         for pline in plines:
             LINE_ID = pline.get({'BOTSID': 'line', 'id': None})
             LINE_SEQ = "%03d" % (int(pline.get({'BOTSID': 'line', 'seq': None})),)
+            LINE_INTERNAL_ID = pline.get({'BOTSID': 'line', 'move_id': None})
             LINE_PRODUCT = pline.get({'BOTSID': 'line', 'product': None}).upper()
             LINE_TYPE = '*FIRST'
+            LINE_CUSTOMS_TYPE = pline.get({'BOTSID': 'line', 'customs_commodity_code': None}) or ''
             LINE_QTY = float(pline.get({'BOTSID': 'line', 'product_qty': None}) or 0.0)
             LINE_DESC = pline.get({'BOTSID': 'line', 'desc': None})
             LINE_VOLUME_NET = pline.get({'BOTSID': 'line', 'volume_net': None})
@@ -98,7 +99,7 @@ def main(inn,out):
 
             # ORDER LINES
             itr = 0
-            for dummy in xrange(int(LINE_QTY or 0)): # FIXME: Shouldn't there be a qty field here? or just one entry per unit qty?
+            for dummy in xrange(int(LINE_QTY or 0)):
                 itr += 1
                 LINE_QTY = 1.0
                 ORD_ITEMS += LINE_QTY
@@ -106,12 +107,13 @@ def main(inn,out):
                 ORD_CURRENCY = ORD_CURRENCY or LINE_CURRENCY
                 if LINE_CURRENCY != ORD_CURRENCY:
                     raise NotImplementedError('Unable to handle order with multiple currencies')
+                LINE_UUID = "%s0%s" % (itr, LINE_INTERNAL_ID)
                 LINE_ATTRS = {
-                    'uniqueRecordID': "%s_%s" % (LINE_ID, itr), # FIXME: This is a unique ID per unit item, other system would not know this ID for mapping.
+                    'uniqueRecordID': LINE_UUID,
                 }
 
                 order_line_out = order_out.putloop({'BOTSID': 'order'}, {'BOTSID':'items'}, {'BOTSID':'item'})
-                #order_line_out.put({'BOTSID':'item', 'postageProductType': ''}) # FIXME: What is this?
+                order_line_out.put({'BOTSID':'item', 'postageProductType': LINE_CUSTOMS_TYPE})
                 order_line_out.put({'BOTSID':'item', 'productCode': LINE_PRODUCT})
                 order_line_out.put({'BOTSID':'item', 'unitPrice': LINE_PRICE_UNIT})
                 order_line_out.put({'BOTSID':'item', 'salesPrice': LINE_PRICE_UNIT * LINE_QTY})
@@ -125,10 +127,12 @@ def main(inn,out):
                     order_line_attr.put({'BOTSID':'attribute', 'name': ATTR_NAME})
                     order_line_attr.put({'BOTSID':'attribute', 'value': ATTR_VALUE})
 
+        ORDER_PAYMENTS = [('CARD', ORD_CURRENCY, ORD_TOTAL)] # Hardcoded for CARD for total order total
+
         # ORDER - Main element
-        #order_out.put({'BOTSID':'order', 'orderType': 'B2C'}) # Default B2C
-        #order_out.put({'BOTSID':'order', 'channel': 'WEB'}) # Default WEB
-        #order_out.put({'BOTSID':'order', 'subChannel': ''}) # No Default
+        order_out.put({'BOTSID':'order', 'orderType': 'B2C'})
+        order_out.put({'BOTSID':'order', 'channel': 'WEB'})
+        #order_out.put({'BOTSID':'order', 'subChannel': ''}) # TODO: Magento order store_name
         order_out.put({'BOTSID':'order', 'currency': ORD_CURRENCY or 'GBP'})
         order_out.put({'BOTSID':'order', 'sourceCode': ''.join([x[:1] for x in PART_NAME.split(' ')])}) # Initials from partner name
         order_out.put({'BOTSID':'order', 'orderDate': ORD_DELIVERY_DATE})
@@ -138,21 +142,27 @@ def main(inn,out):
         order_out.put({'BOTSID':'order', 'itemsCount': ORD_ITEMS})
         order_out.put({'BOTSID':'order', 'itemsValue': ORD_TOTAL})
         order_out.put({'BOTSID':'order', 'territory': PART_COUNTRY or 'GB'})
-        #order_out.put({'BOTSID':'order', 'basicPostageRate': 0.00}) # Default 0.00
-        #order_out.put({'BOTSID':'order', 'preferredCarrier': ''}) # No Default
-        #order_out.put({'BOTSID':'order', 'preferreCarrierService': ''}) # No Default
-        #order_out.put({'BOTSID':'order', 'carrierPremium': ''}) # No Default
-        #order_out.put({'BOTSID':'order', 'expressDelivery': ''}) # No Default
-        #order_out.put({'BOTSID':'order', 'expressPremium': ''}) # No Default
-        #order_out.put({'BOTSID':'order', 'giftOrder': ''}) # No Default
-        #order_out.put({'BOTSID':'order', 'giftWrap': ''}) # No Default
-        #order_out.put({'BOTSID':'order', 'giftMessage': ''}) # No Default
-        #order_out.put({'BOTSID':'order', 'giftWrapPremium': ''}) # No Default
-        #order_out.put({'BOTSID':'order', 'holdToComplete': ''}) # No Default
-        #order_out.put({'BOTSID':'order', 'tax': ''}) # No Default
-        #order_out.put({'BOTSID':'order', 'taxRegion': ''}) # No Default
-        #order_out.put({'BOTSID':'order', 'taxIncluded': ''}) # No Default
+        #order_out.put({'BOTSID':'order', 'basicPostageRate': 0.00}) # Default 0.00 # TODO: Magento order base_shipping_amount
+        #order_out.put({'BOTSID':'order', 'preferredCarrier': ''}) # No Default # FIXME: Magento order preferred_carrier - not exported
+        #order_out.put({'BOTSID':'order', 'preferredCarrierService': ''}) # No Default # FIXME: Magento order preferred_carrier_service - not exported
+        #order_out.put({'BOTSID':'order', 'carrierPremium': 0.00}) # No Default
+        #order_out.put({'BOTSID':'order', 'expressDelivery': ''}) # No Default # FIXME: Magento order express_delivery - not exported
+        #order_out.put({'BOTSID':'order', 'expressPremium': 0.00}) # No Default
+        order_out.put({'BOTSID':'order', 'giftOrder': 0})
+        order_out.put({'BOTSID':'order', 'giftWrap': 0})
+        #order_out.put({'BOTSID':'order', 'giftMessage': ''}) # No Default # FIXME: Magento order giftMessage - not exported
+        #order_out.put({'BOTSID':'order', 'giftWrapPremium': 0.00}) # No Default
+        order_out.put({'BOTSID':'order', 'holdToComplete': 0})
+        #order_out.put({'BOTSID':'order', 'tax': 0.00})
+        #order_out.put({'BOTSID':'order', 'taxRegion': ''}) # No Default # FIXME: Magento order country_code - not exported
+        #order_out.put({'BOTSID':'order', 'taxIncluded': 1}) # No Default
         order_out.put({'BOTSID':'order', 'deliveryInstructions': ORD_REMARK})
+
+        # ORDER_ATTRS
+        # FIXME: despatchType = preferred_carrier_service - not exported
+        # FIXME: collectPoint = None
+        # FIXME: HDNCode - hdn_code exported from Magento
+        # FIXME: cpCustomerNotify - cp_customer_notify not exported from Magento
 
         # ATTRIBUTE elements
         for ATTR_NAME, ATTR_VALUE in ORDER_ATTRS.iteritems():
@@ -174,22 +184,22 @@ def main(inn,out):
         order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'region': PART_STATE})
         order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'postCode': PART_ZIP})
         order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'countryCode': PART_COUNTRY})
-        #order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'clientMarketingOk': ''}) # No Default
-        #order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'externalMarketingOk': ''}) # No Default
+        order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'clientMarketingOk': 0})
+        order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'externalMarketingOk': 0})
 
         if PART_PHONE:
             order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingPhone1', 'number': PART_PHONE})
             #order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingPhone1', 'numberType': ''}) # No Default
-            #order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingPhone1', 'clientContactOk': ''}) # No Default
-            #order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingPhone1', 'clientMarketingOk': ''}) # No Default
-            #order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingPhone1', 'externalMarketingOk': ''}) # No Default
+            order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingPhone1', 'clientContactOk': 0})
+            order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingPhone1', 'clientMarketingOk': 0})
+            order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingPhone1', 'externalMarketingOk': 0})
 
         if PART_EMAIL:
             order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingEmail', 'displayName': PART_NAME})
             order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingEmail', 'email': PART_EMAIL})
-            #order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingEmail', 'clientContactOk': ''}) # No Default
-            #order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingEmail', 'clientMarketingOk': ''}) # No Default
-            #order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingEmail', 'externalMarketingOk': ''}) # No Default
+            order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingEmail', 'clientContactOk': 0})
+            order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingEmail', 'clientMarketingOk': 0})
+            order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingEmail', 'externalMarketingOk': 0})
 
         # BILLING elements
         #order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'title': ''}) # No Default
@@ -205,22 +215,22 @@ def main(inn,out):
         order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'region': PART_BILL_STATE})
         order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'postCode': PART_BILL_ZIP})
         order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'countryCode': PART_BILL_COUNTRY})
-        #order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'clientMarketingOk': ''}) # No Default
-        #order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'externalMarketingOk': ''}) # No Default
+        order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'clientMarketingOk': 0})
+        order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'externalMarketingOk': 0})
 
         if PART_BILL_PHONE:
             order_out.put({'BOTSID':'order'}, {'BOTSID':'billingPhone1', 'number': PART_BILL_PHONE})
             #order_out.put({'BOTSID':'order'}, {'BOTSID':'billingPhone1', 'numberType': ''}) # No Default
-            #order_out.put({'BOTSID':'order'}, {'BOTSID':'billingPhone1', 'clientContactOk': ''}) # No Default
-            #order_out.put({'BOTSID':'order'}, {'BOTSID':'billingPhone1', 'clientMarketingOk': ''}) # No Default
-            #order_out.put({'BOTSID':'order'}, {'BOTSID':'billingPhone1', 'externalMarketingOk': ''}) # No Default
+            order_out.put({'BOTSID':'order'}, {'BOTSID':'billingPhone1', 'clientContactOk': 0})
+            order_out.put({'BOTSID':'order'}, {'BOTSID':'billingPhone1', 'clientMarketingOk': 0})
+            order_out.put({'BOTSID':'order'}, {'BOTSID':'billingPhone1', 'externalMarketingOk': 0})
 
         if PART_BILL_EMAIL:
             order_out.put({'BOTSID':'order'}, {'BOTSID':'billingEmail', 'displayName': PART_BILL_NAME})
             order_out.put({'BOTSID':'order'}, {'BOTSID':'billingEmail', 'email': PART_BILL_EMAIL})
-            #order_out.put({'BOTSID':'order'}, {'BOTSID':'billingEmail', 'clientContactOk': ''}) # No Default
-            #order_out.put({'BOTSID':'order'}, {'BOTSID':'billingEmail', 'clientMarketingOk': ''}) # No Default
-            #order_out.put({'BOTSID':'order'}, {'BOTSID':'billingEmail', 'externalMarketingOk': ''}) # No Default
+            order_out.put({'BOTSID':'order'}, {'BOTSID':'billingEmail', 'clientContactOk': 0})
+            order_out.put({'BOTSID':'order'}, {'BOTSID':'billingEmail', 'clientMarketingOk': 0})
+            order_out.put({'BOTSID':'order'}, {'BOTSID':'billingEmail', 'externalMarketingOk': 0})
 
         # PAYMENTs elements
         for PAY_TYPE, PAY_CUR, PAY_VALUE in ORDER_PAYMENTS:

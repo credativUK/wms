@@ -82,7 +82,7 @@ recorddefs = {
             ['territory', 'C', 2, 'A'],
             ['basicPostageRate', 'C', 11, 'R'],
             ['preferredCarrier', 'C', 15, 'A'],
-            ['preferreCarrierService', 'C', 15, 'A'],
+            ['preferredCarrierService', 'C', 15, 'A'],
             ['carrierPremium', 'C', 11, 'R'],
             ['expressDelivery', 'C', 1, 'N'],
             ['expressPremium', 'C', 11, 'R'],
@@ -186,7 +186,7 @@ recorddefs = {
           ],
     'item':[
             ['BOTSID','M',255,'A'],
-            # ['postageProductType', 'M', 30, 'A'], # FIXME: What is this field, not in spec?
+            ['postageProductType', 'M', 30, 'A'],
             ['productCode', 'M', 30, 'A'],
             ['unitPrice', 'C', 11, 'R'],
             ['salesPrice', 'C', 11, 'R'],

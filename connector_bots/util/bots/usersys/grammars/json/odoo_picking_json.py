@@ -104,6 +104,7 @@ recorddefs = {
             ['BOTSID', 'M', 64, 'AN'],
             ['id','C',64,'AN'],
             ['seq', 'C', 64, 'AN'],
+            ['move_id', 'C', 64, 'AN'],
             ['product', 'C', 64, 'AN'],
             ['product_qty', 'C', 64, 'AN'],
             ['uom', 'C', 64, 'AN'],
@@ -117,6 +118,7 @@ recorddefs = {
             ['desc', 'C', 64, 'AN'],
             ['customs_free_from', 'C', 64, 'AN'],
             ['customs_free_to', 'C', 64, 'AN'],
+            ['customs_commodity_code', 'C', 64, 'AN'],
           ],
      }
 
