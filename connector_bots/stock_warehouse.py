@@ -317,7 +317,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 continue
                             # Check the stock level for this warehouse at this time
                             time = datetime.strptime(line['datetime'], '%Y-%m-%d %H:%M:%S')
-                            if 'qty_total' in line and line['qty_total'].isdigit(): # Take the absolule stock in the warehouse
+                            if 'qty_total' in line and line['qty_total'].lstrip("-+").isdigit(): # Take the absolule stock in the warehouse
                                 qty = int(line['qty_total'])
                             else: # Else if not available, work out from available + outgoing available
                                 qty = int(line['qty_available'])

@@ -34,7 +34,7 @@ structure = [
         'testindicator':({'BOTSID':'messages'},{'BOTSID':'header','test':None})},
     LEVEL:[
         {ID:'header',MIN:0,MAX:1},
-        {ID:'partner',MIN:1,MAX:1},
+        {ID:'partner',MIN:0,MAX:1},
         {ID:'inventory_line',MIN:0,MAX:999999},
         ]},
 ]
