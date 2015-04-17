@@ -28,6 +28,9 @@ def main(inn,out):
         LINE_INTERNAL_ID = line.get({'BOTSID': 'crossdock_line', 'move_id': None})
         LINE_QTY = line.get({'BOTSID': 'crossdock_line', 'qty': None})
 
+        if not PO_ID:
+            PO_ID = "999999" # Indicates no PO allocation in Prism (ie do not cross-dock)
+
         # JOIN LINES
         itr = 0
         for dummy in xrange(int(LINE_QTY or 0)):
