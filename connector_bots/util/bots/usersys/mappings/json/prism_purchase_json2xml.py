@@ -53,6 +53,8 @@ def main(inn,out):
         ORD_LINES = 0
         ORD_CURRENCY = None
         plines = pick.getloop({'BOTSID': 'pickings'}, {'BOTSID': 'line'})
+
+        lines = {}
         for pline in plines:
             LINE_ID = pline.get({'BOTSID': 'line', 'id': None})
             LINE_SEQ = "%03d" % (int(pline.get({'BOTSID': 'line', 'seq': None})),)
@@ -61,7 +63,10 @@ def main(inn,out):
             LINE_QTY = float(pline.get({'BOTSID': 'line', 'product_qty': None}) or 0.0)
             LINE_PRICE_UNIT = float(pline.get({'BOTSID': 'line', 'price_unit': None}) or 0.0)
             LINE_CURRENCY = pline.get({'BOTSID': 'line', 'price_currency': None})
+            LINE_KEY = (LINE_PRODUCT, LINE_PRODUCT_SUPPLIER, LINE_PRICE_UNIT, LINE_CURRENCY)
+            lines[LINE_KEY] = lines.get(LINE_KEY,0) + LINE_QTY
 
+        for (LINE_PRODUCT, LINE_PRODUCT_SUPPLIER, LINE_PRICE_UNIT, LINE_CURRENCY), LINE_QTY in lines.iteritems():
             # ORDER LINES
             ORD_ITEMS += LINE_QTY
             ORD_LINES += 1
