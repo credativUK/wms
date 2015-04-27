@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Copyright 2014 credativ Ltd
+#    Copyright 2015 credativ Ltd
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -29,20 +29,10 @@ _logger = logging.getLogger(__name__)
 class ProductProduct(orm.Model):
     _inherit = 'product.product'
 
-class BotsProduct(orm.Model):
-    _name = 'bots.product'
-    _inherit = 'bots.binding'
-    _description = 'Bots Product Mapping'
-
     _columns = {
-        'name': fields.char('Name', required=True),
-        'product_id': fields.many2one('product.product', 'Product', required=True),
+        'magento_prism_sku': fields.char('Prism SKU'),
+        'magento_commodity_code': fields.char('Customs Commodity Code'),
     }
-
-    _sql_constraints = [
-        ('bots_product_uniq', 'unique(backend_id, bots_id)',
-         'A product mapping with the same ID in Bots already exists.'),
-    ]
 
 @bots
 class BotsProductBinder(BotsBinder):
@@ -59,7 +49,9 @@ class BotsProductBinder(BotsBinder):
             binding_ids = [x['product_id'][0] for x in bots_product_data]
         else:
             # If no overriding mappings, try to match the SKU directly
-            binding_ids = self.session.search('product.product', [('default_code', '=', str(external_id))])
+            binding_ids = self.session.search('product.product', [('magento_prism_sku', '=', str(external_id))])
+            if not binding_ids:
+                binding_ids = self.session.search('product.product', [('default_code', '=', str(external_id))])
         if not binding_ids:
             return None
         if len(binding_ids) > 1:
@@ -78,8 +70,6 @@ class BotsProductBinder(BotsBinder):
         if bots_product_ids:
             bots_record = self.session.read('bots.product', bots_product_ids[0], ['bots_id'])['bots_id']
         else:
-            bots_record = self.session.read("product.product", record_id, ['default_code'])['default_code']
+            values = self.session.read("product.product", record_id, ['default_code', 'magento_prism_sku'])
+            bots_record = values.get('magento_prism_sku') or values.get('default_code')
         return bots_record
-
-    def bind(self, external_id, binding_id):
-        raise NotImplementedError

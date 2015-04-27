@@ -26,7 +26,7 @@ def main(inn,out):
 
         PO_ID = line.get({'BOTSID': 'crossdock_line', 'po_id': None})
         LINE_INTERNAL_ID = line.get({'BOTSID': 'crossdock_line', 'move_id': None})
-        LINE_QTY = line.get({'BOTSID': 'crossdock_line', 'qty': None})
+        LINE_QTY = line.get({'BOTSID': 'crossdock_line', 'product_qty': None})
 
         if not PO_ID:
             PO_ID = "999999" # Indicates no PO allocation in Prism (ie do not cross-dock)

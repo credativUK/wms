@@ -234,6 +234,6 @@ def main(inn,out):
         # PAYMENTs elements
         for PAY_TYPE, PAY_CUR, PAY_VALUE in ORDER_PAYMENTS:
             order_attr = order_out.putloop({'BOTSID': 'order'}, {'BOTSID':'payments'}, {'BOTSID':'payment'})
-            order_attr.put({'BOTSID':'payments', 'payType': PAY_TYPE})
-            order_attr.put({'BOTSID':'payments', 'currency': PAY_CUR})
-            order_attr.put({'BOTSID':'payments', 'paymentValue': PAY_VALUE})
+            order_attr.put({'BOTSID':'payment', 'payType': PAY_TYPE})
+            order_attr.put({'BOTSID':'payment', 'currency': PAY_CUR})
+            order_attr.put({'BOTSID':'payment', 'paymentValue': PAY_VALUE})

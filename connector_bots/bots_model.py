@@ -53,7 +53,6 @@ class BotsBackend(orm.Model):
         'feat_reexport_backorder': fields.boolean('Re-export Back Orders', help='When we receive a partial delivery from the 3PL,\n' \
                                                   'if True this will re-export the remaining undelivered stock,\n' \
                                                   'if False it will assume the 3PL is handling the remaining items and will send subsequent confirmations with the same order reference.'),
-        'feat_picking_out_crossdock': fields.boolean('Export Cross-Dock Allocations', help='Export cross-dock join files for outgoing moves and their related purchase order pickings'),
     }
 
     _defaults = {
@@ -65,7 +64,6 @@ class BotsBackend(orm.Model):
         'feat_picking_in_conf': True,
         'feat_inventory_in': True,
         'feat_reexport_backorder': True,
-        'feat_picking_out_crossdock': False,
     }
 
     def _bots_backend(self, cr, uid, callback, domain=None, context=None):

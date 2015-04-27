@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="view_bots_backend_form_prism" model="ir.ui.view">
+            <field name="name">bots.backend.form.prism</field>
+            <field name="model">bots.backend</field>
+            <field name="inherit_id" ref="connector_bots.view_bots_backend_form"/>
+            <field name="arch" type="xml">
+                <field name="feat_reexport_backorder" position="after">
+                    <field name="feat_picking_out_crossdock"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>

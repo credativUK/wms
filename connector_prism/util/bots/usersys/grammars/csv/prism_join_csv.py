@@ -21,38 +21,25 @@
 
 from bots.botsconfig import *
 
-syntax = { 
-        'indented': True,
-    }
+syntax = {
+        'field_sep': ',',
+        'quote_char':   '"',
+        'charset':  "iso-8859-1",
+        'noBOTSID': True,
+        'skip_firstline': True,
+        'envelope':'csvheader',
+        'merge': False,
+        'forcequote': 0,
+        }
 
-structure = [
-{ID:'crossdock',MIN:1,MAX:999999,
-    QUERIES:{
-        'frompartner':  ({'BOTSID':'messages'},{'BOTSID':'header','partner_name':None}),
-        'topartner':    ({'BOTSID':'messages'},{'BOTSID':'header','partner_name':None}),
-        'reference':    ({'BOTSID':'messages'},{'BOTSID':'header','msg_id':None}),
-        'testindicator':({'BOTSID':'messages'},{'BOTSID':'header','test':None})},
-    LEVEL:[
-        {ID:'header',MIN:0,MAX:1},
-        {ID:'crossdock_line',MIN:0,MAX:999999},
-        ]},
-]
+structure=    [
+    {ID:'LINE',MIN:1,MAX:1000000}
+    ]
 
 recorddefs = {
-    'crossdock':[
-            ['BOTSID', 'M', 64, 'AN'],
+    'LINE':[
+            ['BOTSID','C',4,'A'],
+            ['itemID', 'C', 30, 'A'],
+            ['poNumber', 'C', 10, 'A'],
           ],
-    'header':[
-            ['BOTSID', 'M', 64, 'AN'],
-            ['msg_id','C',64,'A'],
-            ['datetime', 'C', 20, 'AN'],
-            ['partner_name', 'C', 64, 'AN'],
-          ],
-    'crossdock_line':[
-            ['BOTSID', 'M', 64, 'AN'],
-            ['move_id','M', 64,'N'],
-            ['qty','M', 64,'N'],
-            ['po_id', 'M', 64, 'AN'],
-          ],
-     }
-
+    }

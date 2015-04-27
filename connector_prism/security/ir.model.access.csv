@@ -1,0 +1,13 @@
+"id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
+"access_bots_backend","bots_backend connector manager","model_bots_backend","connector.group_connector_manager",1,1,1,1
+"access_bots_binding","bots_binding connector manager","model_bots_binding","connector.group_connector_manager",1,1,1,1
+"access_bots_warehouse_manager","bots_warehouse manager","model_bots_warehouse","stock.group_stock_manager",1,1,1,1
+"access_bots_warehouse_user","bots_warehouse user","model_bots_warehouse","stock.group_stock_user",1,0,0,0
+"access_bots_product_user","bots_product user","model_bots_product","stock.group_stock_user",1,0,0,0
+"access_bots_product_manager","bots_product manager","model_bots_product","stock.group_stock_manager",1,1,1,1
+"access_bots_stock_picking_in_user","bots_stock_picking_in user","model_bots_stock_picking_in","stock.group_stock_user",1,0,0,0
+"access_bots_stock_picking_out_user","bots_stock_picking_out user","model_bots_stock_picking_out","stock.group_stock_user",1,0,0,0
+"access_bots_stock_inventory_user","bots_stock_inventory user","model_bots_stock_inventory","stock.group_stock_user",1,0,0,0
+"access_bots_stock_picking_in_manager","bots_stock_picking_in manager","model_bots_stock_picking_in","stock.group_stock_manager",1,1,1,1
+"access_bots_stock_picking_out_manager","bots_stock_picking_out manager","model_bots_stock_picking_out","stock.group_stock_manager",1,1,1,1
+"access_bots_stock_inventory_manager","bots_stock_inventory manager","model_bots_stock_inventory","stock.group_stock_manager",1,1,1,1
