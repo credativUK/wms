@@ -27,10 +27,12 @@ class BotsBackend(orm.Model):
 
     _columns = {
         'feat_picking_out_crossdock': fields.boolean('Export Cross-Dock Allocations', help='Export cross-dock join files for outgoing moves and their related purchase order pickings'),
+        'crossdock_cutoff_days': fields.float('WMS Cut-off days', help='Number of days before a purchase order is cut-off to allow cross-dock details to be exported to the WMS. After this point it will not be possible to edit a PO or any related SOs.'),
     }
 
     _defaults = {
         'feat_picking_out_crossdock': False,
+        'crossdock_cutoff_days': 1.0,
     }
 
     def _scheduler_purchase_cutoff(self, cr, uid, domain=None, context=None):

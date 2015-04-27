@@ -9,6 +9,7 @@
             <field name="arch" type="xml">
                 <field name="feat_reexport_backorder" position="after">
                     <field name="feat_picking_out_crossdock"/>
+                    <field name="crossdock_cutoff_days"/>
                 </field>
             </field>
         </record>
