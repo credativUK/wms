@@ -34,6 +34,7 @@ This module provides Prism specific changes to the connector Bots interface
      'connector_bots',
      'purchase_edit_utils',
      'procurement_sale_allocation',
+     'purchase_order_edit',
  ],
  'data': [
      'bots_model_view.xml',

@@ -45,13 +45,13 @@ import re
 from openerp.addons.connector_bots.stock import (StockPickingOutAdapter, StockPickingInAdapter, BotsPickingExport)
 
 @bots(replacing=StockPickingInAdapter)
-class PrismPickingOutAdapter(StockPickingInAdapter):
+class PrismPickingInAdapter(StockPickingInAdapter):
     _picking_type = None
     _model_name = 'bots.stock.picking.in'
     _picking_type = 'out'
 
     def _prepare_create_data(self, picking_id):
-        data, FILENAME, bots_id = super(PrismPickingOutAdapter, self)._prepare_create_data(picking_id)
+        data, FILENAME, bots_id = super(PrismPickingInAdapter, self)._prepare_create_data(picking_id)
 
         move_obj = self.session.pool.get('stock.move')
 
@@ -61,7 +61,7 @@ class PrismPickingOutAdapter(StockPickingInAdapter):
                 move = move_obj.browse(cr, uid, line.get('move_id'))
                 cross_dock = move.purchase_line_id.order_id.bots_cross_dock and 1 or 0
 
-        date.update({'crossdock': cross_dock})
+        data.update({'crossdock': cross_dock})
         return data, FILENAME, bots_id
 
 @bots(replacing=StockPickingOutAdapter)
@@ -79,7 +79,6 @@ class PrismPickingOutAdapter(StockPickingOutAdapter):
             if line.get('move_id'):
                 move = move_obj.browse(cr, uid, line.get('move_id'))
                 line.update({'customs_commodity_code': move.product_id.magento_commodity_code,})
-            pass
 
         return data, FILENAME, bots_id
 
@@ -157,6 +156,20 @@ class PrismPickingOutAdapter(StockPickingOutAdapter):
 
 @bots(replacing=BotsPickingExport)
 class PrismBotsPickingExport(BotsPickingExport):
+
+    def run(self, binding_id):
+        # Check if we are a PO edit and if the original already has a binding - use this instead if PO edits are not supported
+        if self.model._name == 'bots.stock.picking.in' and not self.backend.feat_picking_in_cancel:
+            picking = self.model.browse(self.cr, self.uid, binding_id).openerp_id
+            if picking.purchase_id and picking.purchase_id.order_edit_id:
+                old_binding_ids = self.model.search(self.cr, self.uid, [('purchase_id', '=', picking.purchase_id.order_edit_id.id), ('bots_id', '!=', False)])
+                if old_binding_ids:
+                    bots_id = self.model.browse(self.cr, self.uid, old_binding_ids).bots_id
+                    self.model.unlink(self.cr, self.uid, old_binding_ids)
+                    self.model.write(self.cr, self.uid, old_binding_ids, {'bots_id': bots_id})
+                    return
+        # Else create a new binding
+        return super(PrismBotsPickingExport, self).run(binding_id)
 
     def run_crossdock(self, binding_id):
         """

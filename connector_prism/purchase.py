@@ -54,6 +54,6 @@ class PurchaseOrder(orm.Model):
         if exported and doraise:
             raise osv.except_osv(_('Error!'), _('This picking has been exported to an external WMS and cannot be modified directly in OpenERP.'))
         return exported or False
-
+    
 
         return list(set(restricted_ids))
