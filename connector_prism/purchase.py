@@ -27,24 +27,20 @@ class PurchaseOrder(orm.Model):
 
     _columns = {
             'bots_cross_dock': fields.boolean('Cross Dock', help='Should this order be cross-docked in the warehouse. (Prism only).', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+            'bots_cut_off': fields.boolean('Purchase Cut Off', help='Purchase Order has been cut off and can no longer be modified (Prism only).', readonly=True),
         }
 
     _defaults = {
             'bots_cross_dock':  lambda *a: False,
+            'bots_cut_off':  lambda *a: False,
         }
 
     def allocate_check_restrict(self, cr, uid, ids, context=None):
         restricted_ids = super(PurchaseOrder, self).allocate_check_restrict(cr, uid, ids, context=context)
         bots_picking_obj = self.pool.get('bots.stock.picking.in')
         for purchase in self.browse(cr, uid, ids, context=context):
-            if purchase.bots_cross_dock:
-                # Check if now + cutoff time >= arrival time
-                bots_picking_ids = bots_picking_obj.search(cr, uid, [('purchase_id', '=', purchase.id),], context=context)
-                for bots_picking in bots_picking_obj.browse(cr, uid, bots_picking_ids, context=context):
-                    delay = datetime.strptime(bots_picking.minimum_planned_date, DEFAULT_SERVER_DATE_FORMAT) - datetime.now()
-                    if bots_picking.backend_id.feat_picking_out_crossdock and delay <= timedelta(days=bots_picking.backend_id.crossdock_cutoff_days):
-                        restricted_ids.append(purchase.id)
-                        break
+            if purchase.bots_cross_dock and purchase.bots_cut_off:
+                restricted_ids.append(purchase.id)
         return list(set(restricted_ids))
 
     def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
