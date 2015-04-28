@@ -53,7 +53,7 @@ def export_picking_crossdock(session, model_name, record_id):
 class PrismPickingInAdapter(StockPickingInAdapter):
     _picking_type = None
     _model_name = 'bots.stock.picking.in'
-    _picking_type = 'out'
+    _picking_type = 'in'
 
     def _prepare_create_data(self, picking_id):
         data, FILENAME, bots_id = super(PrismPickingInAdapter, self)._prepare_create_data(picking_id)
@@ -164,14 +164,14 @@ class PrismBotsPickingExport(BotsPickingExport):
 
     def run(self, binding_id):
         # Check if we are a PO edit and if the original already has a binding - use this instead if PO edits are not supported
-        if self.model._name == 'bots.stock.picking.in' and not self.backend.feat_picking_in_cancel:
-            picking = self.model.browse(self.cr, self.uid, binding_id).openerp_id
+        if self.model._name == 'bots.stock.picking.in' and not self.backend_record.feat_picking_in_cancel:
+            picking = self.model.browse(self.session.cr, self.session.uid, binding_id).openerp_id
             if picking.purchase_id and picking.purchase_id.order_edit_id:
-                old_binding_ids = self.model.search(self.cr, self.uid, [('purchase_id', '=', picking.purchase_id.order_edit_id.id), ('bots_id', '!=', False)])
+                old_binding_ids = self.model.search(self.session.cr, self.session.uid, [('purchase_id', '=', picking.purchase_id.order_edit_id.id), ('bots_id', '!=', False)])
                 if old_binding_ids:
-                    bots_id = self.model.browse(self.cr, self.uid, old_binding_ids).bots_id
-                    self.model.unlink(self.cr, self.uid, old_binding_ids)
-                    self.model.write(self.cr, self.uid, old_binding_ids, {'bots_id': bots_id})
+                    bots_id = self.model.browse(self.session.cr, self.session.uid, old_binding_ids).bots_id
+                    self.model.unlink(self.session.cr, self.session.uid, old_binding_ids)
+                    self.model.write(self.session.cr, self.session.uid, old_binding_ids, {'bots_id': bots_id})
                     return
         # Else create a new binding
         return super(PrismBotsPickingExport, self).run(binding_id)
