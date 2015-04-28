@@ -26,16 +26,9 @@ from openerp.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.exception import JobError, NoExternalId, MappingError
-from openerp.addons.connector.unit.synchronizer import ExportSynchronizer
-from openerp.addons.connector.event import on_record_create
-from openerp.addons.connector_wms.event import on_picking_out_available, on_picking_in_available, on_picking_out_cancel, on_picking_in_cancel
 
-from openerp.addons.stock import stock_picking as stock_StockPicking
-
-from .unit.binder import BotsModelBinder
-from .unit.backend_adapter import BotsCRUDAdapter
-from .backend import bots
-from .connector import get_environment, add_checkpoint
+from openerp.addons.connector_bots.backend import bots
+from openerp.addons.connector_bots.connector import get_environment
 
 import json
 import traceback
@@ -43,6 +36,18 @@ from datetime import datetime
 import re
 
 from openerp.addons.connector_bots.stock import (StockPickingOutAdapter, StockPickingInAdapter, BotsPickingExport)
+
+@job
+def export_picking_crossdock(session, model_name, record_id):
+    picking = session.browse(model_name, record_id)
+    if picking.state == 'done' and session.search(model_name, [('backorder_id', '=', picking.openerp_id.id)]):
+        # We are an auto-created back order completed - ignore this export
+        return "Not exporting crossdock for auto-created done picking backorder %s" % (picking.name,)
+    backend_id = picking.backend_id.id
+    env = get_environment(session, model_name, backend_id)
+    picking_exporter = env.get_connector_unit(BotsPickingExport)
+    res = picking_exporter.run_crossdock(record_id)
+    return res
 
 @bots(replacing=StockPickingInAdapter)
 class PrismPickingInAdapter(StockPickingInAdapter):
@@ -176,15 +181,3 @@ class PrismBotsPickingExport(BotsPickingExport):
         Export the picking crossdock to Bots
         """
         self.backend_adapter.create_crossdock(binding_id)
-
-@job
-def export_picking_crossdock(session, model_name, record_id):
-    picking = session.browse(model_name, record_id)
-    if picking.state == 'done' and session.search(model_name, [('backorder_id', '=', picking.openerp_id.id)]):
-        # We are an auto-created back order completed - ignore this export
-        return "Not exporting crossdock for auto-created done picking backorder %s" % (picking.name,)
-    backend_id = picking.backend_id.id
-    env = get_environment(session, model_name, backend_id)
-    picking_exporter = env.get_connector_unit(BotsPickingExport)
-    res = picking_exporter.run_crossdock(record_id)
-    return res

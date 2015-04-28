@@ -558,7 +558,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 order_line['customs_free_from'] = not picking.bots_customs
 
             if move.sale_line_id:
-                taxes = tax_obj.compute_all(cr, uid, move.sale_line_id.tax_id, move.sale_line_id.price_unit * (1-(move.sale_line_id.discount or 0.0)/100.0),
+                taxes = tax_obj.compute_all(self.session.cr, self.session.uid, move.sale_line_id.tax_id, move.sale_line_id.price_unit * (1-(move.sale_line_id.discount or 0.0)/100.0),
                                             move.product_qty, move.product_id, move.sale_line_id.order_id.partner_id)
                 order_line['price_total_ex_tax'] = taxes['total']
                 order_line['price_total_inc_tax'] = taxes['total_included']

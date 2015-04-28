@@ -42,18 +42,3 @@ class PurchaseOrder(orm.Model):
             if purchase.bots_cross_dock and purchase.bots_cut_off:
                 restricted_ids.append(purchase.id)
         return list(set(restricted_ids))
-
-    def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
-        context = context or {}
-        if context.get('wms_bots', False):
-            return False
-        exported = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False)], context=context)
-        if exported and cancel:
-            exported_obj = self.pool.get('bots.stock.picking.in').browse(cr, uid, exported, context=context)
-            exported = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_in_cancel]
-        if exported and doraise:
-            raise osv.except_osv(_('Error!'), _('This picking has been exported to an external WMS and cannot be modified directly in OpenERP.'))
-        return exported or False
-    
-
-        return list(set(restricted_ids))

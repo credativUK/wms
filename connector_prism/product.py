@@ -20,8 +20,8 @@
 
 from openerp.osv import orm, fields
 
-from .unit.binder import BotsBinder
-from .backend import bots
+from openerp.addons.connector_bots.product import BotsProductBinder
+from openerp.addons.connector_bots.backend import bots
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -34,8 +34,8 @@ class ProductProduct(orm.Model):
         'magento_commodity_code': fields.char('Customs Commodity Code'),
     }
 
-@bots
-class BotsProductBinder(BotsBinder):
+@bots(replacing=BotsProductBinder)
+class PrismProductBinder(BotsProductBinder):
     _model_name = [
             'bots.product',
         ]

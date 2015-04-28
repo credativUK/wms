@@ -39,9 +39,7 @@ This module provides Prism specific changes to the connector Bots interface
  'data': [
      'bots_model_view.xml',
      'bots_data.xml',
-     'stock_view.xml',
      'purchase_view.xml',
-     'bots_menu.xml',
  ],
  'installable': True,
 }

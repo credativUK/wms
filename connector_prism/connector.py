@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Copyright 2014 credativ Ltd
+#    Copyright 2015 credativ Ltd
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,18 +18,6 @@
 #
 ##############################################################################
 
-import logging
-from openerp.addons.connector.unit.synchronizer import ImportSynchronizer
+from openerp.addons.connector.connector import install_in_connector
 
-_logger = logging.getLogger(__name__)
-
-class BotsImportSynchronizer(ImportSynchronizer):
-    """ Base importer for Bots """
-
-    def _before_import(self):
-        """ Hook called before the import, when we have the Bots data"""
-
-    def _after_import(self, binding_id):
-        """ Hook called at the end of the import """
-        return
-
+install_in_connector()
