@@ -75,6 +75,12 @@ def main(inn,out):
 
         order_out = main_out.putloop({'BOTSID': 'orders'}, {'BOTSID':'order'})
 
+        # == ATTRIBUTES ==
+        order_attrs = {}
+        alines = pick.getloop({'BOTSID': 'pickings'}, {'BOTSID': 'attributes'})
+        for aline in alines:
+            order_attrs[aline.get({'BOTSID': 'line', 'key': None})] = aline.get({'BOTSID': 'line', 'value': None})
+
         # == LINES ==
 
         ORD_ITEMS = 0
@@ -95,6 +101,10 @@ def main(inn,out):
             LINE_WEIGHT_NET = pline.get({'BOTSID': 'line', 'weight_net': None})
             LINE_PRICE_UNIT = float(pline.get({'BOTSID': 'line', 'price_unit': None}) or 0.0)
             LINE_CURRENCY = pline.get({'BOTSID': 'line', 'price_currency': None})
+            LINE_TOTAL_EX_VAT = pline.get({'BOTSID': 'line', 'price_total_ex_tax': None}) or 0.00
+            LINE_TOTAL_INC_VAT = pline.get({'BOTSID': 'line', 'price_total_inc_tax': None}) or 0.00
+            LINE_VAT = float(LINE_TOTAL_INC_VAT) - float(LINE_TOTAL_EX_VAT)
+            LINE_VAT_RATE = LINE_TOTAL_EX_VAT and (LINE_VAT / float(LINE_TOTAL_EX_VAT)) or 0.00
 
             # ORDER LINES
             itr = 0
@@ -117,9 +127,9 @@ def main(inn,out):
                 order_line_out.put({'BOTSID':'item', 'unitPrice': LINE_PRICE_UNIT})
                 order_line_out.put({'BOTSID':'item', 'salesPrice': LINE_PRICE_UNIT * LINE_QTY})
                 order_line_out.put({'BOTSID':'item', 'paidPrice': LINE_PRICE_UNIT * LINE_QTY})
-                #order_line_out.put({'BOTSID':'item', 'tax': 0.00})
-                #order_line_out.put({'BOTSID':'item', 'taxIncluded': 0.00})
-                #order_line_out.put({'BOTSID':'item', 'taxRate': 0.00})
+                order_line_out.put({'BOTSID':'item', 'tax': LINE_VAT})
+                order_line_out.put({'BOTSID':'item', 'taxIncluded': 1})
+                order_line_out.put({'BOTSID':'item', 'taxRate': LINE_VAT_RATE})
 
                 for ATTR_NAME, ATTR_VALUE in LINE_ATTRS.iteritems():
                     order_line_attr = order_line_out.putloop({'BOTSID': 'item'}, {'BOTSID':'attributes'}, {'BOTSID':'attribute'})
@@ -128,10 +138,17 @@ def main(inn,out):
 
         ORDER_PAYMENTS = [('CARD', ORD_CURRENCY, ORD_TOTAL)] # Hardcoded for CARD for total order total
 
+        ORDER_SUBCHANNEL = order_attrs.get('subChannel', '')
+        ORDER_POSTAGERATE = order_attrs.get('basicPostageRate', 0.00)
+        ORDER_PREFCARRIER = order_attrs.get('preferredCarrier', '')
+        ORDER_PREFSERVICE = order_attrs.get('preferredCarrierService', '')
+        ORDER_EXPRESS = order_attrs.get('expressDelivery', '') and 1 or 0
+        ORDER_GIFTMSG = order_attrs.get('giftMessage', '')
+
         # ORDER - Main element
         order_out.put({'BOTSID':'order', 'orderType': 'B2C'})
         order_out.put({'BOTSID':'order', 'channel': 'WEB'})
-        #order_out.put({'BOTSID':'order', 'subChannel': ''}) # TODO: Magento order store_name
+        order_out.put({'BOTSID':'order', 'subChannel': ORDER_SUBCHANNEL})
         order_out.put({'BOTSID':'order', 'currency': ORD_CURRENCY or 'GBP'})
         order_out.put({'BOTSID':'order', 'sourceCode': ''.join([x[:1] for x in PART_NAME.split(' ')])}) # Initials from partner name
         order_out.put({'BOTSID':'order', 'orderDate': ORD_DELIVERY_DATE})
@@ -141,27 +158,29 @@ def main(inn,out):
         order_out.put({'BOTSID':'order', 'itemsCount': ORD_ITEMS})
         order_out.put({'BOTSID':'order', 'itemsValue': ORD_TOTAL})
         order_out.put({'BOTSID':'order', 'territory': PART_COUNTRY or 'GB'})
-        #order_out.put({'BOTSID':'order', 'basicPostageRate': 0.00}) # Default 0.00 # TODO: Magento order base_shipping_amount
-        #order_out.put({'BOTSID':'order', 'preferredCarrier': ''}) # No Default # FIXME: Magento order preferred_carrier - not exported
-        #order_out.put({'BOTSID':'order', 'preferredCarrierService': ''}) # No Default # FIXME: Magento order preferred_carrier_service - not exported
+        order_out.put({'BOTSID':'order', 'basicPostageRate': ORDER_POSTAGERATE})
+        order_out.put({'BOTSID':'order', 'preferredCarrier': ORDER_PREFCARRIER})
+        order_out.put({'BOTSID':'order', 'preferredCarrierService': ORDER_PREFSERVICE})
         #order_out.put({'BOTSID':'order', 'carrierPremium': 0.00}) # No Default
-        #order_out.put({'BOTSID':'order', 'expressDelivery': ''}) # No Default # FIXME: Magento order express_delivery - not exported
+        order_out.put({'BOTSID':'order', 'expressDelivery': ORDER_EXPRESS})
         #order_out.put({'BOTSID':'order', 'expressPremium': 0.00}) # No Default
         order_out.put({'BOTSID':'order', 'giftOrder': 0})
         order_out.put({'BOTSID':'order', 'giftWrap': 0})
-        #order_out.put({'BOTSID':'order', 'giftMessage': ''}) # No Default # FIXME: Magento order giftMessage - not exported
+        order_out.put({'BOTSID':'order', 'giftMessage': ORDER_GIFTMSG})
         #order_out.put({'BOTSID':'order', 'giftWrapPremium': 0.00}) # No Default
         order_out.put({'BOTSID':'order', 'holdToComplete': 0})
-        #order_out.put({'BOTSID':'order', 'tax': 0.00})
-        #order_out.put({'BOTSID':'order', 'taxRegion': ''}) # No Default # FIXME: Magento order country_code - not exported
+        order_out.put({'BOTSID':'order', 'tax': 0.00}) # Prism doesn't use this value on the main order, only the order lines
+        #order_out.put({'BOTSID':'order', 'taxRegion': ''}) # No Default
         #order_out.put({'BOTSID':'order', 'taxIncluded': 1}) # No Default
         order_out.put({'BOTSID':'order', 'deliveryInstructions': ORD_REMARK})
 
         # ORDER_ATTRS
-        # FIXME: despatchType = preferred_carrier_service - not exported
-        # FIXME: collectPoint = None
-        # FIXME: HDNCode - hdn_code exported from Magento
-        # FIXME: cpCustomerNotify - cp_customer_notify not exported from Magento
+        if order_attrs.get('preferredCarrierService'):
+            ORDER_ATTRS['despatchType'] = order_attrs.get('preferredCarrierService')
+        if order_attrs.get('HDNCode'):
+            ORDER_ATTRS['HDNCode'] = order_attrs.get('HDNCode')
+        if order_attrs.get('cpCustomerNotify'):
+            ORDER_ATTRS['cpCustomerNotify'] = order_attrs.get('cpCustomerNotify')
 
         # ATTRIBUTE elements
         for ATTR_NAME, ATTR_VALUE in ORDER_ATTRS.iteritems():

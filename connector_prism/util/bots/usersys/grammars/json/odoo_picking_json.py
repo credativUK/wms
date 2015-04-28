@@ -38,6 +38,7 @@ structure = [
                 {ID:'partner',MIN:0,MAX:1},
                 {ID:'partner_bill',MIN:0,MAX:1},
                 {ID:'line',MIN:0,MAX:999999},
+                {ID:'attributes',MIN:0,MAX:999999},
             ]},
         ]},
 ]
@@ -117,10 +118,17 @@ recorddefs = {
             ['weight_net', 'C', 64, 'AN'],
             ['price_unit', 'C', 64, 'AN'],
             ['price_currency', 'C', 64, 'AN'],
+            ['price_total_ex_tax', 'C', 64, 'AN'],
+            ['price_total_inc_tax', 'C', 64, 'AN'],
             ['desc', 'C', 64, 'AN'],
             ['customs_free_from', 'C', 64, 'AN'],
             ['customs_free_to', 'C', 64, 'AN'],
             ['customs_commodity_code', 'C', 64, 'AN'],
+          ],
+    'attributes':[
+            ['BOTSID', 'M', 64, 'AN'],
+            ['key','C',64,'AN'],
+            ['value', 'C', 64, 'AN'],
           ],
      }
 
