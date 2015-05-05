@@ -190,8 +190,8 @@
             <field name="arch" type="xml">
                 <field name="state" position="after">
                     <field name="bots_exported"/>
-                    <button name="force_assign" string="Force Availability" type="object" groups="base.group_user" attrs="{'invisible': ['|', ('state', 'not in', ['confirmed']), ('bots_exported', '!=', False)]}" icon="terp-camera_test"/>
-                    <button name="cancel_assign" string="Cancel Availability" type="object" groups="base.group_user" attrs="{'invisible': ['|', ('state', 'not in', ['assigned']), ('bots_exported', '!=', False)]}" icon="terp-dialog-close"/>
+                    <button name="force_assign" string="Force Availability" type="object" groups="stock.group_stock_manager" attrs="{'invisible': ['|', ('state', 'not in', ['confirmed']), ('bots_exported', '!=', False)]}" icon="terp-camera_test"/>
+                    <button name="cancel_assign" string="Cancel Availability" type="object" groups="stock.group_stock_manager" attrs="{'invisible': ['|', ('state', 'not in', ['assigned']), ('bots_exported', '!=', False)]}" icon="terp-dialog-close"/>
                 </field>
             </field>
         </record>
@@ -203,8 +203,8 @@
             <field name="arch" type="xml">
                 <field name="state" position="after">
                     <field name="bots_exported"/>
-                    <button name="force_assign" string="Force Availability" type="object" groups="base.group_user" attrs="{'invisible': ['|', ('state', 'not in', ['confirmed']), ('bots_exported', '!=', False)]}" icon="terp-camera_test"/>
-                    <button name="cancel_assign" string="Cancel Availability" type="object" groups="base.group_user" attrs="{'invisible': ['|', ('state', 'not in', ['assigned']), ('bots_exported', '!=', False)]}" icon="terp-dialog-close"/>
+                    <button name="force_assign" string="Force Availability" type="object" groups="stock.group_stock_manager" attrs="{'invisible': ['|', ('state', 'not in', ['confirmed']), ('bots_exported', '!=', False)]}" icon="terp-camera_test"/>
+                    <button name="cancel_assign" string="Cancel Availability" type="object" groups="stock.group_stock_manager" attrs="{'invisible': ['|', ('state', 'not in', ['assigned']), ('bots_exported', '!=', False)]}" icon="terp-dialog-close"/>
                 </field>
             </field>
         </record>
@@ -216,8 +216,8 @@
             <field name="arch" type="xml">
                 <field name="state" position="after">
                     <field name="bots_exported"/>
-                    <button name="force_assign" string="Force Availability" type="object" groups="base.group_user" attrs="{'invisible': ['|', ('state', 'not in', ['confirmed']), ('bots_exported', '!=', False)]}" icon="terp-camera_test"/>
-                    <button name="cancel_assign" string="Cancel Availability" type="object" groups="base.group_user" attrs="{'invisible': ['|', ('state', 'not in', ['assigned']), ('bots_exported', '!=', False)]}" icon="terp-dialog-close"/>
+                    <button name="force_assign" string="Force Availability" type="object" groups="stock.group_stock_manager" attrs="{'invisible': ['|', ('state', 'not in', ['confirmed']), ('bots_exported', '!=', False)]}" icon="terp-camera_test"/>
+                    <button name="cancel_assign" string="Cancel Availability" type="object" groups="stock.group_stock_manager" attrs="{'invisible': ['|', ('state', 'not in', ['assigned']), ('bots_exported', '!=', False)]}" icon="terp-dialog-close"/>
                 </field>
             </field>
         </record>
