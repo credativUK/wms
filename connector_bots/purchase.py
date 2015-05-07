@@ -25,12 +25,10 @@ class PurchaseOrder(orm.Model):
 
     _columns = {
             'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties. (DSV only)', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
-            'bots_cross_dock': fields.boolean('Cross Dock', help='Should this order be cross-docked in the warehouse. (Prism only).', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
         }
 
     _defaults = {
             'bots_customs':  lambda *a: False,
-            'bots_cross_dock':  lambda *a: False,
         }
 
     def _prepare_order_picking(self, cr, uid, order, context=None):
