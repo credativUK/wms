@@ -21,6 +21,9 @@
 from openerp.osv import fields, orm
 from .stock_warehouse import purchase_cutoff
 from openerp.addons.connector.session import ConnectorSession
+from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
+
+from datetime import datetime, timedelta
 
 class BotsBackend(orm.Model):
     _inherit = 'bots.backend'
@@ -38,15 +41,30 @@ class BotsBackend(orm.Model):
     def _scheduler_purchase_cutoff(self, cr, uid, domain=None, context=None):
         self._bots_backend(cr, uid, self.purchase_cutoff, domain=domain, context=context)
 
+    def _get_cutoff_date(self, cr, uid, ids, context=None):
+        for backend in self.browse(cr, uid, ids, context=context):
+            cutoff = (datetime.now() + timedelta(days=backend.crossdock_cutoff_days)).strftime(DEFAULT_SERVER_DATE_FORMAT)
+            return cutoff
+        return datetime.now().strftime(DEFAULT_SERVER_DATE_FORMAT)
+
     def purchase_cutoff(self, cr, uid, ids, context=None):
         """  Process purchase order cut-offs from all warehouses """
         if not hasattr(ids, '__iter__'):
             ids = [ids]
         warehouse_obj = self.pool.get('bots.warehouse')
+        purchase_obj = self.pool.get('purchase.order')
         warehouse_ids = warehouse_obj.search(cr, uid, [('backend_id', 'in', ids)], context=context)
         warehouses = warehouse_obj.browse(cr, uid, warehouse_ids, context=context)
         for warehouse in warehouses:
             if warehouse.backend_id.feat_picking_out_crossdock:
-                session = ConnectorSession(cr, uid, context=context)
-                purchase_cutoff.delay(session, 'bots.warehouse', warehouse.id)
+                # Find all POs passed their cut off
+                cutoff = self._get_cutoff_date(cr, uid, [warehouse.backend_id.id], context=context)
+                purchase_ids = purchase_obj.search(cr, uid, [('warehouse_id', '=', warehouse.warehouse_id.id),
+                                                         ('bots_cross_dock', '=', True),
+                                                         ('minimum_planned_date', '<=', cutoff),
+                                                         ('state', '=', 'approved'),
+                                                         ('bots_cut_off', '=', False)], context=context)
+                if purchase_ids:
+                    session = ConnectorSession(cr, uid, context=context)
+                    purchase_cutoff.delay(session, 'bots.warehouse', warehouse.id, purchase_ids)
         return True

@@ -31,7 +31,7 @@ from datetime import datetime, timedelta
 class BotsStockWarehouse(orm.Model):
     _inherit = 'bots.warehouse'
 
-    def purchase_cutoff(self, cr, uid, ids, context=None):
+    def purchase_cutoff(self, cr, uid, ids, purchase_ids, context=None):
         '''Find purchases with cut-off passed and export'''
 
         purchase_obj = self.pool.get('purchase.order')
@@ -41,12 +41,8 @@ class BotsStockWarehouse(orm.Model):
         procurement_obj = self.pool.get('procurement.order')
 
         for warehouse in self.browse(cr, uid, ids, context=context):
-            # Find all POs passed their cut off
-            cutoff = (datetime.now() + timedelta(days=warehouse.backend_id.crossdock_cutoff_days)).strftime(DEFAULT_SERVER_DATE_FORMAT)
             purchase_ids = purchase_obj.search(cr, uid, [('warehouse_id', '=', warehouse.warehouse_id.id),
-                                                         ('bots_cross_dock', '=', True),
-                                                         ('minimum_planned_date', '<=', cutoff),
-                                                         ('state', '=', 'approved'),
+                                                         ('id', 'in', purchase_ids),
                                                          ('bots_cut_off', '=', False)], context=context)
             # Find all linked moves for all purchases
             moves = []
@@ -99,6 +95,6 @@ class BotsStockWarehouse(orm.Model):
         return True
 
 @job
-def purchase_cutoff(session, model_name, record_id, new_cr=True):
+def purchase_cutoff(session, model_name, record_id, purchase_ids, new_cr=True):
     warehouse = session.browse(model_name, record_id)
-    return warehouse.purchase_cutoff()
+    return warehouse.purchase_cutoff(purchase_ids)
