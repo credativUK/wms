@@ -108,6 +108,49 @@ class BotsWarehouseImport(ImportSynchronizer):
 class WarehouseAdapter(BotsCRUDAdapter):
     _model_name = 'bots.warehouse'
 
+    def _handle_cancellations(self, stock_picking, prod_cancel, context=None):
+        picking_obj = self.session.pool.get('stock.picking')
+        procurement_obj = self.session.pool.get('procurement.order')
+
+        stock_picking.refresh()
+        # If there are any cancellations we need to reset them back to confirmed so they are re-procured
+        if prod_cancel:
+            # Duplicate the entire picking including moves lines and procurements
+            new_picking_id = picking_obj.copy(self.session.cr, self.session.uid, stock_picking.openerp_id.id, {}, context=context)
+            new_picking = picking_obj.browse(self.session.cr, self.session.uid, new_picking_id, context=context)
+
+            prod_recreate = {}
+            # For the new picking remove lines which were not cancelled
+            for move in new_picking.move_lines:
+                if prod_recreate.get(move.product_id.id, 0) + move.product_qty <= prod_cancel.get(move.product_id.id, 0):
+                    prod_recreate[move.product_id.id] = prod_recreate.get(move.product_id.id, 0) + move.product_qty
+                elif prod_recreate.get(move.product_id.id, 0) < prod_cancel.get(move.product_id.id, 0):
+                    new_qty = prod_cancel.get(move.product_id.id, 0) - prod_recreate.get(move.product_id.id, 0)
+                    prod_recreate[move.product_id.id] = prod_recreate.get(move.product_id.id, 0) + new_qty
+                    move.write({'product_qty': new_qty})
+                    procurement_id = procurement_obj.search(self.session.cr, self.session.uid, [('move_id', '=', move.id)], context=context)
+                    procurement_obj.write(self.session.cr, self.session.uid, procurement_id, {'product_qty': new_qty}, context=context)
+                else:
+                    move.unlink()
+
+            # For the original picking remove lines which were cancelled
+            for move in stock_picking.move_lines:
+                if prod_cancel.get(move.product_id.id, 0) >= move.product_qty:
+                    prod_cancel[move.product_id.id] = prod_cancel[move.product_id.id] - move.product_qty
+                    move.unlink()
+                elif prod_cancel.get(move.product_id.id, 0) > 0:
+                    new_qty = prod_cancel.get(move.product_id.id, 0)
+                    prod_cancel[move.product_id.id] = prod_cancel[move.product_id.id] - new_qty
+                    move.write({'product_qty': new_qty})
+                    procurement_id = procurement_obj.search(self.session.cr, self.session.uid, [('move_id', '=', move.id)], context=context)
+                    procurement_obj.write(self.session.cr, self.session.uid, procurement_id, {'product_qty': new_qty}, context=context)
+                else:
+                    pass
+
+            return new_picking_id
+        else:
+            return False
+
     def get_picking_conf(self, picking_types, new_cr=True):
         product_binder = self.get_binder_for_model('bots.product')
         picking_in_binder = self.get_binder_for_model('bots.stock.picking.in')
@@ -116,6 +159,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
         bots_picking_out_obj = self.session.pool.get('bots.stock.picking.out')
         carrier_obj = self.session.pool.get('delivery.carrier')
         picking_obj = self.session.pool.get('stock.picking')
+        procurement_obj = self.session.pool.get('procurement.order')
         bots_warehouse_obj = self.session.pool.get('bots.warehouse')
         wf_service = netsvc.LocalService("workflow")
         exceptions = []
@@ -205,9 +249,9 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 elif line.get('status') == 'REFUNDED':
                                     prod_refund[product_id] = prod_refund.get(product_id, 0) + int('qty_real' in line and line['qty_real'] or line['uom_qty'])
 
-                            # TODO: Handle special cases for cancels, returns and refunds:
-                            if prod_cancel or prod_return or prod_refund:
-                                raise NotImplementedError('Handling cancelled, returned or refunded lines is not currently supported')
+                            # TODO: Handle special cases for returns and refunds:
+                            if  prod_return or prod_refund:
+                                raise NotImplementedError('Handling returned or refunded lines is not currently supported')
 
                             # Orgainise into done, partial and extra
                             moves_part = []
@@ -249,13 +293,16 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                     'product_currency' : move_currency,
                                 }
                             split = picking_obj.do_partial(_cr, self.session.uid, [stock_picking.openerp_id.id], moves_to_ship, context=ctx)
-                            stock_picking.refresh()
 
+                            cancel_picking_id = self._handle_cancellations(stock_picking, prod_cancel, context=ctx)
+
+                            stock_picking.refresh()
                             # If there is a backorder, we need to assert that the current picking remains available
                             # The backorder should be flagged for a checkpoint
                             if stock_picking.backorder_id and not stock_picking.backorder_id.id == old_backorder_id:
                                 if stock_picking.backorder_id.state != 'done' and stock_picking.state != 'assigned':
                                     raise JobError('Error while creating backorder for picking %s imported from Bots' % (stock_picking.name,))
+
                                 if stock_picking.backend_id.feat_reexport_backorder:
                                     # 3PLs such as DSV assume that once they confirm delivery of part of the order, the remaining items should be ignored
                                     # Because of this we need to re-export the remaining undelivered stock as part of a backorder so it gets delivered
@@ -266,6 +313,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 else:
                                     # For other 3PLs which will continue to deliver the remaining outstanding items we should take no action
                                     # The remaining items keep using the same Bots ID and subsequent confirmations should be for this ID
+
                                     pass
 
                                 add_checkpoint(self.session, stock_picking.openerp_id._name, stock_picking.openerp_id.id, self.backend_record.id)
