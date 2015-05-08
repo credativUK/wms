@@ -54,7 +54,7 @@ recorddefs = {
             ['BOTSID', 'M', 64, 'AN'],
             ['move_id','M', 64,'N'],
             ['product_qty','M', 64,'N'],
-            ['po_id', 'M', 64, 'AN'],
+            ['po_id', 'C', 64, 'AN'],
           ],
      }
 

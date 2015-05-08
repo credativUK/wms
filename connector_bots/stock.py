@@ -704,7 +704,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
         return bots_id
 
     def delete(self, picking_id):
-        data, FILENAME, bots_id = self._prepare_delete_data(picking_id)
+        data, FILENAME = self._prepare_delete_data(picking_id)
         data = json.dumps(data, indent=4)
 
         filename_id = self._get_unique_filename(FILENAME)

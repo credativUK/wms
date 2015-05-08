@@ -93,7 +93,7 @@ def main(inn,out):
             LINE_INTERNAL_ID = pline.get({'BOTSID': 'line', 'move_id': None})
             LINE_PRODUCT = pline.get({'BOTSID': 'line', 'product': None}).upper()
             LINE_TYPE = '*FIRST'
-            LINE_CUSTOMS_TYPE = pline.get({'BOTSID': 'line', 'customs_commodity_code': None}) or ''
+            LINE_CUSTOMS_TYPE = pline.get({'BOTSID': 'line', 'customs_commodity_code': None}) or '0'
             LINE_QTY = float(pline.get({'BOTSID': 'line', 'product_qty': None}) or 0.0)
             LINE_DESC = pline.get({'BOTSID': 'line', 'desc': None})
             LINE_VOLUME_NET = pline.get({'BOTSID': 'line', 'volume_net': None})

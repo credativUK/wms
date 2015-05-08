@@ -110,42 +110,55 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
     def _handle_cancellations(self, stock_picking, prod_cancel, context=None):
         picking_obj = self.session.pool.get('stock.picking')
+        stock_move_obj = self.session.pool.get('stock.move')
         procurement_obj = self.session.pool.get('procurement.order')
+        wf_service = netsvc.LocalService("workflow")
 
+        import ipdb; ipdb.set_trace();
         stock_picking.refresh()
         # If there are any cancellations we need to reset them back to confirmed so they are re-procured
         if prod_cancel:
             # Duplicate the entire picking including moves lines and procurements
-            new_picking_id = picking_obj.copy(self.session.cr, self.session.uid, stock_picking.openerp_id.id, {}, context=context)
+            new_picking_id = picking_obj.copy(self.session.cr, self.session.uid, stock_picking.openerp_id.id, {'move_lines': []}, context=context)
             new_picking = picking_obj.browse(self.session.cr, self.session.uid, new_picking_id, context=context)
-
-            prod_recreate = {}
-            # For the new picking remove lines which were not cancelled
-            for move in new_picking.move_lines:
-                if prod_recreate.get(move.product_id.id, 0) + move.product_qty <= prod_cancel.get(move.product_id.id, 0):
-                    prod_recreate[move.product_id.id] = prod_recreate.get(move.product_id.id, 0) + move.product_qty
-                elif prod_recreate.get(move.product_id.id, 0) < prod_cancel.get(move.product_id.id, 0):
-                    new_qty = prod_cancel.get(move.product_id.id, 0) - prod_recreate.get(move.product_id.id, 0)
-                    prod_recreate[move.product_id.id] = prod_recreate.get(move.product_id.id, 0) + new_qty
-                    move.write({'product_qty': new_qty})
-                    procurement_id = procurement_obj.search(self.session.cr, self.session.uid, [('move_id', '=', move.id)], context=context)
-                    procurement_obj.write(self.session.cr, self.session.uid, procurement_id, {'product_qty': new_qty}, context=context)
-                else:
-                    move.unlink()
 
             # For the original picking remove lines which were cancelled
             for move in stock_picking.move_lines:
                 if prod_cancel.get(move.product_id.id, 0) >= move.product_qty:
                     prod_cancel[move.product_id.id] = prod_cancel[move.product_id.id] - move.product_qty
-                    move.unlink()
+                    procurement_id = procurement_obj.search(self.session.cr, self.session.uid, [('move_id', '=', move.id)], context=context)
+                    new_move = stock_move_obj.copy(self.session.cr, self.session.uid, move.id, {'picking_id': new_picking_id}, context=context)
+                    if procurement_id:
+                        defaults = {'move_id': new_move, 'purchase_id': False}
+                        if move.sale_line_id:
+                            defaults['procure_method'] = move.sale_line_id.type
+                        new_procurement_id = procurement_obj.copy(self.session.cr, self.session.uid, procurement_id[0], defaults, context=context)
+                        wf_service.trg_validate(self.session.uid, 'procurement.order', new_procurement_id, 'button_confirm', self.session.cr)
+                    move.action_cancel()
                 elif prod_cancel.get(move.product_id.id, 0) > 0:
                     new_qty = prod_cancel.get(move.product_id.id, 0)
+                    reduce_qty = move.product_qty - new_qty
                     prod_cancel[move.product_id.id] = prod_cancel[move.product_id.id] - new_qty
-                    move.write({'product_qty': new_qty})
+                    move.write({'product_qty': reduce_qty})
                     procurement_id = procurement_obj.search(self.session.cr, self.session.uid, [('move_id', '=', move.id)], context=context)
-                    procurement_obj.write(self.session.cr, self.session.uid, procurement_id, {'product_qty': new_qty}, context=context)
+                    procurement_obj.write(self.session.cr, self.session.uid, procurement_id, {'product_qty': reduce_qty}, context=context)
+
+                    new_move = move.copy(self.session.cr, self.session.uid, move.id, {'picking_id': new_picking_id, 'product_qty': new_qty}, context=context)
+                    if procurement_id:
+                        defaults = {'move_id': new_move, 'purchase_id': False, 'product_qty': new_qty}
+                        if move.sale_line_id:
+                            defaults['procure_method'] = move.sale_line_id.type
+                        new_procurement_id = procurement_obj.copy(self.session.cr, self.session.uid, procurement_id[0], defaults, context=context)
+                        wf_service.trg_validate(self.session.uid, 'procurement.order', new_procurement_id, 'button_confirm', self.session.cr)
                 else:
                     pass
+
+            add_checkpoint(self.session, 'stock.picking.out', new_picking_id, self.backend_record.id)
+
+            wf_service.trg_validate(self.session.uid, 'stock.picking', new_picking_id, 'button_confirm', self.session.cr)
+            if stock_picking.type == 'out' and stock_picking.sale_id:
+                wf_service.trg_validate(self.session.uid, 'sale.order', stock_picking.sale_id.id, 'ship_corrected', self.session.cr)
+            wf_service.trg_write(self.session.uid, 'stock.picking', stock_picking.id, self.session.cr)
 
             return new_picking_id
         else:

@@ -61,12 +61,12 @@ class PrismPickingInAdapter(StockPickingInAdapter):
         move_obj = self.session.pool.get('stock.move')
 
         cross_dock = 0
-        for line in data.get('line', []):
+        for line in data['picking']['pickings'][0].get('line', []):
             if line.get('move_id'):
                 move = move_obj.browse(self.session.cr, self.session.uid, line.get('move_id'))
                 cross_dock = move.purchase_line_id.order_id.bots_cross_dock and 1 or 0
 
-        data.update({'crossdock': cross_dock})
+        data['picking']['pickings'][0].update({'crossdock': cross_dock})
         return data, FILENAME, bots_id
 
 @bots(replacing=StockPickingOutAdapter)
@@ -80,7 +80,7 @@ class PrismPickingOutAdapter(StockPickingOutAdapter):
 
         move_obj = self.session.pool.get('stock.move')
 
-        for line in data.get('line', []):
+        for line in data['picking']['pickings'][0].get('line', []):
             if line.get('move_id'):
                 move = move_obj.browse(self.session.cr, self.session.uid, line.get('move_id'))
                 line.update({'customs_commodity_code': move.product_id.magento_commodity_code,})

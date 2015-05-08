@@ -47,7 +47,7 @@ class BotsStockWarehouse(orm.Model):
             # Find all linked moves for all purchases
             moves = []
             for purchase in purchase_obj.browse(cr, uid, purchase_ids, context=context):
-                moves = [l.move_dest_id for l in purchase.order_line if l.move_dest_id]
+                moves.extend([l.move_dest_id for l in purchase.order_line if l.move_dest_id])
             # Group moves by picking
             picking_dict = {}
             for move in moves:
