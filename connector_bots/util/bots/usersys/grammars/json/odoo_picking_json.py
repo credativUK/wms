@@ -64,6 +64,7 @@ recorddefs = {
             ['state', 'C', 64, 'AN'],
             ['type', 'C', 64, 'AN'],
             ['date', 'C', 64, 'AN'],
+            ['client_order_ref', 'C', 17, 'AN'],
           ],
     'partner':[
             ['BOTSID', 'M', 64, 'AN'],

@@ -114,12 +114,14 @@ def main(inn,out):
             rec_counts[SEGMENT] = rec_counts.setdefault(SEGMENT, 0) + 1
 
             PART_ID = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'id': None})
+            CLIENT_REF = pick.get({'BOTSID': 'pickings', 'client_order_ref': None})
             PART_EMAIL = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'email': None})
 
             party_root = OrderedDict([
                 ('Segment_Number', SEGMENT),
                 ('Order_Party_Qual', 'CN'), # Consignee - Party receiving goods
                 ('Party_External_Ref', PART_ID),
+                ('Client_Ref_to_Order', CLIENT_REF),
             ])
             ord_root.setdefault(ELEMENT, []).append(party_root)
 
