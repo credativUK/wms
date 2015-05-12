@@ -770,8 +770,8 @@ def picking_cancel(session, model_name, record_id, picking_type):
     late_pickings = []
 
     for picking in pickings:
-        min_date = datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT)
-        if not picking.bots_override and datetime.now().date() >= min_date.date():
+        min_date = picking.min_date and datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT)
+        if min_date and not picking.bots_override and datetime.now().date() >= min_date.date():
             late_pickings.append(picking.name)
             continue
         export_picking_cancel.delay(session, picking_type, picking.id)
