@@ -811,6 +811,8 @@ def delay_export_picking_in_available(session, model_name, record_id, vals):
 @job
 def export_picking_available(session, model_name, record_id):
     picking = session.browse(model_name, record_id)
+    if not picking:
+        raise MappingError('Unable to export, the mapping record has been deleted')
     if picking.state == 'done' and session.search(model_name, [('backorder_id', '=', picking.openerp_id.id)]):
         # We are an auto-created back order completed - ignore this export
         return "Not creating backorder for auto-created done picking backorder %s" % (picking.name,)
