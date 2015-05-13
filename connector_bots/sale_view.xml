@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="view_order_form_bots" model="ir.ui.view">
+            <field name="name">sale.order.form.bots</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="/form//tree/field[@name='price_subtotal']" position="after">
+                    <field name="bots_exported_rate" widget="progressbar_custom"/>
+                </xpath>
+                <xpath expr="/form//form//div[@name='discount']" position="after">
+                    <field name="bots_exported_rate" widget="progressbar_custom"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</openerp>

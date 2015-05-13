@@ -85,13 +85,20 @@ class StockPickingIn(orm.Model):
         context = context or {}
         if context.get('wms_bots', False):
             return False
-        exported = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False)], context=context)
-        if exported and cancel:
-            exported_obj = self.pool.get('bots.stock.picking.in').browse(cr, uid, exported, context=context)
-            exported = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_in_cancel]
-        if exported and doraise:
-            raise osv.except_osv(_('Error!'), _('This picking has been exported to an external WMS and cannot be modified directly in OpenERP.'))
-        return exported or False
+        res = {}
+        ids_pending = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False)], context=context)
+        ids_exported = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False)], context=context)
+        ids_all = ids_pending + ids_exported
+        if ids_all and cancel:
+            exported_obj = self.pool.get('bots.stock.picking.in').browse(cr, uid, ids_all, context=context)
+            ids_all = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_in_cance]
+        if ids_all and doraise:
+            raise osv.except_osv(_('Error!'), _('This picking has been exported, or is pending export, to an external WMS and cannot be modified directly in OpenERP.'))
+        if ids_exported:
+            res['exported'] = ids_exported
+        if ids_pending:
+            res['pending'] = ids_pending
+        return res
 
     def cancel_assign(self, cr, uid, ids, context=None):
         self.bots_test_exported(cr, uid, ids, doraise=True, cancel=True, context=context)
@@ -163,13 +170,20 @@ class StockPickingOut(orm.Model):
         context = context or {}
         if context.get('wms_bots', False):
             return False
-        exported = self.pool.get('bots.stock.picking.out').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False)], context=context)
-        if exported and cancel:
-            exported_obj = self.pool.get('bots.stock.picking.out').browse(cr, uid, exported, context=context)
-            exported = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_out_cancel]
-        if exported and doraise:
-            raise osv.except_osv(_('Error!'), _('This picking has been exported to an external WMS and cannot be modified directly in OpenERP.'))
-        return exported or False
+        res = {}
+        ids_pending = self.pool.get('bots.stock.picking.out').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False)], context=context)
+        ids_exported = self.pool.get('bots.stock.picking.out').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False)], context=context)
+        ids_all = ids_pending + ids_exported
+        if ids_all and cancel:
+            exported_obj = self.pool.get('bots.stock.picking.out').browse(cr, uid, ids_all, context=context)
+            ids_all = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_out_cance]
+        if ids_all and doraise:
+            raise osv.except_osv(_('Error!'), _('This picking has been exported, or is pending export, to an external WMS and cannot be modified directly in OpenERP.'))
+        if ids_exported:
+            res['exported'] = ids_exported
+        if ids_pending:
+            res['pending'] = ids_pending
+        return res
 
     def cancel_assign(self, cr, uid, ids, context=None):
         self.bots_test_exported(cr, uid, ids, doraise=True, cancel=True, context=context)
@@ -214,6 +228,7 @@ class StockPicking(orm.Model):
         if context.get('wms_bots', False):
             return False
         exported = []
+        pending = []
         for pick in self.browse(cr, uid, ids, context=context):
             if pick.type == 'in':
                 MODEL = 'bots.stock.picking.in'
@@ -223,13 +238,22 @@ class StockPicking(orm.Model):
                 PARAM = 'feat_picking_out_cancel'
             else:
                 continue
-            exported.extend(self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False)], context=context))
-            if exported and cancel:
-                exported_obj = self.pool.get(MODEL).browse(cr, uid, exported, context=context)
-                exported = [x.id for x in exported_obj if not x.bots_id or not getattr(x.backend_id, PARAM)]
-            if exported and doraise:
+            ids_pending = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', pick.id), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False)], context=context)
+            ids_exported = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', pick.id), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False)], context=context)
+            ids_all = ids_pending + ids_exported
+            if ids_all and cancel:
+                exported_obj = self.pool.get(MODEL).browse(cr, uid, ids_all, context=context)
+                ids_all = [x.id for x in exported_obj if not x.bots_id or not getattr(x.backend_id, PARAM)]
+            if ids_all and doraise:
                 raise osv.except_osv(_('Error!'), _('This picking has been exported, or is pending export, to an external WMS and cannot be modified directly in OpenERP.'))
-        return exported or False
+            exported.extend(ids_exported)
+            pending.extend(ids_pending)
+        res = {}
+        if exported:
+            res['exported'] = exported
+        if pending:
+            res['pending'] = pending
+        return res
 
     def cancel_assign(self, cr, uid, ids, context=None):
         self.bots_test_exported(cr, uid, ids, doraise=True, cancel=True, context=context)
@@ -269,7 +293,7 @@ class StockMove(orm.Model):
     def _bots_test_exported(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for id in ids:
-            res[id] = self.bots_test_exported(cr, uid, [id], doraise=False, cancel=False, context=context) and True or False
+            res[id] = self.bots_test_exported(cr, uid, [id], doraise=False, cancel=False, context=context).get('exported', False) and True or False
         return res
 
     _columns = {
@@ -291,7 +315,7 @@ class StockMove(orm.Model):
                 exported = self.pool.get('stock.picking.in').bots_test_exported(cr, uid, [move.picking_id.id], doraise=doraise, cancel=cancel, context=context)
             if exported:
                 return exported
-        return False
+        return {}
 
     def cancel_assign(self, cr, uid, ids, context=None):
         context = context or {}

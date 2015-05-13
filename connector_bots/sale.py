@@ -30,6 +30,18 @@ class SaleOrder(orm.Model):
 class SaleOrderLine(orm.Model):
     _inherit = "sale.order.line"
 
+    def _bots_exported_rate(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            moves_exported, moves_total = 0, 0
+            for move in line.move_ids:
+                moves_total += 1
+                if line.move_ids[0].bots_test_exported().get('exported'):
+                    moves_exported += 1
+            res[line.id] = "%d / %d" % (moves_exported, moves_total)
+        return res
+
     _columns = {
         'requested_delivery_date': fields.date('Requested Delivery Date', select=True, help="Date on which customer has requested delivery.", readonly=True, states={'draft':[('readonly',False)]},),
+        'bots_exported_rate': fields.function(_bots_exported_rate, type='char', string='Exported to 3PL', readonly=True, help="How much of this sale order line hasbeen exported to 3PL/Bots"),
     }
