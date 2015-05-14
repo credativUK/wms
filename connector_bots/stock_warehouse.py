@@ -114,7 +114,6 @@ class WarehouseAdapter(BotsCRUDAdapter):
         procurement_obj = self.session.pool.get('procurement.order')
         wf_service = netsvc.LocalService("workflow")
 
-        import ipdb; ipdb.set_trace();
         stock_picking.refresh()
         # If there are any cancellations we need to reset them back to confirmed so they are re-procured
         if prod_cancel:
