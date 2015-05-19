@@ -369,6 +369,21 @@ class BotsStockPickingOut(orm.Model):
          'A Bots picking already exists for this picking for the same backend.'),
     ]
 
+    def name_get(self, cr, uid, ids, context=None):
+        if not ids:
+            return []
+        if isinstance(ids, (int, long)):
+                    ids = [ids]
+        reads = self.read(cr, uid, ids, ['name', 'bots_id'], context=context)
+        res = []
+        for record in reads:
+            if record['bots_id']:
+                name = record['bots_id']
+            else:
+                name = "*%s" % (record['name'],)
+            res.append((record['id'], name))
+        return res
+
     def reexport_order(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
         for id in ids:
@@ -403,6 +418,21 @@ class BotsStockPickingIn(orm.Model):
         ('bots_picking_in_uniq', 'unique(backend_id, openerp_id)',
          'A Bots picking already exists for this picking for the same backend.'),
     ]
+
+    def name_get(self, cr, uid, ids, context=None):
+        if not ids:
+            return []
+        if isinstance(ids, (int, long)):
+                    ids = [ids]
+        reads = self.read(cr, uid, ids, ['name', 'bots_id'], context=context)
+        res = []
+        for record in reads:
+            if record['bots_id']:
+                name = record['bots_id']
+            else:
+                name = "*%s" % (record['name'],)
+            res.append((record['id'], name))
+        return res
 
     def reexport_order(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
