@@ -87,6 +87,7 @@ class magento_product_product(orm.Model):
                                                          stock_field,
                                                          context=location_ctx)
                     last_qty = current_stock.get(product['id'], {}).get('magento_qty', 0)
+                    
                     if new_qty != last_qty:
                         to_export = True
                         if product['id'] in current_stock:
@@ -168,7 +169,7 @@ class magento_stock_levels(orm.Model):
         ids = self.search(cr, uid, domain, context=context)
         stock_levels = self.read(cr, uid, ids, ['product_id', 'magento_qty'], context=context)
 
-        res = {x['product_id']: x for x in stock_levels}
+        res = {x['product_id'][0]: x for x in stock_levels}
         return res
 
 @magento
@@ -187,7 +188,7 @@ class BackendAdapter(GenericAdapter):
                 raise
 
     def send_inventory(self, data):
-        return self._call('product_stock.update', data)
+        return self._call('marceli_productstockupdate_api.update', data)
 
 
 @magento
