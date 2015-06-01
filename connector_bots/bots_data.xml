@@ -39,5 +39,10 @@
             <field eval="'_scheduler_import_stock_picking_in_conf'" name="function"/>
             <field eval="'()'" name="args"/>
         </record>
+
+        <record forcecreate="True" id="decimal_precision_import_stock_picking_in_conf" model="decimal.precision">
+            <field name="name">Bots</field>
+            <field name="digits">2</field>
+        </record>
     </data>
 </openerp>
