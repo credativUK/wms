@@ -41,6 +41,8 @@ import json
 import traceback
 from datetime import datetime
 import re
+import openerp.addons.decimal_precision as dp
+
 
 class StockPickingIn(orm.Model):
     _inherit = 'stock.picking.in'
@@ -586,7 +588,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     price_unit = currency_obj.compute(self.session.cr, self.session.uid, default_currency.id, currency.id, price_unit, round=False, context=ctx)
 
             price = currency_obj.round(self.session.cr, self.session.uid, currency, (1 - (discount/100.0)) * price_unit)
-
+            precision = dp.get_precision('bots')
             order_line = {
                     "id": "%sS%s" % (bots_id, seq),
                     "seq": seq,
@@ -597,7 +599,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "uom": move.product_uom.name,
                     "product_uos_qty": int(move.product_uos_qty),
                     "uos": move.product_uos.name,
-                    "price_unit": price,
+                    "price_unit": round(price, precision),
                     "price_currency": currency.name,
                 }
             if move.product_id.volume:
@@ -614,8 +616,8 @@ class StockPickingAdapter(BotsCRUDAdapter):
             if move.sale_line_id:
                 taxes = tax_obj.compute_all(self.session.cr, self.session.uid, move.sale_line_id.tax_id, move.sale_line_id.price_unit * (1-(move.sale_line_id.discount or 0.0)/100.0),
                                             move.product_qty, move.product_id, move.sale_line_id.order_id.partner_id)
-                order_line['price_total_ex_tax'] = taxes['total']
-                order_line['price_total_inc_tax'] = taxes['total_included']
+                order_line['price_total_ex_tax'] = round(taxes['total'],precision)
+                order_line['price_total_inc_tax'] = round(taxes['total_included'],precision)
 
             order_lines.append(order_line)
             seq += 1
