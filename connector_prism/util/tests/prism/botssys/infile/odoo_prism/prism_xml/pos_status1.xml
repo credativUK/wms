@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<purchaseOrders>
+  <order>
+    <suppliercode>EXTRA</suppliercode>
+    <internalPurchaseOrderRef>8727</internalPurchaseOrderRef>
+    <supplierCurrency>GBP</supplierCurrency>
+    <dueDate>2015-03-18</dueDate>
+    <lineCount>1</lineCount>
+    <pieceCount>152</pieceCount>
+    <deliveryToWarehouse>WMS</deliveryToWarehouse>
+    <items>
+      <item>
+        <sku>10035544DEF000</sku>
+        <actions>
+          <action>
+            <type>BOOKED_IN</type>
+            <qty>152</qty>
+            <date>2015-03-16 10:00:03</date>
+          </action>
+          <action>
+            <type>RECEIVED</type>
+            <qty>152</qty>
+            <date>2015-03-19 09:52:51</date>
+          </action>
+        </actions>
+      </item>
+    </items>
+  </order>
+</purchaseOrders>
+

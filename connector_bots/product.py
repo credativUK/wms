@@ -26,6 +26,9 @@ from .backend import bots
 import logging
 _logger = logging.getLogger(__name__)
 
+class ProductProduct(orm.Model):
+    _inherit = 'product.product'
+
 class BotsProduct(orm.Model):
     _name = 'bots.product'
     _inherit = 'bots.binding'

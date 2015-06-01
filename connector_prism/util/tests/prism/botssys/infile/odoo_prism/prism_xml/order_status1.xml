@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<orders>
+  <order>
+    <orderNumber>100226735</orderNumber>
+    <externalDocumentRef1/>
+    <externalDocumentRef2/>
+    <items>
+      <item>
+        <productCode>20155555DEF000</productCode>
+        <status>DESPATCHED</status>
+        <statusDate>2013-11-03 03:00:32</statusDate>
+        <attributes>
+          <attribute>
+            <name>trackingReference</name>
+            <value>FJ770789275GB</value>
+          </attribute>
+          <attribute>
+            <name>stockPointDespDate</name>
+            <value>2013-11-02</value>
+          </attribute>
+        </attributes>
+      </item>
+      <item>
+        <productCode>20104990DEF000</productCode>
+        <status>DESPATCHED</status>
+        <statusDate>2013-11-03 03:00:32</statusDate>
+        <attributes>
+          <attribute>
+            <name>trackingReference</name>
+            <value>FJ770789275GB</value>
+          </attribute>
+          <attribute>
+            <name>stockPointDespDate</name>
+            <value>2013-11-02</value>
+          </attribute>
+        </attributes>
+      </item>
+    </items>
+  </order>
+  <order>
+    <orderNumber>100226484</orderNumber>
+    <externalDocumentRef1/>
+    <externalDocumentRef2/>
+    <items>
+      <item>
+        <productCode>20104965DEF000</productCode>
+        <status>DESPATCHED</status>
+        <statusDate>2013-11-03 03:00:30</statusDate>
+        <attributes>
+          <attribute>
+            <name>trackingReference</name>
+            <value>FJ770789329GB</value>
+          </attribute>
+          <attribute>
+            <name>stockPointDespDate</name>
+            <value>2013-11-02</value>
+          </attribute>
+        </attributes>
+      </item>
+    </items>
+  </order>
+</orders>
+

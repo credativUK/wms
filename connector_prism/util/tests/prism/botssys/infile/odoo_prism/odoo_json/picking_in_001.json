@@ -1,0 +1,81 @@
+{
+  "picking": {
+    "pickings": [
+      {
+        "id": "REFABC123",
+        "name": "IN/0001",
+        "order": "PO123",
+        "desc": "",
+        "state": "new",
+        "type": "in",
+        "date": "2014-07-31",
+        "crossdock": "1",
+        "partner": [
+          {
+            "id": "PARTNER001",
+            "code": "P_SUP_01",
+            "name": "The Delivery Address", 
+            "street1": "1 The Street", 
+            "street2": "",
+            "city": "Some City", 
+            "zip": "CV1 1AA",
+            "country": "GB",
+            "state": "West Midlands",
+            "phone": "01234",
+            "fax": "01234",
+            "email": "abc@123",
+            "language": "en_GB",
+            "vat": "123"
+          }
+        ], 
+        "line": [
+          {
+            "id": "IN/0001-1",
+            "seq": "1",
+            "product": "ITEMA", 
+            "product_supplier_sku": "ITEM1",
+            "product_qty": "5", 
+            "uom": "pce", 
+            "product_uos_qty": "5",
+            "uos": "pce",
+            "volume_net": "123",
+            "weight": "123",
+            "weight_net": "123",
+            "price_unit": "123.45",
+            "price_currency": "GBP",
+            "desc": "Leave at back door",
+            "customs_free_from": "True",
+            "customs_free_to": "True"
+          }, 
+          {
+            "id": "IN/0001-2",
+            "seq": "2",
+            "product": "ITEMB",
+            "product_supplier_sku": "ITEM2",
+            "product_qty": "10",
+            "uom": "pce",
+            "product_uos_qty": "10",
+            "uos": "pce",
+            "volume_net": "123",
+            "weight": "123",
+            "weight_net": "123",
+            "price_unit": "123.45",
+            "price_currency": "GBP",
+            "desc": "Leave at back door"
+          }
+        ]
+      }
+    ],
+    "header": [
+      {
+        "type": "in",
+        "state": "done",
+        "partner_to": "Prism",
+        "partner_from": "openerp",
+        "message_id": "123",
+        "test": "0",
+        "date_msg": "2014-07-21 12:00:00.00000"
+      }
+    ]
+  }
+}

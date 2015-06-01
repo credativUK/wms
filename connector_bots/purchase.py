@@ -24,7 +24,7 @@ class PurchaseOrder(orm.Model):
     _inherit = 'purchase.order'
 
     _columns = {
-            'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties.', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
+            'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties. (DSV only)', states={'confirmed':[('readonly',True)], 'approved':[('readonly',True)],'done':[('readonly',True)]}),
         }
 
     _defaults = {

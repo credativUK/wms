@@ -85,13 +85,20 @@ class StockPickingIn(orm.Model):
         context = context or {}
         if context.get('wms_bots', False):
             return False
-        exported = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False)], context=context)
-        if exported and cancel:
-            exported_obj = self.pool.get('bots.stock.picking.in').browse(cr, uid, exported, context=context)
-            exported = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_in_cancel]
-        if exported and doraise:
-            raise osv.except_osv(_('Error!'), _('This picking has been exported to an external WMS and cannot be modified directly in OpenERP.'))
-        return exported or False
+        res = {}
+        ids_pending = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False)], context=context)
+        ids_exported = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False)], context=context)
+        ids_all = ids_pending + ids_exported
+        if ids_all and cancel:
+            exported_obj = self.pool.get('bots.stock.picking.in').browse(cr, uid, ids_all, context=context)
+            ids_all = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_in_cance]
+        if ids_all and doraise:
+            raise osv.except_osv(_('Error!'), _('This picking has been exported, or is pending export, to an external WMS and cannot be modified directly in OpenERP.'))
+        if ids_exported:
+            res['exported'] = ids_exported
+        if ids_pending:
+            res['pending'] = ids_pending
+        return res
 
     def cancel_assign(self, cr, uid, ids, context=None):
         self.bots_test_exported(cr, uid, ids, doraise=True, cancel=True, context=context)
@@ -163,13 +170,20 @@ class StockPickingOut(orm.Model):
         context = context or {}
         if context.get('wms_bots', False):
             return False
-        exported = self.pool.get('bots.stock.picking.out').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False)], context=context)
-        if exported and cancel:
-            exported_obj = self.pool.get('bots.stock.picking.out').browse(cr, uid, exported, context=context)
-            exported = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_out_cancel]
-        if exported and doraise:
-            raise osv.except_osv(_('Error!'), _('This picking has been exported to an external WMS and cannot be modified directly in OpenERP.'))
-        return exported or False
+        res = {}
+        ids_pending = self.pool.get('bots.stock.picking.out').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False)], context=context)
+        ids_exported = self.pool.get('bots.stock.picking.out').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False)], context=context)
+        ids_all = ids_pending + ids_exported
+        if ids_all and cancel:
+            exported_obj = self.pool.get('bots.stock.picking.out').browse(cr, uid, ids_all, context=context)
+            ids_all = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_out_cance]
+        if ids_all and doraise:
+            raise osv.except_osv(_('Error!'), _('This picking has been exported, or is pending export, to an external WMS and cannot be modified directly in OpenERP.'))
+        if ids_exported:
+            res['exported'] = ids_exported
+        if ids_pending:
+            res['pending'] = ids_pending
+        return res
 
     def cancel_assign(self, cr, uid, ids, context=None):
         self.bots_test_exported(cr, uid, ids, doraise=True, cancel=True, context=context)
@@ -214,6 +228,7 @@ class StockPicking(orm.Model):
         if context.get('wms_bots', False):
             return False
         exported = []
+        pending = []
         for pick in self.browse(cr, uid, ids, context=context):
             if pick.type == 'in':
                 MODEL = 'bots.stock.picking.in'
@@ -223,13 +238,22 @@ class StockPicking(orm.Model):
                 PARAM = 'feat_picking_out_cancel'
             else:
                 continue
-            exported.extend(self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False)], context=context))
-            if exported and cancel:
-                exported_obj = self.pool.get(MODEL).browse(cr, uid, exported, context=context)
-                exported = [x.id for x in exported_obj if not x.bots_id or not getattr(x.backend_id, PARAM)]
-            if exported and doraise:
+            ids_pending = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', pick.id), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False)], context=context)
+            ids_exported = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', pick.id), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False)], context=context)
+            ids_all = ids_pending + ids_exported
+            if ids_all and cancel:
+                exported_obj = self.pool.get(MODEL).browse(cr, uid, ids_all, context=context)
+                ids_all = [x.id for x in exported_obj if not x.bots_id or not getattr(x.backend_id, PARAM)]
+            if ids_all and doraise:
                 raise osv.except_osv(_('Error!'), _('This picking has been exported, or is pending export, to an external WMS and cannot be modified directly in OpenERP.'))
-        return exported or False
+            exported.extend(ids_exported)
+            pending.extend(ids_pending)
+        res = {}
+        if exported:
+            res['exported'] = exported
+        if pending:
+            res['pending'] = pending
+        return res
 
     def cancel_assign(self, cr, uid, ids, context=None):
         self.bots_test_exported(cr, uid, ids, doraise=True, cancel=True, context=context)
@@ -269,7 +293,7 @@ class StockMove(orm.Model):
     def _bots_test_exported(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
         for id in ids:
-            res[id] = self.bots_test_exported(cr, uid, [id], doraise=False, cancel=False, context=context) and True or False
+            res[id] = self.bots_test_exported(cr, uid, [id], doraise=False, cancel=False, context=context).get('exported', False) and True or False
         return res
 
     _columns = {
@@ -291,7 +315,7 @@ class StockMove(orm.Model):
                 exported = self.pool.get('stock.picking.in').bots_test_exported(cr, uid, [move.picking_id.id], doraise=doraise, cancel=cancel, context=context)
             if exported:
                 return exported
-        return False
+        return {}
 
     def cancel_assign(self, cr, uid, ids, context=None):
         context = context or {}
@@ -345,6 +369,21 @@ class BotsStockPickingOut(orm.Model):
          'A Bots picking already exists for this picking for the same backend.'),
     ]
 
+    def name_get(self, cr, uid, ids, context=None):
+        if not ids:
+            return []
+        if isinstance(ids, (int, long)):
+                    ids = [ids]
+        reads = self.read(cr, uid, ids, ['name', 'bots_id'], context=context)
+        res = []
+        for record in reads:
+            if record['bots_id']:
+                name = record['bots_id']
+            else:
+                name = "*%s" % (record['name'],)
+            res.append((record['id'], name))
+        return res
+
     def reexport_order(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
         for id in ids:
@@ -380,6 +419,21 @@ class BotsStockPickingIn(orm.Model):
          'A Bots picking already exists for this picking for the same backend.'),
     ]
 
+    def name_get(self, cr, uid, ids, context=None):
+        if not ids:
+            return []
+        if isinstance(ids, (int, long)):
+                    ids = [ids]
+        reads = self.read(cr, uid, ids, ['name', 'bots_id'], context=context)
+        res = []
+        for record in reads:
+            if record['bots_id']:
+                name = record['bots_id']
+            else:
+                name = "*%s" % (record['name'],)
+            res.append((record['id'], name))
+        return res
+
     def reexport_order(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
         for id in ids:
@@ -407,8 +461,7 @@ class BotsStockPickingInBinder(BotsModelBinder):
 class StockPickingAdapter(BotsCRUDAdapter):
     _picking_type = None
 
-    def create(self, picking_id):
-
+    def _prepare_create_data(self, picking_id):
         def _find_pricelist_cost(cr, uid, pl_id, prod_id, partner, uom, date, context=None):
             pl_obj = self.session.pool.get('product.pricelist')
             price = pl_obj.price_get(cr, uid, [pl_id], prod_id, 1.0, partner, {
@@ -437,6 +490,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
         move_obj = self.session.pool.get('stock.move')
         bots_warehouse_obj = self.session.pool.get('bots.warehouse')
         currency_obj = self.session.pool.get('res.currency')
+        tax_obj = self.session.pool.get('account.tax')
         wf_service = netsvc.LocalService("workflow")
 
         picking = bots_picking_obj.browse(self.session.cr, self.session.uid, picking_id)
@@ -492,6 +546,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 moves_to_split.append(move.id)
                 continue
 
+            product_supplier_sku = product_bots_id
+            for supplier in move.product_id.seller_ids:
+                if supplier.product_code and supplier.name.id == move.partner_id.id:
+                    product_supplier_sku = supplier.product_code
+                    break
+
             discount = 0
             price_unit = move.product_id.standard_price
             currency = default_company.currency_id
@@ -530,7 +590,9 @@ class StockPickingAdapter(BotsCRUDAdapter):
             order_line = {
                     "id": "%sS%s" % (bots_id, seq),
                     "seq": seq,
-                    "product": product_bots_id, 
+                    "move_id": move.id,
+                    "product": product_bots_id,
+                    "product_supplier_sku": product_supplier_sku,
                     "product_qty": int(move.product_qty),
                     "uom": move.product_uom.name,
                     "product_uos_qty": int(move.product_uos_qty),
@@ -548,6 +610,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 order_line['desc'] = move.note and move.note[:64]
             if TYPE == 'in':
                 order_line['customs_free_from'] = not picking.bots_customs
+
+            if move.sale_line_id:
+                taxes = tax_obj.compute_all(self.session.cr, self.session.uid, move.sale_line_id.tax_id, move.sale_line_id.price_unit * (1-(move.sale_line_id.discount or 0.0)/100.0),
+                                            move.product_qty, move.product_id, move.sale_line_id.order_id.partner_id)
+                order_line['price_total_ex_tax'] = taxes['total']
+                order_line['price_total_inc_tax'] = taxes['total_included']
 
             order_lines.append(order_line)
             seq += 1
@@ -573,6 +641,42 @@ class StockPickingAdapter(BotsCRUDAdapter):
             move_obj.write(self.session.cr, self.session.uid, moves_to_split, {'picking_id': new_picking_id}, context=ctx)
             wf_service.trg_validate(self.session.uid, 'stock.picking', new_picking_id, 'button_confirm', self.session.cr)
 
+        partner_data = {
+            "id": "P%d" % (picking.partner_id.id),
+            "code": picking.partner_id.ref or '',
+            "name": picking.partner_id.name or '',
+            "street1": picking.partner_id.street or '',
+            "street2": picking.partner_id.street2 or '',
+            "city": picking.partner_id.city or '',
+            "zip": picking.partner_id.zip or '',
+            "country": picking.partner_id.country_id and picking.partner_id.country_id.code or '',
+            "state": picking.partner_id.state_id and picking.partner_id.state_id.name or '',
+            "phone": picking.partner_id.phone or '',
+            "fax": picking.partner_id.fax or '',
+            "email": picking.partner_id.email or '',
+            "language": picking.partner_id.lang or '',
+        }
+
+        billing_data = {}
+        if TYPE == 'out' and picking.sale_id and picking.sale_id.partner_invoice_id:
+            billing_data = {
+                "id": "P%d" % (picking.sale_id.partner_invoice_id.id),
+                "code": picking.sale_id.partner_invoice_id.ref or '',
+                "name": picking.sale_id.partner_invoice_id.name or '',
+                "street1": picking.sale_id.partner_invoice_id.street or '',
+                "street2": picking.sale_id.partner_invoice_id.street2 or '',
+                "city": picking.sale_id.partner_invoice_id.city or '',
+                "zip": picking.sale_id.partner_invoice_id.zip or '',
+                "country": picking.sale_id.partner_invoice_id.country_id and picking.sale_id.partner_invoice_id.country_id.code or '',
+                "state": picking.sale_id.partner_invoice_id.state_id and picking.sale_id.partner_invoice_id.state_id.name or '',
+                "phone": picking.sale_id.partner_invoice_id.phone or '',
+                "fax": picking.sale_id.partner_invoice_id.fax or '',
+                "email": picking.sale_id.partner_invoice_id.email or '',
+                "language": picking.sale_id.partner_invoice_id.lang or '',
+            }
+
+        attr_data = {} # TODO
+
         picking_data = {
                 'id': bots_id,
                 'name': bots_id,
@@ -580,23 +684,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 'state': 'new',
                 'type': TYPE,
                 'date': datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT).strftime('%Y-%m-%d'),
-                'partner':
-                    {
-                        "id": "P%d" % (picking.partner_id.id),
-                        "name": picking.partner_id.name or '',
-                        "street1": picking.partner_id.street or '',
-                        "street2": picking.partner_id.street2 or '',
-                        "city": picking.partner_id.city or '',
-                        "zip": picking.partner_id.zip or '',
-                        "country": picking.partner_id.country_id and picking.partner_id.country_id.code or '',
-                        "state": picking.partner_id.state_id and picking.partner_id.state_id.name or '',
-                        "phone": picking.partner_id.phone or '',
-                        "fax": picking.partner_id.fax or '',
-                        "email": picking.partner_id.email or '',
-                        "language": picking.partner_id.lang or '',
-                    },
+                'partner': partner_data,
                 'line': order_lines,
             }
+        if billing_data:
+            picking_data['partner_bill'] = billing_data
+
         if picking.note:
             picking_data['desc'] = picking.note and picking.note[:64]
         if picking.partner_id.vat:
@@ -615,14 +708,9 @@ class StockPickingAdapter(BotsCRUDAdapter):
                             }],
                     },
                 }
-        data = json.dumps(data, indent=4)
+        return data, FILENAME, bots_id
 
-        filename_id = self._get_unique_filename(FILENAME)
-        res = self._write(filename_id, data)
-        return bots_id
-
-    def delete(self, picking_id):
-
+    def _prepare_delete_data(self, picking_id):
         if self._picking_type == 'in':
             MODEL = 'bots.stock.picking.in'
             TYPE = 'in'
@@ -660,6 +748,17 @@ class StockPickingAdapter(BotsCRUDAdapter):
                             }],
                     },
                 }
+        return data, FILENAME
+
+    def create(self, picking_id):
+        data, FILENAME, bots_id = self._prepare_create_data(picking_id)
+        data = json.dumps(data, indent=4)
+        filename_id = self._get_unique_filename(FILENAME)
+        res = self._write(filename_id, data)
+        return bots_id
+
+    def delete(self, picking_id):
+        data, FILENAME = self._prepare_delete_data(picking_id)
         data = json.dumps(data, indent=4)
 
         filename_id = self._get_unique_filename(FILENAME)
@@ -725,8 +824,8 @@ def picking_cancel(session, model_name, record_id, picking_type):
     late_pickings = []
 
     for picking in pickings:
-        min_date = datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT)
-        if not picking.bots_override and datetime.now().date() >= min_date.date():
+        min_date = picking.min_date and datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT)
+        if min_date and not picking.bots_override and datetime.now().date() >= min_date.date():
             late_pickings.append(picking.name)
             continue
         export_picking_cancel.delay(session, picking_type, picking.id)
@@ -754,6 +853,7 @@ class BotsPickingExport(ExportSynchronizer):
         self.binder.unbind(binding_id)
         pass
 
+
 @on_record_create(model_names='bots.stock.picking.out')
 def delay_export_picking_out_available(session, model_name, record_id, vals):
     export_picking_available.delay(session, model_name, record_id)
@@ -765,6 +865,8 @@ def delay_export_picking_in_available(session, model_name, record_id, vals):
 @job
 def export_picking_available(session, model_name, record_id):
     picking = session.browse(model_name, record_id)
+    if not picking:
+        raise MappingError('Unable to export, the mapping record has been deleted')
     if picking.state == 'done' and session.search(model_name, [('backorder_id', '=', picking.openerp_id.id)]):
         # We are an auto-created back order completed - ignore this export
         return "Not creating backorder for auto-created done picking backorder %s" % (picking.name,)

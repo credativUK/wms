@@ -21,6 +21,8 @@
             <field name="arch" type="xml">
                 <field name="name" position="replace">
                     <field name="name" string="Delivery Order" filter_domain="['|','|',('name','ilike',self),('origin','ilike',self),('bots_id','ilike',self)]"/>
+                    <field name="openerp_id" string="OpenERP ID"/>
+                    <field name="sale_id" string="Sale Order"/>
                     <field name="warehouse_id" string="Bots Warehouse"/>
                 </field>
                 <filter string="Journal" position="after">
@@ -95,6 +97,8 @@
             <field name="arch" type="xml">
                 <field name="name" position="replace">
                     <field name="name" string="Incoming Shipments" filter_domain="['|','|',('name','ilike',self),('origin','ilike',self),('bots_id','ilike',self)]"/>
+                    <field name="openerp_id" string="OpenERP ID"/>
+                    <field name="purchase_id" string="Purchase Order"/>
                     <field name="warehouse_id" string="Bots Warehouse"/>
                 </field>
                 <filter string="Journal" position="after">
@@ -220,6 +224,91 @@
                     <button name="cancel_assign" string="Cancel Availability" type="object" groups="stock.group_stock_manager" attrs="{'invisible': ['|', ('state', 'not in', ['assigned']), ('bots_exported', '!=', False)]}" icon="terp-dialog-close"/>
                 </field>
             </field>
+        </record>
+
+        <!-- Add Bots Record links - adding the ir.values record explicityly so we can force the view ids to be used on the target view -->
+        <record id="action_bots_stock_picking_out_open" model="ir.actions.act_window">
+            <field name="name">Bots Records</field>
+            <field name="res_model">bots.stock.picking.out</field>
+            <field name="src_model">stock.picking.out</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_openerp_id': [active_id], 'default_openerp_id': active_id}</field>
+            <field name="view_id" ref="view_picking_out_tree_bots"/>
+            <field name="search_view_id" ref="view_picking_out_search_bots"/>
+        </record>
+
+        <record id="ir_open_bots_stock_picking_out" model="ir.values">
+            <field name="name">Bots Records</field>
+            <field name="key">action</field>
+            <field name="key2">client_action_relate</field>
+            <field name="value" eval="'ir.actions.act_window,' + str(ref('action_bots_stock_picking_out_open'))" />
+            <field name="model_id" ref="stock.model_stock_picking_out" />
+            <field name="model">stock.picking.out</field>
+        </record>
+
+        <record id="action_bots_stock_picking_in_open" model="ir.actions.act_window">
+            <field name="name">Bots Records</field>
+            <field name="res_model">bots.stock.picking.in</field>
+            <field name="src_model">stock.picking.in</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_openerp_id': [active_id], 'default_openerp_id': active_id}</field>
+            <field name="view_id" ref="view_picking_in_tree_bots"/>
+            <field name="search_view_id" ref="view_picking_in_search_bots"/>
+        </record>
+
+        <record id="ir_open_bots_stock_picking_in" model="ir.values">
+            <field name="name">Bots Records</field>
+            <field name="key">action</field>
+            <field name="key2">client_action_relate</field>
+            <field name="value" eval="'ir.actions.act_window,' + str(ref('action_bots_stock_picking_in_open'))" />
+            <field name="model_id" ref="stock.model_stock_picking_in" />
+            <field name="model">stock.picking.in</field>
+        </record>
+
+        <record id="action_bots_stock_sale_open" model="ir.actions.act_window">
+            <field name="name">Bots Records</field>
+            <field name="res_model">bots.stock.picking.out</field>
+            <field name="src_model">sale.order</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_sale_id': [active_id], 'default_sale_id': active_id}</field>
+            <field name="view_id" ref="view_picking_out_tree_bots"/>
+            <field name="search_view_id" ref="view_picking_out_search_bots"/>
+        </record>
+
+        <record id="ir_open_bots_stock_sale" model="ir.values">
+            <field name="name">Bots Records</field>
+            <field name="key">action</field>
+            <field name="key2">client_action_relate</field>
+            <field name="value" eval="'ir.actions.act_window,' + str(ref('action_bots_stock_sale_open'))" />
+            <field name="model_id" ref="sale.model_sale_order" />
+            <field name="model">sale.order</field>
+        </record>
+
+        <record id="action_bots_stock_purchase_open" model="ir.actions.act_window">
+            <field name="name">Bots Records</field>
+            <field name="res_model">bots.stock.picking.in</field>
+            <field name="src_model">purchase.order</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_purchase_id': [active_id], 'default_purchase_id': active_id}</field>
+            <field name="view_id" ref="view_picking_in_tree_bots"/>
+            <field name="search_view_id" ref="view_picking_in_search_bots"/>
+        </record>
+
+        <record id="ir_open_bots_stock_purchase" model="ir.values">
+            <field name="name">Bots Records</field>
+            <field name="key">action</field>
+            <field name="key2">client_action_relate</field>
+            <field name="value" eval="'ir.actions.act_window,' + str(ref('action_bots_stock_purchase_open'))" />
+            <field name="model_id" ref="purchase.model_purchase_order" />
+            <field name="model">purchase.order</field>
         </record>
 
     </data>
