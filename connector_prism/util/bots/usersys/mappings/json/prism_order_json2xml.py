@@ -83,6 +83,9 @@ def main(inn,out):
 
         # == LINES ==
 
+        price_precision = 2
+        percentage_precision = 4
+
         ORD_ITEMS = 0
         ORD_TOTAL = 0.0
         ORD_CURRENCY = None
@@ -104,7 +107,7 @@ def main(inn,out):
             LINE_TOTAL_EX_VAT = pline.get({'BOTSID': 'line', 'price_total_ex_tax': None}) or 0.00
             LINE_TOTAL_INC_VAT = pline.get({'BOTSID': 'line', 'price_total_inc_tax': None}) or 0.00
             LINE_VAT = float(LINE_TOTAL_INC_VAT) - float(LINE_TOTAL_EX_VAT)
-            LINE_VAT_RATE = LINE_TOTAL_EX_VAT and (LINE_VAT / float(LINE_TOTAL_EX_VAT)) or 0.00
+            LINE_VAT_RATE = LINE_TOTAL_EX_VAT and 100 * (LINE_VAT / float(LINE_TOTAL_EX_VAT)) or 0.00
 
             # ORDER LINES
             itr = 0
@@ -124,12 +127,12 @@ def main(inn,out):
                 order_line_out = order_out.putloop({'BOTSID': 'order'}, {'BOTSID':'items'}, {'BOTSID':'item'})
                 order_line_out.put({'BOTSID':'item', 'postageProductType': LINE_CUSTOMS_TYPE})
                 order_line_out.put({'BOTSID':'item', 'productCode': LINE_PRODUCT})
-                order_line_out.put({'BOTSID':'item', 'unitPrice': LINE_PRICE_UNIT})
-                order_line_out.put({'BOTSID':'item', 'salesPrice': LINE_PRICE_UNIT * LINE_QTY})
-                order_line_out.put({'BOTSID':'item', 'paidPrice': LINE_PRICE_UNIT * LINE_QTY})
-                order_line_out.put({'BOTSID':'item', 'tax': LINE_VAT})
+                order_line_out.put({'BOTSID':'item', 'unitPrice': round(LINE_PRICE_UNIT, price_precision)})
+                order_line_out.put({'BOTSID':'item', 'salesPrice': round(LINE_PRICE_UNIT * LINE_QTY, price_precision)})
+                order_line_out.put({'BOTSID':'item', 'paidPrice': round(LINE_PRICE_UNIT * LINE_QTY, price_precision)})
+                order_line_out.put({'BOTSID':'item', 'tax': round(LINE_VAT, price_precision)})
                 order_line_out.put({'BOTSID':'item', 'taxIncluded': 1})
-                order_line_out.put({'BOTSID':'item', 'taxRate': LINE_VAT_RATE})
+                order_line_out.put({'BOTSID':'item', 'taxRate': round(LINE_VAT_RATE, percentage_precision)})
 
                 for ATTR_NAME, ATTR_VALUE in LINE_ATTRS.iteritems():
                     order_line_attr = order_line_out.putloop({'BOTSID': 'item'}, {'BOTSID':'attributes'}, {'BOTSID':'attribute'})
