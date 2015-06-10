@@ -27,7 +27,7 @@ syntax = {
         'charset':  "iso-8859-1",
         'noBOTSID': True,
         'skip_firstline': True,
-        #'envelope':'csvheader',
+        'envelope':'csvheader',
         'merge': False,
         'forcequote': 0,
         }
