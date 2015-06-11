@@ -19,9 +19,11 @@
 ##############################################################################
 
 from openerp.osv import orm, fields
+from openerp.tools.translate import _
 
 from openerp.addons.connector_bots.product import BotsProductBinder
 from openerp.addons.connector_bots.backend import bots
+from openerp.addons.connector.exception import MappingError
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -50,8 +52,8 @@ class PrismProductBinder(BotsProductBinder):
         else:
             # If no overriding mappings, try to match the SKU directly
             binding_ids = self.session.search('product.product', [('magento_prism_sku', '=', str(external_id))])
-            if not binding_ids:
-                binding_ids = self.session.search('product.product', [('default_code', '=', str(external_id))])
+            #if not binding_ids: # Do not default to default_code, only use the value imported from 3rd party site (magento_prism_sku)
+            #    binding_ids = self.session.search('product.product', [('default_code', '=', str(external_id))])
         if not binding_ids:
             return None
         if len(binding_ids) > 1:
@@ -71,5 +73,7 @@ class PrismProductBinder(BotsProductBinder):
             bots_record = self.session.read('bots.product', bots_product_ids[0], ['bots_id'])['bots_id']
         else:
             values = self.session.read("product.product", record_id, ['default_code', 'magento_prism_sku'])
-            bots_record = values.get('magento_prism_sku') or values.get('default_code')
+            bots_record = values.get('magento_prism_sku') #or values.get('default_code') # Do not default to default_code, only use the value imported from 3rd party site (magento_prism_sku)
+            if not bots_record:
+                raise MappingError(_('Missing PRISM product mapping for product %s [%s].') % (values.get('default_code'), record_id,)) 
         return bots_record
