@@ -19,6 +19,7 @@
 #
 ##############################################################################
 
+import logging
 import xmlrpclib
 from openerp.osv import orm, fields
 
@@ -34,6 +35,9 @@ from openerp.addons.magentoerpconnect.product import chunks, magento_product_mod
 from openerp.addons.magentoerpconnect.product import ProductInventoryExport as OriginalProductInventoryExport
 from openerp.addons.magentoerpconnect.unit.backend_adapter import GenericAdapter
 from openerp.addons.magentoerpconnect.unit.binder import MagentoModelBinder
+
+_logger = logging.getLogger(__name__)
+
 
 class magento_product_product(orm.Model):
     _inherit = 'magento.product.product'
@@ -106,9 +110,11 @@ class magento_product_product(orm.Model):
                                 },
                                 context=context)
 
-        if to_export:
+        stock_levels_to_export = stock_level_obj.search(cr, uid, [('backend_id', '=', backend.id), ('to_export', '=',True)], context=context)
+        products_to_export = stock_level_obj.read(cr, uid, stock_levels_to_export, ['product_id'], context=context)
+        for product in products_to_export:
             session = ConnectorSession(cr, uid, context=context)
-            export_stock_levels.delay(session, 'magento.backend', backend.id)
+            export_stock_levels.delay(session, 'magento.backend', backend.id, product['product_id'][0])
 
 class magento_stock_location(orm.Model):
     _name = 'magento.stock.location'
@@ -188,17 +194,21 @@ class BackendAdapter(GenericAdapter):
                 raise
 
     def send_inventory(self, data):
+        import ipdb; ipdb.set_trace()
+        _logger.info('The following data is being sent to update Magento stock %s',data)
         return self._call('marceli_productstockupdate_api.update', data)
 
 
 @magento
 class ProductInventoryExport(ExportSynchronizer):
     _model_name = ['magento.backend']
+    # FIXME: Modify to be based on model magento.product.product
 
-    def _get_data(self, backend_id):
+    def _get_data(self, backend_id, product_id):
         ids = self.session.search('magento.stock.levels', [
                                         ('backend_id', '=', backend_id),
                                         ('to_export', '=', True),
+                                        ('product_id', '=', product_id),
                                     ])
         stock_levels = self.session.read('magento.stock.levels', ids,
                             ['product_id', 'location_id', 'magento_qty'])
@@ -219,20 +229,22 @@ class ProductInventoryExport(ExportSynchronizer):
             for location, qty in locations.iteritems():
                 location_id = location_binder.to_backend(location)
                 product_entry[location_id] = qty
-            result += [product_id, product_entry]
+            result += [(product_id, product_entry)]
         return result
 
-    def run(self, backend_id):
+    def run(self, backend_id, product_id):
         """ Export the inventory to a Magento backend """
-        data = self._get_data(backend_id)
-        self.backend_adapter.send_inventory(data)
+        datas = self._get_data(backend_id, product_id)
+        # FIXME: Modify _get_data to only return the result
+        for data in datas:
+            self.backend_adapter.send_inventory(data)
 
 @on_record_write(model_names='magento.product.product', replacing=magento_product_modified)
 def magento_product_modified_disable(*args, **kwargs):
     pass
 
 @job
-def export_stock_levels(session, model_name, backend_id):
+def export_stock_levels(session, model_name, backend_id, product_id):
     env = get_environment(session, model_name, backend_id)
     inventory_exporter = env.get_connector_unit(ProductInventoryExport)
-    return inventory_exporter.run(backend_id)
+    return inventory_exporter.run(backend_id, product_id)
