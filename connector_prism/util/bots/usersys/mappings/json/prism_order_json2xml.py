@@ -107,7 +107,7 @@ def main(inn,out):
             LINE_TOTAL_EX_VAT = pline.get({'BOTSID': 'line', 'price_total_ex_tax': None}) or 0.00
             LINE_TOTAL_INC_VAT = pline.get({'BOTSID': 'line', 'price_total_inc_tax': None}) or 0.00
             LINE_VAT = float(LINE_TOTAL_INC_VAT) - float(LINE_TOTAL_EX_VAT)
-            LINE_VAT_RATE = LINE_TOTAL_EX_VAT and 100 * (LINE_VAT / float(LINE_TOTAL_EX_VAT)) or 0.00
+            LINE_VAT_RATE = float(LINE_TOTAL_EX_VAT) and 100 * (LINE_VAT / float(LINE_TOTAL_EX_VAT)) or 0.00
 
             # ORDER LINES
             itr = 0
