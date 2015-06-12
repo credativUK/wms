@@ -9,6 +9,9 @@
                 <field name="date_approve" position="after">
                     <field name="bots_customs"/>
                 </field>
+                <xpath expr="/form//tree/field[@name='price_subtotal']" position="after">
+                    <field name="transferred_rate" widget="progressbar_custom"/>
+                </xpath>
             </field>
         </record>
     </data>

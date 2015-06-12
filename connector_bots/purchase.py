@@ -35,3 +35,30 @@ class PurchaseOrder(orm.Model):
         res = super(PurchaseOrder, self)._prepare_order_picking(cr, uid, order, context=context)
         res['bots_customs'] = order.bots_customs
         return res
+
+
+class PurchaseOrderLine(orm.Model):
+    _inherit = "purchase.order.line"
+
+    def _transferred_rate(self, cr, uid, ids, field_name, arg, context=None):
+        uom_obj = self.pool.get("product.uom")
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            product_uom = line.product_id.uom_id
+            transferred, total = 0, 0
+            for move in line.move_ids:
+                if move.state in ('draft', 'cancel'):
+                    continue
+                qty = uom_obj._compute_qty(cr, uid, move.product_uom.id,
+                                           move.product_qty, product_uom.id)
+                total += qty
+                if move.state == 'done':
+                    transferred += qty
+            res[line.id] = "%r / %r" % (transferred, total)
+        return res
+
+    _columns = {
+        'transferred_rate': fields.function(_transferred_rate,
+            string='Goods transferred', type='char', readonly=True,
+            help="How much of this order line has been transferred"),
+    }
