@@ -90,7 +90,7 @@ def main(inn,out):
         # == LINES ==
 
         price_precision = 2
-        percentage_precision = 4
+        percentage_precision = 2 # This is precission after coverting to a percentage
 
         ORD_ITEMS = 0
         ORD_TOTAL = 0.0
