@@ -46,6 +46,7 @@ def main(inn,out):
         PART_ID = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'id': None})
         PART_EMAIL = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'email': None})
         PART_TITLE = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'title': None}) or ''
+        PART_JOBTITLE = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'jobtitle': None}) or ''
         PART_COMPANY = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'company': None}) or ''
         PART_NAME = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'name': None}) or ''
         PART_STREET1 = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner', 'street1': None}) or ''
@@ -64,6 +65,7 @@ def main(inn,out):
         PART_BILL_ID = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner_bill', 'id': None})
         PART_BILL_EMAIL = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner_bill', 'email': None})
         PART_BILL_TITLE = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner_bill', 'title': None}) or ''
+        PART_BILL_JOBTITLE = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner_bill', 'jobtitle': None}) or ''
         PART_BILL_COMPANY = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner_bill', 'company': None}) or ''
         PART_BILL_NAME = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner_bill', 'name': None}) or ''
         PART_BILL_STREET1 = pick.get({'BOTSID': 'pickings'}, {'BOTSID': 'partner_bill', 'street1': None}) or ''
@@ -196,10 +198,10 @@ def main(inn,out):
             order_attr.put({'BOTSID':'attribute', 'value': ATTR_VALUE})
 
         # PARTNER elements
-        #order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'title': ''}) # No Default
+        order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'title': PART_TITLE}) # No Default
         order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'forename': ' '.join(PART_NAME.split(' ')[:1])}) # Take first name
         order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'surname': ' '.join(PART_NAME.split(' ')[1:])}) # Take all other names
-        order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'jobTitle': PART_TITLE})
+        order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'jobTitle': PART_JOBTITLE})
         order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'company': PART_COMPANY})
         order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'address1': PART_STREET1})
         order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingAddress', 'address2': PART_STREET2})
@@ -227,10 +229,10 @@ def main(inn,out):
             order_out.put({'BOTSID':'order'}, {'BOTSID':'shippingEmail', 'externalMarketingOk': 0})
 
         # BILLING elements
-        #order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'title': ''}) # No Default
+        order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'title': PART_BILL_TITLE}) # No Default
         order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'forename': ' '.join(PART_BILL_NAME.split(' ')[:1])}) # Take first name
         order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'surname': ' '.join(PART_BILL_NAME.split(' ')[1:])}) # Take all other names
-        order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'jobTitle': PART_BILL_TITLE})
+        order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'jobTitle': PART_BILL_JOBTITLE})
         order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'company': PART_BILL_COMPANY})
         order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'address1': PART_BILL_STREET1})
         order_out.put({'BOTSID':'order'}, {'BOTSID':'billingAddress', 'address2': PART_BILL_STREET2})
