@@ -153,6 +153,8 @@ def main(inn,out):
         ORDER_PREFSERVICE = order_attrs.get('preferredCarrierService', '')
         ORDER_EXPRESS = order_attrs.get('expressDelivery', '') and 1 or 0
         ORDER_GIFTMSG = order_attrs.get('giftMessage', '')
+        ORDER_CARRIERPREMIUM = order_attrs.get('carrier_premium', '') or 0.00
+        ORDER_EXPRESSPREMIUM = order_attrs.get('express_premium', '') or 0.00
 
         # ORDER - Main element
         order_out.put({'BOTSID':'order', 'orderType': 'B2C'})
@@ -170,9 +172,9 @@ def main(inn,out):
         order_out.put({'BOTSID':'order', 'basicPostageRate': ORDER_POSTAGERATE})
         order_out.put({'BOTSID':'order', 'preferredCarrier': ORDER_PREFCARRIER})
         order_out.put({'BOTSID':'order', 'preferredCarrierService': ORDER_PREFSERVICE})
-        #order_out.put({'BOTSID':'order', 'carrierPremium': 0.00}) # No Default
+        order_out.put({'BOTSID':'order', 'carrierPremium': ORDER_CARRIERPREMIUM})
         order_out.put({'BOTSID':'order', 'expressDelivery': ORDER_EXPRESS})
-        #order_out.put({'BOTSID':'order', 'expressPremium': 0.00}) # No Default
+        order_out.put({'BOTSID':'order', 'expressPremium': ORDER_EXPRESSPREMIUM})
         order_out.put({'BOTSID':'order', 'giftOrder': 0})
         order_out.put({'BOTSID':'order', 'giftWrap': 0})
         order_out.put({'BOTSID':'order', 'giftMessage': ORDER_GIFTMSG})
