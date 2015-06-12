@@ -72,6 +72,8 @@ recorddefs = {
             ['BOTSID', 'M', 64, 'AN'],
             ['id','C',64,'AN'],
             ['code','C',64,'AN'],
+            ['title', 'C', 64, 'AN'],
+            ['company', 'C', 64, 'AN'],
             ['name', 'C', 64, 'AN'],
             ['street1', 'C', 64, 'AN'],
             ['street2', 'C', 64, 'AN'],
@@ -88,6 +90,8 @@ recorddefs = {
     'partner_bill':[
             ['BOTSID', 'M', 64, 'AN'],
             ['id','C',64,'AN'],
+            ['title', 'C', 64, 'AN'],
+            ['company', 'C', 64, 'AN'],
             ['code','C',64,'AN'],
             ['name', 'C', 64, 'AN'],
             ['street1', 'C', 64, 'AN'],

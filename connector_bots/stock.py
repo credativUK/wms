@@ -646,6 +646,8 @@ class StockPickingAdapter(BotsCRUDAdapter):
         partner_data = {
             "id": "P%d" % (picking.partner_id.id),
             "code": picking.partner_id.ref or '',
+            "title": picking.partner_id.title and picking.partner_id.title.name or '',
+            "company": picking.partner_id.parent_id and picking.partner_id.parent_id.name or '',
             "name": picking.partner_id.name or '',
             "street1": picking.partner_id.street or '',
             "street2": picking.partner_id.street2 or '',
@@ -664,6 +666,8 @@ class StockPickingAdapter(BotsCRUDAdapter):
             billing_data = {
                 "id": "P%d" % (picking.sale_id.partner_invoice_id.id),
                 "code": picking.sale_id.partner_invoice_id.ref or '',
+                "title": picking.sale_id.partner_invoice_id.title and picking.sale_id.partner_invoice_id.title.name or '',
+                "company": picking.sale_id.partner_invoice_id.parent_id and picking.sale_id.partner_invoice_id.parent_id.name or '',
                 "name": picking.sale_id.partner_invoice_id.name or '',
                 "street1": picking.sale_id.partner_invoice_id.street or '',
                 "street2": picking.sale_id.partner_invoice_id.street2 or '',
