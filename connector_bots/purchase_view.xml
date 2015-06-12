@@ -11,6 +11,10 @@
                 </field>
                 <xpath expr="/form//tree/field[@name='price_subtotal']" position="after">
                     <field name="transferred_rate" widget="progressbar_custom"/>
+                    <field name="partially_received" invisible="1"/>
+                </xpath>
+                <xpath expr="/form//tree[@string='Purchase Order Lines']" position="attributes">
+                    <attribute name="colors">red: partially_received</attribute>
                 </xpath>
             </field>
         </record>

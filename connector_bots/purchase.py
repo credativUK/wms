@@ -54,11 +54,17 @@ class PurchaseOrderLine(orm.Model):
                 total += qty
                 if move.state == 'done':
                     transferred += qty
-            res[line.id] = "%r / %r" % (transferred, total)
+            res[line.id] = {
+                'transferred_rate': "%r / %r" % (transferred, total),
+                'partially_received': transferred and transferred < total,
+            }
         return res
 
     _columns = {
         'transferred_rate': fields.function(_transferred_rate,
-            string='Goods transferred', type='char', readonly=True,
+            string='Goods transferred', type='char', multi="transferred",
             help="How much of this order line has been transferred"),
+        'partially_received': fields.function(_transferred_rate,
+            string='Partially received', type='boolean', multi="transferred",
+            help="True if the order line is only partially received"),
     }
