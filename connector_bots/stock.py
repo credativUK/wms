@@ -588,7 +588,8 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     price_unit = currency_obj.compute(self.session.cr, self.session.uid, default_currency.id, currency.id, price_unit, round=False, context=ctx)
 
             price = currency_obj.round(self.session.cr, self.session.uid, currency, (1 - (discount/100.0)) * price_unit)
-            precision = dp.get_precision('bots')
+            precision = dp.get_precision('bots')(self.session.cr)
+            precision = precision and precision[1] or 2
             order_line = {
                     "id": "%sS%s" % (bots_id, seq),
                     "seq": seq,
