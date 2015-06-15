@@ -63,7 +63,7 @@ class StockPickingIn(orm.Model):
     _columns = {
             'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties.', states={'done':[('readonly', True)], 'cancel':[('readonly',True)], 'assigned':[('readonly',True)]}),
             'move_lines': fields.one2many('stock.move', 'picking_id', 'Internal Moves', readonly=True, states={'draft':[('readonly',False)], 'confirmed':[('readonly',False)]},),
-            'partner_id': fields.many2one('res.partner', 'Destination Address ', help="Optional address where goods are to be delivered, specifically used for allotment", readonly=True, states={'draft':[('readonly',False)]},),
+            'partner_id': fields.many2one('res.partner', 'Destination Address ', help="Optional address where goods are to be delivered, specifically used for allotment", readonly=True, states={'draft':[('readonly',False)], 'confirmed':[('readonly',False)]},),
             'min_date': fields.function(
                 get_min_max_date,
                 fnct_inv=_set_minimum_date, multi='min_max_date',
