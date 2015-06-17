@@ -56,6 +56,7 @@ def main(inn,out):
         ORD_ID = pick.get({'BOTSID': 'pickings', 'id': None})
         assert ORD_ID, "Order ID must be present"
         ORD_ID = re.sub(r'[\\/_-]', r'', ORD_ID.upper())
+        out.ta_info['botskey'] = ORD_ID # Set the botskey to the last order ID
         ORD_STATE = pick.get({'BOTSID': 'pickings', 'state': None})
 
         # == Cancelled Orders - WSO05R ==
