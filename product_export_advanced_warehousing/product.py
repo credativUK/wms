@@ -194,7 +194,6 @@ class BackendAdapter(GenericAdapter):
                 raise
 
     def send_inventory(self, data):
-        import ipdb; ipdb.set_trace()
         _logger.info('The following data is being sent to update Magento stock %s',data)
         return self._call('marceli_productstockupdate_api.update', data)
 
