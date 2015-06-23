@@ -178,7 +178,7 @@ class StockPickingOut(orm.Model):
         ids_all = ids_pending + ids_exported
         if ids_all and cancel:
             exported_obj = self.pool.get('bots.stock.picking.out').browse(cr, uid, ids_all, context=context)
-            ids_all = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_out_cance]
+            ids_all = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_out_cancel]
         if ids_all and doraise:
             raise osv.except_osv(_('Error!'), _('This picking has been exported, or is pending export, to an external WMS and cannot be modified directly in OpenERP.'))
         if ids_exported:
