@@ -67,6 +67,7 @@ recorddefs = {
             ['type', 'C', 64, 'AN'],
             ['date', 'C', 64, 'AN'],
             ['crossdock', 'C', 1, 'N'],
+            ['client_order_ref', 'C', 17, 'AN'],
           ],
     'partner':[
             ['BOTSID', 'M', 64, 'AN'],
