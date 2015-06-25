@@ -61,7 +61,7 @@ class BotsStockWarehouse(orm.Model):
                 picking = picking_obj.browse(cr, uid, picking_id, context=context)
                 for move_id in other_move_ids:
                     # If confirmed move in another cut-off PO we should make it available
-                    pol_id = purchase_line_obj.search(cr, uid, [('move_dest_id', '=', move_id), ('bots_cut_off', '=', True), ('state', 'not in', ('draft', 'cancel'))], context=context)
+                    pol_id = purchase_line_obj.search(cr, uid, [('move_dest_id', '=', move_id), ('order_id.bots_cut_off', '=', True), ('state', 'not in', ('draft', 'cancel'))], context=context)
                     if pol_id:
                         force_move_ids.append(move_id)
                         continue
