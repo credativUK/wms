@@ -132,8 +132,8 @@ recorddefs = {
           ],
     'attributes':[
             ['BOTSID', 'M', 64, 'AN'],
-            ['key','C',64,'AN'],
-            ['value', 'C', 64, 'AN'],
+            ['key','C',128,'AN'],
+            ['value', 'C', 128, 'AN'],
           ],
      }
 
