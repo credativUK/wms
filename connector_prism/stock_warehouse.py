@@ -39,6 +39,7 @@ class BotsStockWarehouse(orm.Model):
         picking_obj = self.pool.get('stock.picking')
         purchase_line_obj = self.pool.get('purchase.order.line')
         procurement_obj = self.pool.get('procurement.order')
+        backend_obj = self.pool.get('bots.backend')
 
         for warehouse in self.browse(cr, uid, ids, context=context):
             purchase_ids = purchase_obj.search(cr, uid, [('warehouse_id', '=', warehouse.warehouse_id.id),
@@ -66,6 +67,17 @@ class BotsStockWarehouse(orm.Model):
                         force_move_ids.append(move_id)
                         continue
 
+                    # If confirmed move in another PO pending cut-off we should leave it as is (it will be assigned once this PO is cut-off)
+                    cutoff = backend_obj._get_cutoff_date(cr, uid, [warehouse.backend_id.id], context=context)
+                    pol_id = purchase_line_obj.search(cr, uid, [('move_dest_id', '=', move_id),
+                                                                ('order_id.warehouse_id', '=', warehouse.warehouse_id.id),
+                                                                ('order_id.bots_cross_dock', '=', True),
+                                                                ('order_id.minimum_planned_date', '<=', cutoff),
+                                                                ('order_id.state', '=', 'approved'),
+                                                                ('order_id.bots_cut_off', '=', False)], context=context)
+                    if pol_id:
+                        continue
+
                     # If confirmed move related to another PO we should split it 
                     pol_id = purchase_line_obj.search(cr, uid, [('move_dest_id', '=', move_id), ('state', 'not in', ('draft', 'cancel'))], context=context)
                     if pol_id:
@@ -74,7 +86,7 @@ class BotsStockWarehouse(orm.Model):
 
                     # Else see if we can assign the move
                     cr.execute('SAVEPOINT crossdock')
-                    assign_res = move_obj.action_assign(cr, uid, [move_id], context=context)
+                    assign_res = move_obj.action_assign(cr, uid, [move_id])
                     if assign_res == 1:
                         force_move_ids.append(move_id)
                     else:
