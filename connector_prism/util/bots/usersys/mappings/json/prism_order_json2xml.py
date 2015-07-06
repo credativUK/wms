@@ -86,12 +86,12 @@ def main(inn,out):
         order_attrs = {}
         alines = pick.getloop({'BOTSID': 'pickings'}, {'BOTSID': 'attributes'})
         for aline in alines:
-            order_attrs[aline.get({'BOTSID': 'line', 'key': None})] = aline.get({'BOTSID': 'line', 'value': None})
+            order_attrs[aline.get({'BOTSID': 'attributes', 'key': None})] = aline.get({'BOTSID': 'attributes', 'value': None})
 
         # == LINES ==
 
         price_precision = 2
-        percentage_precision = 2 # This is precission after coverting to a percentage
+        percentage_precision = 4 # This is precission after coverting to a percentage
 
         ORD_ITEMS = 0
         ORD_TOTAL = 0.0
@@ -114,7 +114,9 @@ def main(inn,out):
             LINE_TOTAL_EX_VAT = pline.get({'BOTSID': 'line', 'price_total_ex_tax': None}) or 0.00
             LINE_TOTAL_INC_VAT = pline.get({'BOTSID': 'line', 'price_total_inc_tax': None}) or 0.00
             LINE_VAT = float(LINE_TOTAL_INC_VAT) - float(LINE_TOTAL_EX_VAT)
-            LINE_VAT_RATE = float(LINE_TOTAL_EX_VAT) and 100 * (LINE_VAT / float(LINE_TOTAL_EX_VAT)) or 0.00
+            LINE_VAT_RATE = float(pline.get({'BOTSID': 'line', 'tax_rate': None}))
+            if LINE_VAT_RATE is None:
+                LINE_VAT_RATE = float(LINE_TOTAL_EX_VAT) and 100 * (LINE_VAT / float(LINE_TOTAL_EX_VAT)) or 0.00
 
             # ORDER LINES
             itr = 0
@@ -148,14 +150,14 @@ def main(inn,out):
 
         ORDER_PAYMENTS = [('CARD', ORD_CURRENCY, ORD_TOTAL)] # Hardcoded for CARD for total order total
 
-        ORDER_SUBCHANNEL = order_attrs.get('subChannel', '')
-        ORDER_POSTAGERATE = order_attrs.get('basicPostageRate', 0.00)
-        ORDER_PREFCARRIER = order_attrs.get('preferredCarrier', '')
-        ORDER_PREFSERVICE = order_attrs.get('preferredCarrierService', '')
-        ORDER_EXPRESS = order_attrs.get('expressDelivery', '') and 1 or 0
-        ORDER_GIFTMSG = order_attrs.get('giftMessage', '')
-        ORDER_CARRIERPREMIUM = order_attrs.get('carrier_premium', '') or 0.00
-        ORDER_EXPRESSPREMIUM = order_attrs.get('express_premium', '') or 0.00
+        ORDER_SUBCHANNEL = order_attrs.get('subChannel') or ''
+        ORDER_POSTAGERATE = order_attrs.get('basicPostageRate') or 0.0
+        ORDER_PREFCARRIER = order_attrs.get('preferredCarrier') or ''
+        ORDER_PREFSERVICE = order_attrs.get('preferredCarrierService') or ''
+        ORDER_EXPRESS = order_attrs.get('expressDelivery') and 1 or 0
+        ORDER_GIFTMSG = order_attrs.get('giftMessage', '') or ''
+        ORDER_CARRIERPREMIUM = order_attrs.get('carrier_premium') or 0.00
+        ORDER_EXPRESSPREMIUM = order_attrs.get('express_premium') or 0.00
 
         # ORDER - Main element
         order_out.put({'BOTSID':'order', 'orderType': 'B2C'})

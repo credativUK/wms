@@ -620,6 +620,17 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 order_line['price_total_ex_tax'] = round(taxes['total'],precision)
                 order_line['price_total_inc_tax'] = round(taxes['total_included'],precision)
 
+                total_rate = 0.0
+                for tax in move.sale_line_id.tax_id:
+                    if tax.type == 'percent' and tax.price_include == False:
+                        total_rate += tax.amount
+                    else:
+                        break # Only supports aggregating percentage taxes
+                        # raise osv.except_osv(_('Error !'), _('This report does not support tax with ID %s') % (tax.id,))
+                else:
+                    order_line['tax_rate'] = round(total_rate*100.0, precision)
+
+
             order_lines.append(order_line)
             seq += 1
 
@@ -649,7 +660,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
             "code": picking.partner_id.ref or '',
             "title": picking.partner_id.title and picking.partner_id.title.name or '',
             "jobtitle": picking.partner_id.function or '',
-            "company": picking.partner_id.parent_id and picking.partner_id.parent_id.name or '',
+            "company": picking.partner_id.company or '',
             "name": picking.partner_id.name or '',
             "street1": picking.partner_id.street or '',
             "street2": picking.partner_id.street2 or '',
@@ -670,7 +681,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 "code": picking.sale_id.partner_invoice_id.ref or '',
                 "title": picking.sale_id.partner_invoice_id.title and picking.sale_id.partner_invoice_id.title.name or '',
                 "jobtitle": picking.sale_id.partner_invoice_id.function or '',
-                "company": picking.sale_id.partner_invoice_id.parent_id and picking.sale_id.partner_invoice_id.parent_id.name or '',
+                "company": picking.sale_id.partner_invoice_id.company or '',
                 "name": picking.sale_id.partner_invoice_id.name or '',
                 "street1": picking.sale_id.partner_invoice_id.street or '',
                 "street2": picking.sale_id.partner_invoice_id.street2 or '',

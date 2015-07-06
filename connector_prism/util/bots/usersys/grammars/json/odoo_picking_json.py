@@ -127,6 +127,7 @@ recorddefs = {
             ['price_currency', 'C', 64, 'AN'],
             ['price_total_ex_tax', 'C', 64, 'AN'],
             ['price_total_inc_tax', 'C', 64, 'AN'],
+            ['tax_rate', 'C', 64, 'AN'],
             ['desc', 'C', 64, 'AN'],
             ['customs_free_from', 'C', 64, 'AN'],
             ['customs_free_to', 'C', 64, 'AN'],
