@@ -705,7 +705,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 'type': TYPE,
                 'date': datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT).strftime('%Y-%m-%d'),
                 'partner': partner_data,
-                'client_order_ref': picking.sale_id and picking.sale_id.client_order_ref or '',
+                'client_order_ref': TYPE == 'out' and picking.sale_id and picking.sale_id.client_order_ref or '',
                 'line': order_lines,
             }
         if billing_data:
