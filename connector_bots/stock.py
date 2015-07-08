@@ -595,7 +595,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                         "email": picking.partner_id.email or '',
                         "language": picking.partner_id.lang or '',
                     },
-                'client_order_ref': picking.sale_id and picking.sale_id.client_order_ref or '',
+                'client_order_ref': TYPE == 'out' and picking.sale_id and picking.sale_id.client_order_ref or '',
                 'line': order_lines,
             }
         if picking.note:
