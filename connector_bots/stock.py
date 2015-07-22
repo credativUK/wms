@@ -87,12 +87,14 @@ class StockPickingIn(orm.Model):
         context = context or {}
         if context.get('wms_bots', False):
             return False
+        bots_picking_obj = self.pool.get('bots.stock.picking.in')
         res = {}
-        ids_pending = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False)], context=context)
-        ids_exported = self.pool.get('bots.stock.picking.in').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False)], context=context)
+        ids_skipped = self.pool.get('stock.picking').bots_skip_ids(cr, uid, ids, type='in', context=context)
+        ids_pending = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False), ('id', 'not in', ids_skipped)], context=context)
+        ids_exported = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
         ids_all = ids_pending + ids_exported
         if ids_all and cancel:
-            exported_obj = self.pool.get('bots.stock.picking.in').browse(cr, uid, ids_all, context=context)
+            exported_obj = bots_picking_obj.browse(cr, uid, ids_all, context=context)
             ids_all = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_in_cancel]
         if ids_all and doraise:
             raise osv.except_osv(_('Error!'), _('This picking has been exported, or is pending export, to an external WMS and cannot be modified directly in OpenERP.'))
@@ -172,12 +174,14 @@ class StockPickingOut(orm.Model):
         context = context or {}
         if context.get('wms_bots', False):
             return False
+        bots_picking_obj = self.pool.get('bots.stock.picking.out')
         res = {}
-        ids_pending = self.pool.get('bots.stock.picking.out').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False)], context=context)
-        ids_exported = self.pool.get('bots.stock.picking.out').search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False)], context=context)
+        ids_skipped = self.pool.get('stock.picking').bots_skip_ids(cr, uid, ids, type='out', context=context)
+        ids_pending = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False), ('id', 'not in', ids_skipped)], context=context)
+        ids_exported = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
         ids_all = ids_pending + ids_exported
         if ids_all and cancel:
-            exported_obj = self.pool.get('bots.stock.picking.out').browse(cr, uid, ids_all, context=context)
+            exported_obj = bots_picking_obj.browse(cr, uid, ids_all, context=context)
             ids_all = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_out_cancel]
         if ids_all and doraise:
             raise osv.except_osv(_('Error!'), _('This picking has been exported, or is pending export, to an external WMS and cannot be modified directly in OpenERP.'))
@@ -225,6 +229,35 @@ class StockPicking(orm.Model):
             'bots_customs':  lambda *a: False,
         }
 
+class StockPicking(osv.osv):
+    _inherit = "stock.picking"
+
+    def do_partial(self, cr, uid, ids, partial_datas, context=None):
+        if context is None:
+            context = {}
+        ctx = context.copy()
+        ctx['bots_test_backorder_override'] = True
+        return super(StockPicking, self).do_partial(cr, uid, ids, partial_datas, context=ctx)
+
+    def bots_skip_ids(self, cr, uid, ids, type='in', context=None):
+        ''' Skip checking of any pickings which are backorders of overriden bindings '''
+        ids_skipped = []
+        if context.get('bots_test_backorder_override'):
+            if type == 'in':
+                picking_obj = self.pool.get('stock.picking.in')
+                bots_picking_obj = self.pool.get('bots.stock.picking.in')
+            else:
+                picking_obj = self.pool.get('stock.picking.out')
+                bots_picking_obj = self.pool.get('bots.stock.picking.out')
+            for id in ids:
+                backorder_id = picking_obj.search(cr, SUPERUSER_ID, [('backorder_id', '=', id)], context=context)
+                binding_id = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', '=', id), ('bots_override', '=', False)], context=context)
+                if backorder_id and binding_id:
+                    backorder_binding_id = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', '=', backorder_id[0]), ('bots_override', '=', True)], context=context)
+                    if backorder_binding_id:
+                        ids_skipped.append(binding_id[0])
+        return ids_skipped or [0]
+
     def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
         context = context or {}
         if context.get('wms_bots', False):
@@ -240,8 +273,9 @@ class StockPicking(orm.Model):
                 PARAM = 'feat_picking_out_cancel'
             else:
                 continue
-            ids_pending = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', pick.id), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False)], context=context)
-            ids_exported = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', pick.id), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False)], context=context)
+            ids_skipped = self.bots_skip_ids(cr, uid, ids, type=pick.type, context=context)
+            ids_pending = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', pick.id), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False), ('id', 'not in', ids_skipped)], context=context)
+            ids_exported = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', pick.id), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
             ids_all = ids_pending + ids_exported
             if ids_all and cancel:
                 exported_obj = self.pool.get(MODEL).browse(cr, uid, ids_all, context=context)
