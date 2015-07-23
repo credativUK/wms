@@ -19,6 +19,18 @@
 #
 ##############################################################################
 
+CARRIER_MAPING = {
+    'RM': 'Royal Mail Untracked',
+    'FJ77': 'Royal Mail Tracked',
+    'FL72': 'Royal Mail Tracked',
+    'BL': 'By Courier',
+    '4757': 'FedEx (Express)',
+    '8JF': 'HDNL Courier',
+    '81RQ': 'Collect+',
+    '1550': 'DPD',
+}
+CARRIER_DEFAULT = ''
+
 def main(inn,out):
 
     pinn = inn.getloop({'BOTSID': 'orders'}, {'BOTSID': 'order'})
@@ -36,6 +48,7 @@ def main(inn,out):
         pinn_item = pick.getloop({'BOTSID': 'order'}, {'BOTSID': 'items'}, {'BOTSID': 'item'})
         ORD_PRODUCTS = {}
         ORD_TRACKING = []
+        ORD_CARRIER = ''
         for item in pinn_item:
             ORDL_PRODUCT = item.get({'BOTSID': 'item', 'productCode': None})
             ORDL_STATUS = item.get({'BOTSID': 'item', 'status': None})
@@ -56,6 +69,11 @@ def main(inn,out):
                 if ATTR_NAME == 'trackingReference' and ATTR_VALUE:
                     if ATTR_VALUE not in ORD_TRACKING:
                         ORD_TRACKING.append(ATTR_VALUE)
+                    if not ORD_CARRIER and ATTR_VALUE:
+                        for prefix, carrier in CARRIER_MAPING.iteritems():
+                            if ATTR_VALUE.startswith(prefix):
+                                ORD_CARRIER = carrier
+                                break
 
         for (LINE_PRODUCT, LINE_STATUS), LINE_DATA in ORD_PRODUCTS.iteritems():
             olout = oout.putloop({'BOTSID': 'shipment'}, {'BOTSID':'line'})
@@ -67,3 +85,4 @@ def main(inn,out):
 
         if ORD_TRACKING:
             oout.put({'BOTSID':'shipment', 'tracking_number': ','.join(ORD_TRACKING)})
+            oout.put({'BOTSID':'shipment', 'carrier': ORD_CARRIER or CARRIER_DEFAULT})
