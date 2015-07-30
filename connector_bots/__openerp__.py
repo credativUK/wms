@@ -35,6 +35,8 @@ data format for the external EDI system.
  'depends': [
      'connector',
      'connector_wms',
+     'sale_stock',
+     'partner_incoterms',
  ],
  'data': [
      'bots_model_view.xml',
