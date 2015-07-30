@@ -451,12 +451,15 @@ class StockPickingAdapter(BotsCRUDAdapter):
         if self._picking_type == 'out':
             order_number = picking.sale_id and picking.sale_id.name or picking.name
             address = picking.partner_id or picking.sale_id and picking.sale_id.partner_shipping_id
+            incoterm = picking.sale_id and picking.sale_id.incoterm and picking.sale_id.incoterm.code or False
         elif self._picking_type == 'in':
             order_number = picking.purchase_id and picking.purchase_id.name or picking.name
             address = picking.partner_id or picking.purchase_id and (picking.purchase_id.warehouse_id and picking.purchase_id.warehouse_id.partner_id or picking.purchase_id.dest_address_id)
+            incoterm = picking.purchase_id and picking.purchase_id.incoterm_id and picking.purchase_id.incoterm_id.code or False
         else:
             order_number = picking.name
             address = picking.partner_id
+            incoterm = False
 
         if picking.bots_id:
             raise JobError(_('The Bots picking %s already has an external ID. Will not export again.') % (picking.id,))
@@ -596,6 +599,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                         "language": picking.partner_id.lang or '',
                     },
                 'client_order_ref': TYPE == 'out' and picking.sale_id and picking.sale_id.client_order_ref or '',
+                'incoterm': incoterm,
                 'line': order_lines,
             }
         if picking.note:

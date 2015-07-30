@@ -76,6 +76,7 @@ def main(inn,out):
             SEGMENT = "10"
             rec_counts[SEGMENT] = rec_counts.setdefault(SEGMENT, 0) + 1
 
+            INCOTERM = pick.get({'BOTSID': 'pickings', 'incoterm': None})
             ORD_REMARK = pick.get({'BOTSID': 'pickings', 'desc': None})
             ORD_DELIVERY_DATE, dummy = get_datetime(pick.get({'BOTSID': 'pickings', 'date': None}) + ' 00:00:00.00000')
 
@@ -86,6 +87,7 @@ def main(inn,out):
                 ('Order_Reference', ORD_ID),
                 ('Indicator_Labelling', 'N'),
                 ('Indicator_contact_cl', 'N'),
+                ('Terms_of_Delivery', INCOTERM),
                 ('Order_Category', 'N'), # N = New
                 ('Date_expected', ORD_DELIVERY_DATE),
                 ('Remark', ORD_REMARK),
