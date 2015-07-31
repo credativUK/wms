@@ -58,7 +58,7 @@ recorddefs = {
             ['supplierCurrency', 'M', 3, 'A'],
             ['dueDate', 'M', 10, 'A'],
             ['lineCount', 'M', 5, 'I'],
-            ['pieceCount', 'M', 10, 'I'],
+            ['pieceCount', 'C', 10, 'I'],
             ['deliveryToWarehouse', 'C', 10, 'A'],
           ],
     'items':[
@@ -75,7 +75,7 @@ recorddefs = {
             ['BOTSID','M',255,'A'],
             ['type', 'M', 20, 'A'],
             ['qty', 'M', 10, 'I'],
-            ['date', 'M', 19, 'A'],
+            ['date', 'C', 19, 'A'],
           ],
      }
  
