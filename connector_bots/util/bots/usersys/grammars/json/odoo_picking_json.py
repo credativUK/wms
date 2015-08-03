@@ -65,7 +65,7 @@ recorddefs = {
             ['type', 'C', 64, 'AN'],
             ['date', 'C', 64, 'AN'],
             ['client_order_ref', 'C', 17, 'AN'],
-            ['incoterm', 'O', 3, 'AN'],
+            ['incoterm', 'C', 3, 'AN'],
           ],
     'partner':[
             ['BOTSID', 'M', 64, 'AN'],
