@@ -437,6 +437,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
         move_obj = self.session.pool.get('stock.move')
         bots_warehouse_obj = self.session.pool.get('bots.warehouse')
         currency_obj = self.session.pool.get('res.currency')
+        tax_obj = self.session.pool.get('account.tax')
         wf_service = netsvc.LocalService("workflow")
 
         picking = bots_picking_obj.browse(self.session.cr, self.session.uid, picking_id)
@@ -496,15 +497,18 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 continue
 
             discount = 0
-            price_unit = move.product_id.standard_price
+            price_unit = 0
             currency = default_company.currency_id
+            tax_id = []
             if move.sale_line_id:
                 price_unit = move.sale_line_id.price_unit
                 currency = move.sale_line_id.order_id.currency_id
                 discount = move.sale_line_id.discount
+                tax_id = move.sale_line_id.tax_id
             elif move.purchase_line_id:
                 price_unit = move.purchase_line_id.price_unit
                 currency = move.purchase_line_id.order_id.currency_id
+                tax_id = move.purchase_line_id.taxes_id
             elif move.picking_id:
                 default_currency = currency
                 order = False
@@ -530,6 +534,9 @@ class StockPickingAdapter(BotsCRUDAdapter):
 
             price = currency_obj.round(self.session.cr, self.session.uid, currency, (1 - (discount/100.0)) * price_unit)
 
+            price_exc_tax = tax_obj.compute_all(self.session.cr, self.session.uid, tax_id, price * (1-(discount or 0.0)/100.0),
+                                            move.product_qty, move.product_id, move.partner_id)['total']
+
             order_line = {
                     "id": "%sS%s" % (bots_id, seq),
                     "seq": seq,
@@ -538,7 +545,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "uom": move.product_uom.name,
                     "product_uos_qty": int(move.product_uos_qty),
                     "uos": move.product_uos.name,
-                    "price_unit": price,
+                    "price_unit": price_exc_tax,
                     "price_currency": currency.name,
                 }
             if move.product_id.volume:
