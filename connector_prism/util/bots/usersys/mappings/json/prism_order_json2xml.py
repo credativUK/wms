@@ -38,6 +38,7 @@ def main(inn,out):
         elif ORD_STATE != 'new': # Raise on other order state
             raise NotImplementedError('Unable to handle order with state %s' % (ORD_STATE,))
 
+        ORD_ORDER = pick.get({'BOTSID': 'pickings', 'order': None})
         ORD_REMARK = pick.get({'BOTSID': 'pickings', 'desc': None})
         ORD_DELIVERY_DATE = pick.get({'BOTSID': 'pickings', 'date': None}) + ' 00:00:00'
         ORDER_ATTRS = {}
@@ -166,7 +167,7 @@ def main(inn,out):
         order_out.put({'BOTSID':'order', 'currency': ORD_CURRENCY or 'GBP'})
         #order_out.put({'BOTSID':'order', 'sourceCode': ''.join([x[:1] for x in PART_NAME.split(' ')])}) # Initials from partner name
         order_out.put({'BOTSID':'order', 'orderDate': ORD_DELIVERY_DATE})
-        order_out.put({'BOTSID':'order', 'orderNumber': ORD_ID})
+        order_out.put({'BOTSID':'order', 'orderNumber': ORD_ORDER})
         #order_out.put({'BOTSID':'order', 'externalDocumentRef1': ''}) # No Default
         #order_out.put({'BOTSID':'order', 'externalDocumentRef2': ''}) # No Default
         order_out.put({'BOTSID':'order', 'itemsCount': ORD_ITEMS})
