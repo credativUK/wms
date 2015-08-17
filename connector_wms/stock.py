@@ -60,18 +60,26 @@ class stock_picking(orm.Model):
         return res
 
     def action_cancel(self, cr, uid, ids, *args, **kwargs):
+        context = kwargs.get('context', {})
+        # If the state of the picking is already cancelled we should not export it again
+        cancel_ids = []
+        for picking_vals in self.read(cr, uid, ids, ['id', 'state'], context=context):
+            if picking_vals['state'] != 'cancel':
+                cancel_ids.append(picking_vals['id'])
         res = super(stock_picking, self).action_cancel(cr, uid, ids, *args, **kwargs)
-        session = ConnectorSession(cr, uid, context=None)
-        picking_records = self.read(cr, uid, ids,
-                                ['id', 'type'],
-                                context=None)
-        for picking_vals in picking_records:
-            if picking_vals['type'] == 'out':
-                on_picking_out_cancel.fire(session, self._name, picking_vals['id'])
-            elif picking_vals['type'] == 'in':
-                on_picking_in_cancel.fire(session, self._name, picking_vals['id'])
-            else:
-                continue
+        # New cancellations should be exported
+        if cancel_ids:
+            session = ConnectorSession(cr, uid, context=context)
+            picking_records = self.read(cr, uid, cancel_ids,
+                                    ['id', 'type'],
+                                    context=context)
+            for picking_vals in picking_records:
+                if picking_vals['type'] == 'out':
+                    on_picking_out_cancel.fire(session, self._name, picking_vals['id'])
+                elif picking_vals['type'] == 'in':
+                    on_picking_in_cancel.fire(session, self._name, picking_vals['id'])
+                else:
+                    continue
         return res
 
     def action_done(self, cr, uid, ids, *args, **kwargs):
