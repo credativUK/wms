@@ -91,7 +91,7 @@ class StockPickingIn(orm.Model):
         res = {}
         ids_skipped = self.pool.get('stock.picking').bots_skip_ids(cr, uid, ids, type='in', context=context)
         ids_pending = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False), ('id', 'not in', ids_skipped)], context=context)
-        ids_exported = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
+        ids_exported = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('cancel',)), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
         ids_all = ids_pending + ids_exported
         if ids_all and cancel:
             exported_obj = bots_picking_obj.browse(cr, uid, ids_all, context=context)
@@ -178,7 +178,7 @@ class StockPickingOut(orm.Model):
         res = {}
         ids_skipped = self.pool.get('stock.picking').bots_skip_ids(cr, uid, ids, type='out', context=context)
         ids_pending = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False), ('id', 'not in', ids_skipped)], context=context)
-        ids_exported = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
+        ids_exported = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('cancel',)), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
         ids_all = ids_pending + ids_exported
         if ids_all and cancel:
             exported_obj = bots_picking_obj.browse(cr, uid, ids_all, context=context)
@@ -275,7 +275,7 @@ class StockPicking(osv.osv):
                 continue
             ids_skipped = self.bots_skip_ids(cr, uid, ids, type=pick.type, context=context)
             ids_pending = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', pick.id), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False), ('id', 'not in', ids_skipped)], context=context)
-            ids_exported = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', pick.id), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
+            ids_exported = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', pick.id), ('move_lines.state', 'not in', ('cancel',)), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
             ids_all = ids_pending + ids_exported
             if ids_all and cancel:
                 exported_obj = self.pool.get(MODEL).browse(cr, uid, ids_all, context=context)
