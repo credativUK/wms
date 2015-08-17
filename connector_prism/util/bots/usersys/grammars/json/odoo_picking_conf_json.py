@@ -130,6 +130,7 @@ recorddefs = {
             ['uom', 'C', 64, 'AN'],
             ['qty_real', 'C', 64, 'AN'],
             ['qty_expected', 'C', 64, 'AN'],
+            ['move_ids', 'C', 99999, 'AN'],
           ],
      }
 

@@ -733,8 +733,8 @@ class StockPickingAdapter(BotsCRUDAdapter):
 
         picking_data = {
                 'id': bots_id,
-                'name': bots_id,
-                'order': bots_id,
+                'name': order_number,
+                'order': order_number,
                 'state': 'new',
                 'type': TYPE,
                 'date': datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT).strftime('%Y-%m-%d'),

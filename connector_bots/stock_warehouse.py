@@ -206,6 +206,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
         bots_picking_in_obj = self.session.pool.get('bots.stock.picking.in')
         bots_picking_out_obj = self.session.pool.get('bots.stock.picking.out')
         carrier_obj = self.session.pool.get('delivery.carrier')
+        move_obj = self.session.pool.get('stock.move')
         picking_obj = self.session.pool.get('stock.picking')
         procurement_obj = self.session.pool.get('procurement.order')
         bots_warehouse_obj = self.session.pool.get('bots.warehouse')
@@ -240,7 +241,27 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             else:
                                 raise NotImplementedError("Unable to import picking of type %s" % (picking['type'],))
 
-                            picking_id = picking_binder.to_openerp(picking['id'])
+                            picking_id = False
+                            # Try to map the picking from the move_ids if available in the response
+                            if not picking_id:
+                                move_ids = []
+                                picking_ids = {}
+                                for line in picking['line']:
+                                    move_ids.extend([int(x) for x in line.get('move_ids', '').split(',')])
+                                if move_ids:
+                                    for move in move_obj.browse(_cr, self.session.uid, move_ids, context=ctx):
+                                        if move.picking_id:
+                                            bots_picking_id = bots_picking_obj.search(_cr, self.session.uid, [('openerp_id', '=', move.picking_id.id)], context=ctx)
+                                            if bots_picking_id:
+                                                picking_ids.setdefault(move.picking_id.state, []).extend(bots_picking_id)
+                                for state in ['assigned', 'confirmed', 'done', 'cancel']:
+                                    if picking_ids.get(state):
+                                        picking_id = picking_ids.get(state)[0]
+                                        break
+                            # Map the picking by the Bots ID/Order Number
+                            if not picking_id:
+                                picking_id = picking_binder.to_openerp(picking['id'])
+                            # No picking available, fail
                             if not picking_id:
                                 raise NoExternalId("Picking %s could not be found in OpenERP" % (picking['id'],))
                             stock_picking = bots_picking_obj.browse(_cr, self.session.uid, picking_id, context=ctx)

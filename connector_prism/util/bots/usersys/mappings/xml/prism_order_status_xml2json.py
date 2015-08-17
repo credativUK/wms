@@ -61,6 +61,7 @@ def main(inn,out):
             ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)]['DATETIME'] = ORDL_DATETIME
             ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)]['QTY'] = ORDL_QTY
 
+            LINE_INTERNAL_IDS = []
             pinn_attr = item.getloop({'BOTSID': 'item'}, {'BOTSID': 'attributes'}, {'BOTSID': 'attribute'})
             for attr in pinn_attr:
                 ATTR_NAME = attr.get({'BOTSID': 'attribute', 'name': None})
@@ -74,6 +75,14 @@ def main(inn,out):
                             if ATTR_VALUE.startswith(prefix):
                                 ORD_CARRIER = carrier
                                 break
+                if ATTR_NAME == 'uniqueRecordID' and ATTR_VALUE:
+                    if ATTR_VALUE[2] == '0':
+                        LINE_INTERNAL_ID = ATTR_VALUE[3:]
+                    else:
+                        LINE_INTERNAL_ID = ATTR_VALUE[2:]
+                    if LINE_INTERNAL_ID not in LINE_INTERNAL_IDS:
+                        LINE_INTERNAL_IDS.append(LINE_INTERNAL_ID)
+            ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)]['LINE_INTERNAL_IDS'] = LINE_INTERNAL_IDS
 
         for (LINE_PRODUCT, LINE_STATUS), LINE_DATA in ORD_PRODUCTS.iteritems():
             olout = oout.putloop({'BOTSID': 'shipment'}, {'BOTSID':'line'})
@@ -82,6 +91,8 @@ def main(inn,out):
             olout.put({'BOTSID':'line', 'datetime': LINE_DATA.get('DATETIME')})
             olout.put({'BOTSID':'line', 'product': LINE_PRODUCT})
             olout.put({'BOTSID':'line', 'qty_real': LINE_DATA.get('QTY')})
+            if LINE_DATA.get('LINE_INTERNAL_IDS'):
+                olout.put({'BOTSID':'line', 'move_ids': ','.join(LINE_DATA.get('LINE_INTERNAL_IDS', []))})
 
         if ORD_TRACKING:
             oout.put({'BOTSID':'shipment', 'tracking_number': ','.join(ORD_TRACKING)})
