@@ -96,7 +96,7 @@ def main(inn,out):
         order_out.put({'BOTSID':'po', 'itemTotalCost': ORD_TOTAL})
         order_out.put({'BOTSID':'po', 'supplierCurrency': ORD_CURRENCY})
         #order_out.put({'BOTSID':'po', 'supplierTerms': ''}) # No default
-        #order_out.put({'BOTSID':'po', 'shipmentTerms': ''}) # FIXME: Incoterm - POs do not allow an incoterm to be specified, blank for now
+        order_out.put({'BOTSID':'po', 'shipmentTerms': 'FCA'}) # Default of FCA, no other value used for now
         order_out.put({'BOTSID':'po', 'settlementDays': 60})
         #order_out.put({'BOTSID':'po', 'externalDocumentRef1': ''}) # No default
         #order_out.put({'BOTSID':'po', 'externalDocumentRef2': ''}) # No default
