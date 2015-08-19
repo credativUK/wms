@@ -256,7 +256,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 move_ids = []
                                 picking_ids = {}
                                 for line in picking['line']:
-                                    move_ids.extend([int(x) for x in line.get('move_ids', '').split(',')])
+                                    move_ids.extend([int(x) for x in line.get('move_ids', '').split(',') if x])
                                 if move_ids:
                                     for move in move_obj.browse(_cr, self.session.uid, move_ids, context=ctx):
                                         if move.picking_id:
