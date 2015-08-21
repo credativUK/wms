@@ -112,6 +112,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
         picking_obj = self.session.pool.get('stock.picking')
         stock_move_obj = self.session.pool.get('stock.move')
         procurement_obj = self.session.pool.get('procurement.order')
+        sale_line_obj = self.session.pool.get('sale.order.line')
         wf_service = netsvc.LocalService("workflow")
 
         stock_picking.refresh()
@@ -129,7 +130,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                     new_move = stock_move_obj.copy(cr, uid, move.id, {'picking_id': new_picking_id}, context=context)
                     if procurement_id:
                         procurement = procurement_obj.browse(cr, uid, procurement_id[0], context=context)
-                        cut_off = procurement.purchase_id and procurement.purchase_id.bots_cut_off
+                        cut_off = procurement.purchase_id and getattr(procurement.purchase_id, 'bots_cut_off', False) and procurement.purchase_id.bots_cut_off
                         # Context is not available in the workflow so we need to temporarily allow changes to the PO
                         # by lifting the cut-off flag instead
                         if cut_off:
@@ -139,6 +140,11 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             defaults['procure_method'] = move.sale_line_id.type
                         new_procurement_id = procurement_obj.copy(cr, uid, procurement_id[0], defaults, context=context)
                         wf_service.trg_validate(uid, 'procurement.order', new_procurement_id, 'button_confirm', cr)
+                        # Update SO lines to use new_procurement_id to avoid workflow moving to exception
+                        sol_ids = sale_line_obj.search(cr, uid, [('procurement_id', '=', procurement_id[0])], context=context)
+                        if sol_ids:
+                            sale_line_obj.write(cr, uid, sol_ids, {'procurement_id': new_procurement_id}, context=context)
+
                     move.action_cancel()
                     if procurement_id and cut_off:
                         procurement.purchase_id.write({'bots_cut_off': True})
@@ -158,6 +164,10 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             defaults['procure_method'] = move.sale_line_id.type
                         new_procurement_id = procurement_obj.copy(cr, uid, procurement_id[0], defaults, context=context)
                         wf_service.trg_validate(uid, 'procurement.order', new_procurement_id, 'button_confirm', cr)
+                        # Update SO lines to use new_procurement_id which will likely be completed after the origional one
+                        sol_ids = sale_line_obj.search(cr, uid, [('procurement_id', '=', procurement_id[0])], context=context)
+                        if sol_ids:
+                            sale_line_obj.write(cr, uid, sol_ids, {'procurement_id': new_procurement_id}, context=context)
                 else:
                     pass
 
