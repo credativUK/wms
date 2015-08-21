@@ -35,6 +35,8 @@ class SaleOrderLine(orm.Model):
         for line in self.browse(cr, uid, ids, context=context):
             moves_exported, moves_total = 0, 0
             for move in line.move_ids:
+                if move.state == 'cancel':
+                    continue
                 moves_total += move.product_qty
                 if move.bots_test_exported().get('exported'):
                     moves_exported += move.product_qty
