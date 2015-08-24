@@ -61,10 +61,10 @@ recorddefs = {
             ['itemTotalCost', 'C', 11, 'R'],
             ['supplierCurrency', 'C', 3, 'A'],
             ['supplierTerms', 'C', 10, 'A'],
-            ['shipmentTerms', 'C', 10, 'R'],
+            ['shipmentTerms', 'C', 10, 'A'],
             ['settlementDays', 'C', 3, 'I'],
             ['externalDocumentRef1', 'C', 999, 'A'],
-            ['externalDocumentRef2', 'C', 999, 'R'],
+            ['externalDocumentRef2', 'C', 999, 'A'],
             ['territory', 'M', 2, 'A'],
           ],
     'items':[
