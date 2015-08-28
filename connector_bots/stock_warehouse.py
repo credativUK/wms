@@ -349,8 +349,10 @@ class WarehouseAdapter(BotsCRUDAdapter):
                         if create_inventory:
                             # We have a difference in inventory so we must create and validate a new inventory
                             inventory_id = inventory_obj.create(_cr, self.session.uid, inventory, context=self.session.context)
-                            inventory_obj.action_confirm(_cr, self.session.uid, [inventory_id], context=self.session.context)
-                            inventory_obj.action_done(_cr, self.session.uid, [inventory_id], context=self.session.context)
+                            # Prevent automatic completion of imported physical inventories
+                            # --> ensures they are manually validated before making stock corrections
+                            #inventory_obj.action_confirm(_cr, self.session.uid, [inventory_id], context=self.session.context)
+                            #inventory_obj.action_done(_cr, self.session.uid, [inventory_id], context=self.session.context)
                             binding_id = bots_inventory_obj.create(_cr, self.session.uid,
                                 {'backend_id': self.backend_record.id,
                                 'openerp_id': inventory_id,
