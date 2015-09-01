@@ -497,7 +497,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 continue
 
             discount = 0
-            price_unit = 0
+            price_unit = move.product_id.standard_price
             currency = default_company.currency_id
             tax_id = []
             if move.sale_line_id:
