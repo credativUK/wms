@@ -535,7 +535,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
             price = currency_obj.round(self.session.cr, self.session.uid, currency, (1 - (discount/100.0)) * price_unit)
 
             price_exc_tax = tax_obj.compute_all(self.session.cr, self.session.uid, tax_id, price * (1-(discount or 0.0)/100.0),
-                                            move.product_qty, move.product_id, move.partner_id)['total']
+                                            1, move.product_id, move.partner_id)['total'] # Use product quantity of 1 as the unit price is being exported
 
             order_line = {
                     "id": "%sS%s" % (bots_id, seq),
