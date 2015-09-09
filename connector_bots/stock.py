@@ -532,10 +532,10 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     # Convery standard_price to the correct currency.
                     price_unit = currency_obj.compute(self.session.cr, self.session.uid, default_currency.id, currency.id, price_unit, round=False, context=ctx)
 
-            price = currency_obj.round(self.session.cr, self.session.uid, currency, (1 - (discount/100.0)) * price_unit)
-
-            price_exc_tax = tax_obj.compute_all(self.session.cr, self.session.uid, tax_id, price * (1-(discount or 0.0)/100.0),
+            price_exc_tax = tax_obj.compute_all(self.session.cr, self.session.uid, tax_id, price_unit * (1-(discount or 0.0)/100.0),
                                             1, move.product_id, move.partner_id)['total'] # Use product quantity of 1 as the unit price is being exported
+
+            price_exc_tax_rounded = currency_obj.round(self.session.cr, self.session.uid, currency, price_exc_tax)
 
             order_line = {
                     "id": "%sS%s" % (bots_id, seq),
@@ -545,7 +545,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "uom": move.product_uom.name,
                     "product_uos_qty": int(move.product_uos_qty),
                     "uos": move.product_uos.name,
-                    "price_unit": price_exc_tax,
+                    "price_unit": price_exc_tax_rounded,
                     "price_currency": currency.name,
                 }
             if move.product_id.volume:
