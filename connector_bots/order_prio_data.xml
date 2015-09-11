@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+
+        <record forcecreate="True" id="ord_prio_0" model="order.prio">
+            <field name="name">0</field>
+            <field name="code">0</field>
+        </record>
+
+        <record forcecreate="True" id="ord_prio_1" model="order.prio">
+            <field name="name">1</field>
+            <field name="code">1</field>
+        </record>
+
+        <record forcecreate="True" id="ord_prio_2" model="order.prio">
+            <field name="name">2</field>
+            <field name="code">2</field>
+        </record>
+
+        <record forcecreate="True" id="ord_prio_3" model="order.prio">
+            <field name="name">3</field>
+            <field name="code">3</field>
+        </record>
+
+        <!-- Default set on Sale Orders, Delivery Orders -->
+        <record forcecreate="True" id="ord_prio_4" model="order.prio">
+            <field name="name">Use delivery date</field>
+            <field name="code">4</field>
+        </record>
+
+        <record forcecreate="True" id="ord_prio_5" model="order.prio">
+            <field name="name">5</field>
+            <field name="code">5</field>
+        </record>
+
+        <record forcecreate="True" id="ord_prio_6" model="order.prio">
+            <field name="name">6</field>
+            <field name="code">6</field>
+        </record>
+
+        <record forcecreate="True" id="ord_prio_7" model="order.prio">
+            <field name="name">7</field>
+            <field name="code">7</field>
+        </record>
+
+        <record forcecreate="True" id="ord_prio_8" model="order.prio">
+            <field name="name">8</field>
+            <field name="code">8</field>
+        </record>
+
+        <record forcecreate="True" id="ord_prio_9" model="order.prio">
+            <field name="name">9</field>
+            <field name="code">9</field>
+        </record>
+
+    </data>
+</openerp>

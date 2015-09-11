@@ -25,7 +25,21 @@ class SaleOrder(orm.Model):
 
     _columns = {
         'requested_delivery_date': fields.date('Requested Delivery Date', select=True, help="Date on which customer has requested delivery.", readonly=True, states={'draft':[('readonly',False)]},),
+        'prio_id' : fields.many2one('order.prio', 'Priority', help='The priority code to assign to this order. If blank, will default to \'4\'', readonly=True, states={'draft':[('readonly',False)]}),
     }
+
+    def _get_default_prio(self, cr, uid, context=None):
+        pick_obj = self.pool.get('stock.picking')
+        return pick_obj._get_default_prio(cr, uid, context=context)
+
+    _defaults = {
+        'prio_id' : _get_default_prio,
+    }
+
+    def _prepare_order_picking(self, cr, uid, order, context=None):
+        vals = super(SaleOrder, self)._prepare_order_picking(cr, uid, order, context=context)
+        vals.update({'prio_id' : order.prio_id.id})
+        return vals
 
 class SaleOrderLine(orm.Model):
     _inherit = "sale.order.line"

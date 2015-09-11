@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="view_order_prio_form" model="ir.ui.view">
+            <field name="name">order.prio.form</field>
+            <field name="model">order.prio</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="Order Priorities">
+                    <field name="code"/>
+                    <field name="name"/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_order_prio_tree" model="ir.ui.view">
+            <field name="name">order.prio.tree</field>
+            <field name="model">order.prio</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Priority Codes">
+                    <field name="code"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_order_prio" model="ir.actions.act_window">
+            <field name="name">Priority Codes</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">order.prio</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="menu_order_prio"
+            parent="base.menu_base_config"
+            name="Priority Codes"
+            action="action_order_prio"
+            sequence="80"
+            groups="connector.group_connector_manager"/>
+
+    </data>
+</openerp>

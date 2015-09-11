@@ -42,6 +42,19 @@ import traceback
 from datetime import datetime
 import re
 
+class OrderPrio(orm.Model):
+    _name = 'order.prio'
+
+    _columns = {
+        'name' : fields.char('Name', required=True),
+        'code' : fields.char('Code', required=True, size=1),
+    }
+
+    _sql_constraints = [
+        ('prio_code_uniq', 'unique(code)',
+         'A prio with this code already exists in the system.'),
+    ]
+
 class StockPickingIn(orm.Model):
     _inherit = 'stock.picking.in'
 
@@ -153,10 +166,15 @@ class StockPickingOut(orm.Model):
                 readonly=True, states={'draft':[('readonly',False)], 'confirmed':[('readonly',False)]},
                 help="Scheduled time for the shipment to be processed"
             ),
+            'prio_id' : fields.many2one('order.prio', 'Priority', help='The priority code to assign to this picking. If blank, will default to \'4\'.', readonly=True, states={'draft':[('readonly',False)],'confirmed':[('readonly',False)]}),
         }
+
+    def _get_default_prio(self, cr, uid, context=None):
+        return self.pool.get('stock.picking')._get_default_prio(cr, uid, context=context)
 
     _defaults = {
             'bots_customs':  lambda *a: False,
+            'prio_id': _get_default_prio,
         }
 
     def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
@@ -203,10 +221,28 @@ class StockPicking(orm.Model):
 
     _columns = {
             'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties.', states={'done':[('readonly', True)], 'cancel':[('readonly',True)], 'assigned':[('readonly',True)]}),
+            'prio_id' : fields.many2one('order.prio', 'Priority', help='The priority code to assign to this picking. If blank, will default to \'4\'.', readonly=True, states={'draft':[('readonly',False)],'confirmed':[('readonly',False)]}),
         }
+
+    def _get_default_prio(self, cr, uid, context=None):
+        # On deployment, the initial data is not populated at this point.
+        # Since the default that we want is assumed if blank anyway, it
+        # is safe to leave the default values empty (though '4' will
+        # default in the future to avoid ambiguity).
+        if context.get('module') == 'connector_bots':
+            return None
+        prio_obj = self.pool.get('order.prio')
+        prio_ids = prio_obj.search(cr, uid, [('code', '=', '4')], context=context)
+        if not prio_ids:
+            raise osv.except_osv( _('Error: Cannot assign default prio of \'4\' to the order'),
+                                  _('No such prio defined in system'),
+                                )
+        # Safe - prio codes are unique system-wide (SQL constraint)
+        return prio_ids[0]
 
     _defaults = {
             'bots_customs':  lambda *a: False,
+            'prio_id': _get_default_prio,
         }
 
     def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
@@ -613,6 +649,8 @@ class StockPickingAdapter(BotsCRUDAdapter):
             picking_data['desc'] = picking.note and picking.note[:64]
         if picking.partner_id.vat:
             picking_data['partner']['vat'] = picking.partner_id.vat
+
+        picking_data['prio'] = picking.prio_id.code or '4' # 4 = Use delivery date
 
         data = {
                 'picking': {
