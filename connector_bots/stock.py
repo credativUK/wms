@@ -348,7 +348,7 @@ class BotsStockPickingOut(orm.Model):
     def reexport_order(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
         for id in ids:
-            export_picking_available.delay(session, self._name, id)
+            export_picking.delay(session, self._name, id)
         return True
 
     def reexport_cancel(self, cr, uid, ids, context=None):
@@ -421,12 +421,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
             MODEL = 'bots.stock.picking.in'
             TYPE = 'in'
             FILENAME = 'picking_in_%s.json'
-            ALLOWED_STATES = ('waiting', 'confirmed', 'assigned',)
+            ALLOWED_STATES = ('waiting', 'confirmed', 'assigned', 'done')
         elif self._picking_type == 'out':
             MODEL = 'bots.stock.picking.out'
             TYPE = 'out'
             FILENAME = 'picking_out_%s.json'
-            ALLOWED_STATES = ('assigned',)
+            ALLOWED_STATES = ('assigned', 'done')
         else:
             raise NotImplementedError('Unable to adapt stock picking of type %s' % (self._picking_type,))
 
@@ -505,10 +505,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 currency = move.sale_line_id.order_id.currency_id
                 discount = move.sale_line_id.discount
                 tax_id = move.sale_line_id.tax_id
+                ordered_qty = move.sale_line_id.product_uom_qty # FIXME: Could also use product_uos_qty - may be worth specifying and converting UoM
             elif move.purchase_line_id:
                 price_unit = move.purchase_line_id.price_unit
                 currency = move.purchase_line_id.order_id.currency_id
                 tax_id = move.purchase_line_id.taxes_id
+                ordered_qty = move.purchase_line_id.product_qty
             elif move.picking_id:
                 default_currency = currency
                 order = False
@@ -531,6 +533,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     # Fallback - no price could be found on the pricelist.
                     # Convery standard_price to the correct currency.
                     price_unit = currency_obj.compute(self.session.cr, self.session.uid, default_currency.id, currency.id, price_unit, round=False, context=ctx)
+                ordered_qty = move.product_qty
 
             price_exc_tax = tax_obj.compute_all(self.session.cr, self.session.uid, tax_id, price_unit * (1-(discount or 0.0)/100.0),
                                             1, move.product_id, move.partner_id)['total'] # Use product quantity of 1 as the unit price is being exported
@@ -541,7 +544,9 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "id": "%sS%s" % (bots_id, seq),
                     "seq": seq,
                     "product": product_bots_id, 
-                    "product_qty": int(move.product_qty),
+                    "product_sku": move.product_id.default_code,  # "product" can be SKU, but not always
+                    "ship_qty": int(move.product_qty),
+                    "ordered_qty": int(ordered_qty),
                     "uom": move.product_uom.name,
                     "product_uos_qty": int(move.product_uos_qty),
                     "uos": move.product_uos.name,
@@ -587,9 +592,11 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 'id': bots_id,
                 'name': bots_id,
                 'order': bots_id,
+                'order_date': TYPE == 'out' and picking.sale_id and picking.sale_id.date_order or '',
                 'state': 'new',
                 'type': TYPE,
                 'date': datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT).strftime('%Y-%m-%d'),
+                'ship_date': picking.date_done, # Convert to Mountain Standard Time
                 'partner':
                     {
                         "id": "P%d" % (picking.partner_id.id),
@@ -624,6 +631,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                                 'partner_from': picking.backend_id.name_from,
                                 'message_id': '0',
                                 'date_msg': datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'),
+                                'docnum': bots_id,
                             }],
                     },
                 }
@@ -767,15 +775,15 @@ class BotsPickingExport(ExportSynchronizer):
         pass
 
 @on_record_create(model_names='bots.stock.picking.out')
-def delay_export_picking_out_available(session, model_name, record_id, vals):
-    export_picking_available.delay(session, model_name, record_id)
+def delay_export_picking_out(session, model_name, record_id, vals):
+    export_picking.delay(session, model_name, record_id)
 
 @on_record_create(model_names='bots.stock.picking.in')
-def delay_export_picking_in_available(session, model_name, record_id, vals):
-    export_picking_available.delay(session, model_name, record_id)
+def delay_export_picking_in(session, model_name, record_id, vals):
+    export_picking.delay(session, model_name, record_id)
 
 @job
-def export_picking_available(session, model_name, record_id):
+def export_picking(session, model_name, record_id):
     picking = session.browse(model_name, record_id)
     if picking.state == 'done' and session.search(model_name, [('backorder_id', '=', picking.openerp_id.id)]):
         # We are an auto-created back order completed - ignore this export
