@@ -337,8 +337,18 @@ class StockMove(orm.Model):
 
     def _bots_test_exported(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
-        for id in ids:
-            res[id] = self.bots_test_exported(cr, uid, [id], doraise=False, cancel=False, context=context).get('exported', False) and True or False
+        # Group moves by picking to improve performance
+        picking_dict = {}
+        for move in self.browse(cr, uid, ids, context=context):
+            picking_dict.setdefault(move.picking_id.id, []).append(move.id)
+        for picking_id, move_ids in picking_dict.iteritems():
+            if picking_id and move_ids:
+                exported = self.bots_test_exported(cr, uid, move_ids, doraise=False, cancel=False, context=context).get('exported', False) and True or False
+                for move_id in move_ids:
+                    res[move_id] = exported
+            elif not picking_id:
+                for move_id in move_ids:
+                    res[move_id] = self.bots_test_exported(cr, uid, [move_id], doraise=False, cancel=False, context=context).get('exported', False) and True or False
         return res
 
     _columns = {
@@ -353,11 +363,15 @@ class StockMove(orm.Model):
 
     def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
         exported = False
+        pickings = []
         for move in self.browse(cr, uid, ids, context=context):
-            if move.picking_id and move.picking_id.type == 'out':
-                exported = self.pool.get('stock.picking.out').bots_test_exported(cr, uid, [move.picking_id.id], doraise=doraise, cancel=cancel, context=context)
-            elif move.picking_id and move.picking_id.type == 'in':
-                exported = self.pool.get('stock.picking.in').bots_test_exported(cr, uid, [move.picking_id.id], doraise=doraise, cancel=cancel, context=context)
+            if move.picking_id and move.picking_id not in pickings:
+                pickings.append(move.picking_id)
+        for picking in pickings:
+            if picking.type == 'out':
+                exported = self.pool.get('stock.picking.out').bots_test_exported(cr, uid, [picking.id], doraise=doraise, cancel=cancel, context=context)
+            elif picking.type == 'in':
+                exported = self.pool.get('stock.picking.in').bots_test_exported(cr, uid, [picking.id], doraise=doraise, cancel=cancel, context=context)
             if exported:
                 return exported
         return {}
