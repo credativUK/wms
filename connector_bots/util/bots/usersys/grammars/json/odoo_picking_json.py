@@ -69,6 +69,7 @@ recorddefs = {
             ['ship_date', 'C', 64, 'AN'],
             ['client_order_ref', 'C', 17, 'AN'],
             ['incoterm', 'C', 3, 'AN'],
+            ['tracking_number', 'C', 64, 'AN'],
           ],
     'partner':[
             ['BOTSID', 'M', 64, 'AN'],
@@ -94,6 +95,7 @@ recorddefs = {
             ['product_sku', 'C', 64, 'AN'],
             ['product_qty', 'C', 64, 'AN'],
             ['ordered_qty', 'C', 64, 'AN'],
+            ['ship_qty', 'C', 64, 'AN'],
             ['uom', 'C', 64, 'AN'],
             ['product_uos_qty', 'C', 64, 'AN'],
             ['uos', 'C', 64, 'AN'],

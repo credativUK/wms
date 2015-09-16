@@ -614,6 +614,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     },
                 'client_order_ref': TYPE == 'out' and picking.sale_id and picking.sale_id.client_order_ref or '',
                 'incoterm': incoterm,
+                'tracking_number': picking.carrier_tracking_ref or "",
                 'line': order_lines,
             }
         if picking.note:
