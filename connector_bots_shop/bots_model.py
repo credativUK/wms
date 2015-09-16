@@ -54,7 +54,7 @@ class BotsBackend(orm.Model):
     }
 
     _sql_constraints = [
-        ('bots_single_export_delivery', 'not (feat_picking_out and feat_export_picking_out_when_done)', 'A delivery order can either be exported when available or delivered - not both.'),
+        ('bots_single_export_delivery', 'CHECK (not (feat_picking_out and feat_export_picking_out_when_done))', 'A delivery order can either be exported when available or delivered - not both.'),
         ]
 
     def _scheduler_export_inventory(self, cr, uid, domain=None, new_cr=True, context=None):
