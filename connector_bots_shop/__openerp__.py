@@ -38,6 +38,7 @@ of the X12 4010 EDI format.
 """,
  'depends': [
      'connector_bots',
+     'product_m2mcategories',
  ],
  'data': [
      'bots_model_view.xml',
