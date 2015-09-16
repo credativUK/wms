@@ -590,8 +590,8 @@ class StockPickingAdapter(BotsCRUDAdapter):
 
         picking_data = {
                 'id': bots_id,
-                'name': bots_id,
-                'order': bots_id,
+                'name': order_number,
+                'order': order_number,
                 'order_date': TYPE == 'out' and picking.sale_id and picking.sale_id.date_order or '',
                 'state': 'new',
                 'type': TYPE,
