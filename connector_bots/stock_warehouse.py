@@ -175,13 +175,13 @@ class WarehouseAdapter(BotsCRUDAdapter):
                     new_qty = prod_cancel.get(move.product_id.id, 0)
                     reduce_qty = move.product_qty - new_qty
                     prod_cancel[move.product_id.id] = prod_cancel[move.product_id.id] - new_qty
-                    move.write({'product_qty': reduce_qty})
+                    move.write({'product_qty': reduce_qty, 'product_uos_qty': reduce_qty})
                     procurement_id = procurement_obj.search(cr, uid, [('move_id', '=', move.id)], context=context)
-                    procurement_obj.write(cr, uid, procurement_id, {'product_qty': reduce_qty}, context=context)
+                    procurement_obj.write(cr, uid, procurement_id, {'product_qty': reduce_qty, 'product_uos_qty': reduce_qty}, context=context)
 
-                    new_move = stock_move_obj.copy(cr, uid, move.id, {'picking_id': new_picking_id, 'product_qty': new_qty}, context=context)
+                    new_move = stock_move_obj.copy(cr, uid, move.id, {'picking_id': new_picking_id, 'product_qty': new_qty, 'product_uos_qty': new_qty}, context=context)
                     if procurement_id:
-                        defaults = {'move_id': new_move, 'purchase_id': False, 'product_qty': new_qty}
+                        defaults = {'move_id': new_move, 'purchase_id': False, 'product_qty': new_qty, 'product_uos_qty': new_qty}
                         if move.sale_line_id:
                             defaults['procure_method'] = move.sale_line_id.type
                         new_procurement_id = procurement_obj.copy(cr, uid, procurement_id[0], defaults, context=context)
