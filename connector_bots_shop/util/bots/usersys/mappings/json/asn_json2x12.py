@@ -17,6 +17,10 @@ def main(inn,out):
     #shipment level*********************************************************************************
     hlcounter = 1       #HL segments have sequentail count
     shipment = out.putloop({'BOTSID':'ST'},{'BOTSID':'HL','HL01':hlcounter,'HL03':'S'})
+
+    # TD1: Optional
+    # TD5: Optional
+
     currentshipment = hlcounter     #remember the current counter, as child-HL segments have to point to this shipment
     hlcounter += 1
 
@@ -30,6 +34,9 @@ def main(inn,out):
                                       'DTM03':transform.datemask(pick.get({'BOTSID': 'pickings', 'ship_date': None}),'CCYY-MM-DD HH:mm:ss','HHmm'),
                                       'DTM04':'MS'})
 
+        # DTM*069: Optional
+        # N1, N2, N4: Optional
+
         ordernode = out.putloop({'BOTSID':'ST'},{'BOTSID':'HL','HL01':hlcounter,'HL02':currentshipment,'HL03':'O'})
         currentorder = hlcounter
         hlcounter += 1
@@ -38,9 +45,19 @@ def main(inn,out):
         ordernode.put({'BOTSID':'HL'},{'BOTSID':'PRF',
                                        'PRF04':transform.datemask(pick.get({'BOTSID': 'pickings', 'order_date': None}),'CCYY-MM-DD HH:mm:ss','CCYYMMDD')})
 
-        out.put({'BOTSID':'ST'},{'BOTSID':'HL','HL01':hlcounter,'HL02':currentorder,'HL03':'P'})
+        # REF*VN: Optional
+        # SAC*C: Optional
+
+        pickingnode = out.putloop({'BOTSID':'ST'},{'BOTSID':'HL','HL01':hlcounter,'HL02':currentorder,'HL03':'P'})
         currentpack = hlcounter
         hlcounter += 1
+
+        # MAN*GM: Optional
+
+        # Tracking number
+        TRACKING = pick.get({'BOTSID': 'pickings', 'tracking_number': None}) or ''
+        if TRACKING:
+            pickingnode.put({'BOTSID':'HL'},{'BOTSID':'REF','REF01':'CN','REF02':TRACKING})
 
         #***************************************************************************************************
         #line/article level*********************************************************************************
@@ -52,7 +69,7 @@ def main(inn,out):
             itemnode.put({'BOTSID':'HL'},{'BOTSID':'LIN','LIN01':pline.get({'BOTSID':'line','seq':None})})
             itemnode.put({'BOTSID':'HL'},{'BOTSID':'LIN','LIN02':'SK','LIN03':pline.get({'BOTSID':'line','product_sku':None})})
             ordered_qty = pline.get({'BOTSID':'line','ordered_qty':None})
-            total_ordered_qty += ordered_qty
+            total_ordered_qty += ordered_qty and int(ordered_qty) or 0
             itemnode.put({'BOTSID':'HL'},{'BOTSID':'SN1',
                                           'SN101':pline.get({'BOTSID':'line','seq':None}),
                                           'SN102':pline.get({'BOTSID':'line','ship_qty':None}),
