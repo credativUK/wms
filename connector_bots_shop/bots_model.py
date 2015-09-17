@@ -27,6 +27,8 @@ from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector_bots.unit.backend_adapter import BotsCRUDAdapter
 from openerp.addons.connector_bots.backend import bots
 
+from .sale import import_sale_order
+
 import json
 from datetime import datetime
 
@@ -40,10 +42,12 @@ class BotsBackend(orm.Model):
         'feat_invoice_exp': fields.boolean('Export Invoices', help='Export invoices for this shop'),
         'feat_sale_imp': fields.boolean('Import Sale Orders', help='Import sale orders for this shop'),
         'catalog_price_tax_included': fields.boolean('Prices include tax'),
-        'lang_id': fields.many2one('res.lang', 'Language'),
-        'shop_id': fields.many2one('sale.shop', 'Shop'),
+        'lang_id': fields.many2one('res.lang', 'Language', required=True),  # TODO: Can the requirement be domain based?
+        'shop_id': fields.many2one('sale.shop', 'Shop', required=True),  # TODO: Can the requirement be domain based?
         'product_categ_ids': fields.many2many('product.category','prod_categ_bots_backend_rel','categ_id','backend_id', 'Product categories to export', help="Restrict exported inventory products by category.  Leave blank to include all."),
-        # TODO: Payment method?
+        'payment_method_id': fields.many2one('payment.method',
+                                             'Payment Method for imported sale orders',
+                                             ondelete='restrict'),
     }
 
     _defaults = {
@@ -93,15 +97,13 @@ class BotsBackend(orm.Model):
         backends = self.browse(cr, uid, ids, context=context)
         for backend in backends:
             if backend.feat_sale_imp:
-                pass
-                # TODO: NotImplemented, Get backend_adapter and implement functionality
-                #session = ConnectorSession(cr, uid, context=context)
-                #backend_adapter = False
-                #FILENAME = r'^850_.*\.json$'
-                #for file_id in backend_adapter._search(FILENAME):
-                    # import_sale_order.delay(session, 'bots.sale.order', file_id, backend.id, new_cr=new_cr)
+                session = ConnectorSession(cr, uid, context=context)
+                env = get_environment(session, 'bots.backend', backend.id)
+                backend_adapter = BotsCRUDAdapter(env)
+                FILENAME = r'^850_.*\.json$'
+                for file_id in backend_adapter._search(FILENAME):
+                    import_sale_order.delay(session, 'bots.sale.order', file_id, backend.id, new_cr=new_cr)
         return True
-
 
 @job
 def export_stock_levels(session, model_name, backend_id, new_cr=True):
@@ -158,7 +160,7 @@ class BotsBackendAdapter(BotsCRUDAdapter):
                     'header': [{
                         'partner_to': backend_record.name_to,
                         'partner_from': backend_record.name_from,
-                        'date_msg': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                        'date_msg': backend_record.datetime_convert(datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
                     }],
                 },
             }

@@ -128,6 +128,10 @@ class BotsBackend(orm.Model):
                 import_picking_confirmation.delay(session, 'bots.warehouse', warehouse.id, picking_types, new_cr=new_cr)
         return True
 
+    def datetime_convert(self, cr, uid, ids, datetime=None, context=None):
+        # Hook for converting datetimes to a specific backend timezone
+        return datetime
+
 class BotsFile(orm.TransientModel):
     _name = 'bots.file'
     _description = 'File mutex for communication with Bots'

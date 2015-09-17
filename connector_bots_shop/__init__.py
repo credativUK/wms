@@ -22,5 +22,5 @@ import connector
 import bots_model
 import product
 import stock
-#import account_invoice # TODO: WIP
-#import sale # TODO: WIP
+import account_invoice
+import sale

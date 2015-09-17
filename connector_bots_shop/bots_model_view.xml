@@ -17,6 +17,7 @@
                         <field name="feat_invoice_exp"/>
                         <field name="product_categ_ids"/>
                         <field name="feat_export_picking_out_when_done"/>
+                        <field name="payment_method_id"/>
                     </group>
                 </group>
             </field>

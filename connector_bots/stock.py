@@ -596,7 +596,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 'state': 'new',
                 'type': TYPE,
                 'date': datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT).strftime('%Y-%m-%d'),
-                'ship_date': picking.date_done, # Convert to Mountain Standard Time
+                'ship_date': picking.backend_id.datetime_convert(picking.date_done),
                 'partner':
                     {
                         "id": "P%d" % (picking.partner_id.id),
@@ -630,7 +630,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                                 'partner_to': picking.backend_id.name_to,
                                 'partner_from': picking.backend_id.name_from,
                                 'message_id': '0',
-                                'date_msg': datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'),
+                                'date_msg': picking.backend_id.datetime_convert(datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')),
                                 'docnum': bots_id,
                             }],
                     },
