@@ -30,6 +30,17 @@ def picking_done(session, model_name, record_id, picking_type, location_type):
     if not picking.state == 'done':  # Handle only deliveries which are complete
         return
 
+    sale_id = picking.sale_id and picking.sale_id.id or False
+    sale_backend_id = False
+    if sale_id:
+        bots_sale_obj = session.pool.get('bots.sale.order')
+        bots_sale_id = bots_sale_obj.search(session.cr, session.uid, [('openerp_id','=',sale_id)])
+        bots_sales = bots_sale_obj.browse(session.cr, session.uid, bots_sale_id)
+        assert len(bots_sales)== 1 # Ensure 1 and only 1 matching bots sale order
+        sale_backend_id = bots_sales[0].backend_id and bots_sales[0].backend_id.id or False
+        if not sale_backend_id: # Do not export picking if not linked to imported sale order
+            return
+
     location_ids = []
     if location_type == 'src':
         location = picking.location_id or picking.move_lines and picking.move_lines[0].location_id
@@ -54,7 +65,8 @@ def picking_done(session, model_name, record_id, picking_type, location_type):
     bots_warehouse = bots_warehouse_obj.browse(session.cr, session.uid, bots_warehouse_ids)
     for warehouse in bots_warehouse:
         backend_id = warehouse.backend_id
-        if (picking_type == 'bots.stock.picking.out' and backend_id.feat_export_picking_out_when_done):
+        # Make sure picking sale backend matches picking warehouse backend before exporting
+        if (sale_backend_id and sale_backend_id == backend_id.id) and (picking_type == 'bots.stock.picking.out' and backend_id.feat_export_picking_out_when_done):
             #or (picking_type == 'bots.stock.picking.in' and backend_id.feat_export_picking_in_when_done): # NotImplemented
             session.create(picking_type,
                             {'backend_id': backend_id.id,
