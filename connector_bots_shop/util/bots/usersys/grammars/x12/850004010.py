@@ -50,22 +50,32 @@ structure = [
     ]},
     {ID: 'N9', MIN: 0, MAX: 1000, LEVEL: [
         {ID: 'DTM', MIN: 0, MAX: 99999},
+        {ID: 'MEA', MIN: 0, MAX: 40},
         {ID: 'MSG', MIN: 0, MAX: 1000},
     ]},
     {ID: 'N1', MIN: 0, MAX: 200, LEVEL: [
         {ID: 'N2', MIN: 0, MAX: 2},
         {ID: 'N3', MIN: 0, MAX: 2},
-        {ID: 'N4', MIN: 0, MAX: 99999},
+        {ID: 'N4', MIN: 0, MAX: 1},
+        {ID: 'QTY', MIN: 0, MAX: 99999},
         {ID: 'NX2', MIN: 0, MAX: 99999},
         {ID: 'REF', MIN: 0, MAX: 12},
-        {ID: 'PER', MIN: 0, MAX: 99999},
+        {ID: 'PER', MIN: 0, MAX: 3},
         {ID: 'SI', MIN: 0, MAX: 99999},
+        {ID: 'DTM', MIN: 0, MAX: 1},
         {ID: 'FOB', MIN: 0, MAX: 1},
+        {ID: 'SCH', MIN: 0, MAX: 200},
         {ID: 'TD1', MIN: 0, MAX: 2},
         {ID: 'TD5', MIN: 0, MAX: 12},
         {ID: 'TD3', MIN: 0, MAX: 12},
         {ID: 'TD4', MIN: 0, MAX: 5},
         {ID: 'PKG', MIN: 0, MAX: 200},
+        {ID: 'LDT', MIN: 0, MAX: 99999, LEVEL: [
+            {ID: 'MAN', MIN: 0, MAX: 10},
+            {ID: 'QTY', MIN: 0, MAX: 5},
+            {ID: 'MSG', MIN: 0, MAX: 1},
+            {ID: 'REF', MIN: 0, MAX: 3},
+        ]},
     ]},
     {ID: 'LM', MIN: 0, MAX: 99999, LEVEL: [
         {ID: 'LQ', MIN: 1, MAX: 99999},
@@ -149,45 +159,16 @@ structure = [
         {ID: 'PKG', MIN: 0, MAX: 200, LEVEL: [
             {ID: 'MEA', MIN: 0, MAX: 99999},
         ]},
-    {ID: 'LS', MIN: 0, MAX: 1,LEVEL: [    
-        {ID: 'LDT', MIN: 0, MAX: 99999, LEVEL: [
-            {ID: 'QTY', MIN: 0, MAX: 99999},
-            {ID: 'MSG', MIN: 0, MAX: 1},
-            {ID: 'REF', MIN: 0, MAX: 3},
-            {ID: 'LM', MIN: 0, MAX: 99999, LEVEL: [
-                {ID: 'LQ', MIN: 1, MAX: 99999},
-            ]},
-        ]},
-        {ID: 'LE', MIN: 1, MAX: 1},
-    ]},
-        {ID: 'N9', MIN: 0, MAX: 1000, LEVEL: [
-            {ID: 'DTM', MIN: 0, MAX: 99999},
-            {ID: 'MEA', MIN: 0, MAX: 40},
-            {ID: 'MSG', MIN: 0, MAX: 1000},
-        ]},
-        {ID: 'N1', MIN: 0, MAX: 200, LEVEL: [
-            {ID: 'N2', MIN: 0, MAX: 2},
-            {ID: 'N3', MIN: 0, MAX: 2},
-            {ID: 'N4', MIN: 0, MAX: 1},
-            {ID: 'QTY', MIN: 0, MAX: 99999},
-            {ID: 'NX2', MIN: 0, MAX: 99999},
-            {ID: 'REF', MIN: 0, MAX: 12},
-            {ID: 'PER', MIN: 0, MAX: 3},
-            {ID: 'SI', MIN: 0, MAX: 99999},
-            {ID: 'DTM', MIN: 0, MAX: 1},
-            {ID: 'FOB', MIN: 0, MAX: 1},
-            {ID: 'SCH', MIN: 0, MAX: 200},
-            {ID: 'TD1', MIN: 0, MAX: 2},
-            {ID: 'TD5', MIN: 0, MAX: 12},
-            {ID: 'TD3', MIN: 0, MAX: 12},
-            {ID: 'TD4', MIN: 0, MAX: 5},
-            {ID: 'PKG', MIN: 0, MAX: 200},
+        {ID: 'LS', MIN: 0, MAX: 1,LEVEL: [    
             {ID: 'LDT', MIN: 0, MAX: 99999, LEVEL: [
-                {ID: 'MAN', MIN: 0, MAX: 10},
-                {ID: 'QTY', MIN: 0, MAX: 5},
+                {ID: 'QTY', MIN: 0, MAX: 99999},
                 {ID: 'MSG', MIN: 0, MAX: 1},
                 {ID: 'REF', MIN: 0, MAX: 3},
+                {ID: 'LM', MIN: 0, MAX: 99999, LEVEL: [
+                    {ID: 'LQ', MIN: 1, MAX: 99999},
+                ]},
             ]},
+            {ID: 'LE', MIN: 1, MAX: 1},
         ]},
         {ID: 'SLN', MIN: 0, MAX: 1000, LEVEL: [
             {ID: 'MSG', MIN: 0, MAX: 99999},
@@ -231,8 +212,8 @@ structure = [
         ]},
     ]},
     {ID: 'CTT', MIN: 0, MAX: 1, LEVEL: [
-        {ID: 'AMT', MIN: 0, MAX: 1},
+        {ID: 'AMT', MIN: 0, MAX: 10},
     ]},
-    {ID: 'SE', MIN: 1, MAX: 1},
+    {ID: 'SE', MIN: 1, MAX: 10},
 ]}
 ]
