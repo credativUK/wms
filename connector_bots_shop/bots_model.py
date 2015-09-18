@@ -100,7 +100,7 @@ class BotsBackend(orm.Model):
                 session = ConnectorSession(cr, uid, context=context)
                 env = get_environment(session, 'bots.backend', backend.id)
                 backend_adapter = BotsCRUDAdapter(env)
-                FILENAME = r'^850_.*\.json$'
+                FILENAME = r'^sale_.*\.json$'
                 for file_id in backend_adapter._search(FILENAME):
                     import_sale_order.delay(session, 'bots.sale.order', file_id, backend.id, new_cr=new_cr)
         return True

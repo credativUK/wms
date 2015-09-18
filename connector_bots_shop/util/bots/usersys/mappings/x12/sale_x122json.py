@@ -53,6 +53,17 @@ def main(inn,out):
     #loop over partys
     for partner in inn.getloop({'BOTSID':'ST'},{'BOTSID':'N1'}): 
         pou = oout.putloop({'BOTSID':'sales'},{'BOTSID':'partner'})
+        type = partner.get({'BOTSID':'N1','N101':None})
+        if type == 'FP':
+            openerp_type = 'invoice'
+        elif type == 'ST':
+            openerp_type = 'delivery'
+        elif type == 'BT':
+            openerp_type = 'invoice'
+        else:
+            openerp_type = 'other'
+
+        pou.put({'BOTSID':'partner','type':openerp_type})
         pou.put({'BOTSID':'partner','name1':partner.get({'BOTSID':'N1','N102':None})})
         pou.put({'BOTSID':'partner','name2':partner.get({'BOTSID':'N1'},{'BOTSID':'N2','N201':None})})
         pou.put({'BOTSID':'partner','address1':partner.get({'BOTSID':'N1'},{'BOTSID':'N3','N301':None})})
