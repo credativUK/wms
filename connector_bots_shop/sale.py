@@ -31,6 +31,7 @@ from openerp.addons.connector_bots.unit.binder import BotsModelBinder
 from openerp.addons.connector_bots.unit.backend_adapter import BotsCRUDAdapter, file_to_process
 from openerp.addons.connector_bots.backend import bots
 from openerp.addons.connector_bots.connector import get_environment, add_checkpoint
+import openerp.addons.decimal_precision as dp
 
 import json
 import traceback
@@ -171,6 +172,7 @@ class BotsSaleOrderImportMapper(ImportMapper):
             addr_state = addr_state and addr_state[0] or False
         company_id = self.backend_record.shop_id.company_id and self.backend_record.shop_id.company_id.id or False
         if matching_customer_id:
+            matching_customer_id = matching_customer_id[0]
             # TODO: Should the address search match by contact name and partner company name as well?
             matching_address_id = self.session.search('res.partner', [('country_id','=',addr_country),
                                                                       ('state_id','=',addr_state),
@@ -179,7 +181,7 @@ class BotsSaleOrderImportMapper(ImportMapper):
                                                                       ('street','=',address.get('address1', False)),
                                                                       ])
             if matching_address_id:
-                shipping_invoice_address = matching_address_id
+                shipping_invoice_address = matching_address_id[0]
             else:
                 new_address_vals = {'parent_id': matching_customer_id,
                                     'name': record.get('parnter_name', False),
@@ -234,8 +236,13 @@ class BotsSaleOrderImportMapper(ImportMapper):
                 list_values = pricelist_obj.price_get(self.session.cr, self.session.uid, [pricelist_id], product_id, product_qty)
                 list_price = list_values[pricelist_id]
                 if list_price:
-                    discount = round(1 - float(sale_line['price'])/list_price, 2) * 100.0
+                    # FIXME: Due to the precision of the discount we need to reverse engineer the list price in the SO
+                    # line so we get the correct total price while keeping the list price as close as possible to the origional
+                    discount_dp = dp.get_precision('Discount')(self.session.cr)[1]
+                    discount = round((1 - float(sale_line['price'])/list_price) * 100.0, discount_dp)
+                    list_price = float(sale_line['price']) / (1.0 - (discount / 100.0))
                 else:
+                    list_price = float(sale_line['price'])
                     discount = 0
             else:
                 raise NotImplementedError('Only tax exclusive prices are implimented currently, disable "Prices include tax" in the backend')
