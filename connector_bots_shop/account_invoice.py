@@ -78,6 +78,7 @@ class BotsAccountInvoiceAdapter(BotsCRUDAdapter):
 
         bots_invoice_obj = self.session.pool.get(MODEL)
         invoice_binder = self.get_binder_for_model(MODEL)
+        product_binder = self.get_binder_for_model('bots.product')
 
         invoice = bots_invoice_obj.browse(self.session.cr, self.session.uid, invoice_id)
         default_company_id = invoice.company_id.id
@@ -128,7 +129,7 @@ class BotsAccountInvoiceAdapter(BotsCRUDAdapter):
             line_data = {
                     'id': "%sS%s" % (bots_id, seq),
                     'seq': seq,
-                    'product_sku': line.product_id.default_code or False,
+                    'product_sku': product_binder.to_backend(line.product_id.id) or False,
                     'product_qty': line.quantity,
                     'total': line.price_subtotal,
                     'desc': line.name,
