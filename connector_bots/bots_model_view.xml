@@ -21,6 +21,7 @@
                             <field name="location_out" placeholder="e.g. /var/bots/out" colspan="4"/>
                             <field name="name_from" placeholder="MyCompanyOdoo"/>
                             <field name="name_to" placeholder="ExternalWMS"/>
+                            <field name="timezone" placeholder="Europe/London"/>
                         </group>
                         <group name="bots" string="Warehouse Syncronisation" colspan="4" col="4">
                             <field name="feat_picking_out"/>
