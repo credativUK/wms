@@ -34,7 +34,7 @@ def picking_done(session, model_name, record_id, picking_type, location_type):
     sale_backend_id = False
     if sale_id:
         bots_sale_obj = session.pool.get('bots.sale.order')
-        bots_sale_id = bots_sale_obj.search(session.cr, session.uid, [('openerp_id','=',sale_id)])
+        bots_sale_id = bots_sale_obj.search(session.cr, session.uid, [('openerp_id','=',sale_id)]) # FIXME: Match backend as well as ID for multi-backend support
         bots_sales = bots_sale_obj.browse(session.cr, session.uid, bots_sale_id)
         assert len(bots_sales)== 1 # Ensure 1 and only 1 matching bots sale order
         sale_backend_id = bots_sales[0].backend_id and bots_sales[0].backend_id.id or False

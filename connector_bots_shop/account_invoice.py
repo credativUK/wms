@@ -32,6 +32,7 @@ from openerp.addons.connector_bots.connector import get_environment
 
 import json
 import re
+from datetime import datetime
 
 from openerp.addons.connector.event import on_record_create
 from openerp.addons.connector_ecommerce.event import on_invoice_validated
@@ -101,60 +102,63 @@ class BotsAccountInvoiceAdapter(BotsCRUDAdapter):
             bots_id = "%sS%s" % (orig_bots_id[:BOTS_ID_MAX_LEN-1-len(str(suffix_counter))], suffix_counter)
             existing_id = invoice_binder.to_openerp(bots_id)
 
-        assert len(invoice.sale_ids) == 1  # Currently only compatible with one2one mapping between invoices and sales
+        if not len(invoice.sale_ids) == 1:  # Currently only compatible with one2one mapping between invoices and sales
+            raise NotImplementedError('Only a single sale order per invoice is currently support')
         sale_order = invoice.sale_ids[0]
 
-        party_data = {  # Single commented lines because "Ship to information" is currently disabled
-                #'qual': 'ST', # Entity Identifier Code N101 {ST: Ship to, BS: Bill and ship to}
-                ##'gln': value, # N104 UL (N103)
-                ##'DUNS': value, # N104 1 (N103)
-                ##'internalID': value, # N104 91 (N103)
-                ##'externalID': value, # N104 92 (N103)
-                #'name1': invoice.partner_id.name, # Ship to company name N102 (35 char max)
-                #'name2': sale_order.partner_shipping_id.name, # Ship to contact name N201 (35 char max)
-                #'address1': sale_order.partner_shipping_id.street, # Address line 1 N301 (35 char max)
-                #'address2': sale_order.partner_shipping_id.street2, # Address line 2 N302 (35 char max)
-                #'city': sale_order.partner_shipping_id.city, # City name N401 (char 2-20)
-                #'pcode': sale_order.partner_shipping_id.zip, # Postal code N403 (char 2-15)
-                #'state': sale_order.partner_shipping_id.state_id and sale_order.partner_shipping_id.state_id.name or False, # State or province N402 (char 2-2)
-                #'country': sale_order.partner_shipping_id.country_id and sale_order.partner_shipping_id.country_id.name or False, # Country code N404 (char 2-3)
-            }
+        partner_data = {
+            "id": "P%d" % (invoice.partner_id.id),
+            "name": invoice.partner_id.name or '',
+            "street1": invoice.partner_id.street or '',
+            "street2": invoice.partner_id.street2 or '',
+            "city": invoice.partner_id.city or '',
+            "zip": invoice.partner_id.zip or '',
+            "country": invoice.partner_id.country_id and invoice.partner_id.country_id.code or '',
+            "state": invoice.partner_id.state_id and invoice.partner_id.state_id.code or '',
+            "phone": invoice.partner_id.phone or '',
+            "fax": invoice.partner_id.fax or '',
+            "email": invoice.partner_id.email or '',
+            "language": invoice.partner_id.lang or '',
+        }
 
         invoice_lines = []
-        for line in invoice.lines:
+        seq = 0
+        for line in invoice.invoice_line:
+            seq += 1
             line_data = {
-                    #'linenum': value, # IT101
-                    'gtin': line.product_id.default_code or False,  # SKU IT109 (char 1-40)
-                    'suart': line.product_id.default_code or False,  # SKU IT107 (char 1-40)
-                    'byart': line.product_id.default_code or False,  # SKU IT111 (char 1-40)
-                    'invqua': line.quantity,  # Quantity invoiced IT102
-                    #'ordqua': value,
-                    #'desc': value, # PID05
-                    'price': line.price_unit,  # Unit price IT104 (e.g. 42 = 42.00)
-                    #'ordunit': value,
+                    'id': "%sS%s" % (bots_id, seq),
+                    'seq': seq,
+                    'product_sku': line.product_id.default_code or False,
+                    'product_qty': line.quantity,
+                    'total': line.price_subtotal,
+                    'desc': line.name,
+                    'unit_price': line.price_unit,
                 }
             invoice_lines.append(line_data)
 
-        data = {
-                'message': {
-                        'partys': [party_data, ],
-                        'lines': invoice_lines,
-                        'sender': invoice.backend_id.name_from,  # QUERIES in grammar
-                        'receiver': invoice.backend_id.name_to,  # QUERIES in grammar
-                        #'testindicator': value,
-                        #'docsrt': value,
-                        'docnum': invoice.number,  # Invoice number BIG02
-                        'docdtm': invoice.backend_id.datetime_convert(invoice.date_invoice),  # Invoice issue date BIG01 (CCYY-MM-DD HH:mm -> CCYYMMDD)
-                        'deldtm': invoice.backend_id.datetime_convert(sale_order.picking_ids[0].date_done or False),  # Ship date DTM02 (CCYY-MM-DD HH:mm -> CCYYMMDD)
-                        'ordernumber': sale_order.name,  # Order number BIG04
-                        #'currency': value,
-                        #'totalinvoiceamount': value, # TDS01
-                        #'termsdiscountpercent': value, # ITD03
-                        #'termsdiscountdaysdue': value, # ITD05
-                        #'termsnetdays': value, # ITD07
-                        #'totaltermsdiscount': value, # ITD08
-                },
+        invoice_data = {
+                    'id': bots_id,
+                    'partner': partner_data,
+                    'lines': invoice_lines,
+                    'ref': invoice.number,
+                    'date': invoice.backend_id.datetime_convert(invoice.date_invoice),
+                    'sale': sale_order.name,
+                    'sale_date': invoice.backend_id.datetime_convert(sale_order.picking_ids[0].date_done or ''),
+                    'currency': invoice.currency_id.name,
+                    'total': invoice.amount_total,
             }
+
+        data = {
+                'invoice': {
+                        'invoices': [invoice_data,],
+                        'header': [{
+                                'state': 'done',
+                                'partner_to': invoice.backend_id.name_to,
+                                'partner_from': invoice.backend_id.name_from,
+                                'date_msg': invoice.backend_id.datetime_convert(datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')),
+                            }],
+                    },
+                }
         data = json.dumps(data, indent=4)
 
         filename_id = self._get_unique_filename(FILENAME)
@@ -166,11 +170,11 @@ class BotsAccountInvoiceAdapter(BotsCRUDAdapter):
 class BotsAccountInvoiceExport(ExportSynchronizer):
     _model_name = ['bots.account.invoice']
 
-    def run(self, invoice_id, new_cr=True):
+    def run(self, invoice_id):
         """
         Export invoices to Bots
         """
-        self.backend_adapter.export_invoice(invoice_id, new_cr=new_cr)
+        self.backend_adapter.export_invoice(invoice_id)
 
 
 @on_invoice_validated
@@ -180,15 +184,14 @@ def invoice_create_bindings(session, model_name, record_id):
     be exported to Bots.
     """
     invoice = session.browse(model_name, record_id)
-    sales = invoice.sale_ids
-    assert len(sales) == 1  # there should only be 1 bots sale for each invoice
-    sale_binder = session.get_binder_for_model('bots.sale.order')
-    bots_sale = sale_binder.to_backend(sales[0].id)
-    session.create('bots.account.invoice',
-                   {'backend_id': bots_sale.backend_id.id,
-                    'openerp_id': invoice.id,
-                    'bots_sale_id': bots_sale.id,
-                    })
+    sale_ids = session.search('bots.sale.order', [('openerp_id', 'in', [x.id for x in invoice.sale_ids])])
+    for sale in session.browse('bots.sale.order', sale_ids):
+        if sale.backend_id.feat_invoice_exp:
+            session.create('bots.account.invoice',
+                        {'backend_id': sale.backend_id.id,
+                            'openerp_id': invoice.id,
+                            'bots_sale_id': sale.id,
+                            })
 
 
 @on_record_create(model_names='bots.account.invoice')
