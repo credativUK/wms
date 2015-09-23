@@ -39,6 +39,7 @@ of the X12 4010 EDI format.
  'depends': [
      'connector_bots',
      'product_m2mcategories',
+     'sale_payment_method',
  ],
  'data': [
      'bots_model_view.xml',
