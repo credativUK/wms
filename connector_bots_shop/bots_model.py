@@ -137,10 +137,12 @@ class BotsBackendAdapter(BotsCRUDAdapter):
         ctx = self.session.context.copy()
         backend_record = bots_backend_obj.browse(self.session.cr, self.session.uid, backend_id, context=ctx)
         ctx['location'] = [bots_warehouse.warehouse_id.lot_stock_id.id for bots_warehouse in backend_record.warehouse_ids]
-        product_domain = [('active','=',True),('exclude_from_bots_stock','=',False),('default_code','!=',False)]
-        category_domain = []
-        [category_domain.extend([('categ_id', 'child_of', categ.id), ('categ_ids', 'child_of', categ.id)]) for categ in backend_record.product_categ_ids]
-        product_domain += (['|'] * (len(category_domain)-1))  + category_domain
+
+        product_domain = [('exclude_from_bots_stock','=',False), ('default_code','!=',False)]
+        categ_ids = [categ.id for categ in backend_record.product_categ_ids]
+        if categ_ids:
+            product_domain += ['|', ('categ_id', 'child_of', categ_ids), ('categ_ids', 'child_of', categ_ids)]
+
         product_ids_to_export = product_obj.search(self.session.cr, self.session.uid, product_domain, context=ctx)
         product_data_to_export = product_obj.read(self.session.cr, self.session.uid, product_ids_to_export, ['default_code', 'virtual_available'], context=ctx)
 
