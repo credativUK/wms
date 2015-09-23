@@ -67,8 +67,8 @@ recorddefs = {
             ['ship_date', 'C', 64, 'AN'],
             ['client_order_ref', 'C', 64, 'AN'],
             ['currency', 'C', 3, 'AN'],
-            ['parnter_name', 'C', 1000, 'AN'],
-            ['parnter_email', 'C', 1000, 'AN'],
+            ['partner_name', 'C', 1000, 'AN'],
+            ['partner_email', 'C', 1000, 'AN'],
           ],
     'partner':[
             ['BOTSID','M',255,'A'],

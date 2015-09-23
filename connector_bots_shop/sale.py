@@ -151,7 +151,7 @@ class BotsSaleOrderImportMapper(ImportMapper):
 
     @mapping
     def customer_and_addresses(self, record):
-        customer_email = record['parnter_email']
+        customer_email = record['partner_email']
         matching_customer_id = self.session.search('res.partner', [('email','=',customer_email)])
         address = False
         for partner_address in record['partner']:
@@ -184,7 +184,7 @@ class BotsSaleOrderImportMapper(ImportMapper):
                 shipping_invoice_address = matching_address_id[0]
             else:
                 new_address_vals = {'parent_id': matching_customer_id,
-                                    'name': record.get('parnter_name', False),
+                                    'name': record.get('partner_name', False),
                                     'street': address.get('address1', False),
                                     'street2': address.get('address2', False),
                                     'city': address.get('city', False),
@@ -201,7 +201,7 @@ class BotsSaleOrderImportMapper(ImportMapper):
                     'partner_invoice_id': shipping_invoice_address,
                     'partner_shipping_id': shipping_invoice_address}
         else:
-            new_partner_vals = {'name': record.get('parnter_name', False),
+            new_partner_vals = {'name': record.get('partner_name', False),
                                 'street': address.get('address1', False),
                                 'street2': address.get('address2', False),
                                 'city': address.get('city', False),

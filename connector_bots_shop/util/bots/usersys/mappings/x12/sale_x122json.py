@@ -47,8 +47,8 @@ def main(inn,out):
 
     oout.put({'BOTSID':'sales','client_order_ref': program_ref}) # Program as reference
     oout.put({'BOTSID':'sales','currency': order_currency}) # Currency
-    oout.put({'BOTSID':'sales','parnter_name': customer_name}) # Currency
-    oout.put({'BOTSID':'sales','parnter_email': customer_email}) # Currency
+    oout.put({'BOTSID':'sales','partner_name': customer_name}) # Currency
+    oout.put({'BOTSID':'sales','partner_email': customer_email}) # Currency
 
     #loop over partys
     for partner in inn.getloop({'BOTSID':'ST'},{'BOTSID':'N1'}): 
