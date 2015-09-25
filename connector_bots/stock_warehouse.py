@@ -381,7 +381,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             # Handle tracking information
                             tracking_data = self._get_tracking(_cr, self.session.uid, picking, contect=ctx)
                             if tracking_data:
-                                bots_picking_obj.write(_cr, self.session.uid, picking_ids, tracking_data, context=ctx)
+                                picking_obj.write(_cr, self.session.uid, picking_ids, tracking_data, context=ctx)
 
                             # If we are not confirming anything we should just update the tracking info and continue
                             if picking['confirmed'] not in ('Y', 'True', '1', True, 1):
