@@ -323,10 +323,10 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
                             # Map the picking by the Bots ID/Order Number - This is used if mapping fails with the move ids
                             main_picking_id = picking_binder.to_openerp(picking['id'])
-                            picking_ids = [main_picking_id]
                             if not main_picking_id:
                                 raise NoExternalId("Picking %s could not be found in OpenERP" % (picking['id'],))
                             main_picking = bots_picking_obj.browse(_cr, self.session.uid, main_picking_id, context=ctx)
+                            picking_ids = [main_picking.openerp_id.id]
                             ctx.update({'company_id' : main_picking.openerp_id.company_id.id})
 
                             move_dict = {}
