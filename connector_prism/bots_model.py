@@ -66,5 +66,6 @@ class BotsBackend(orm.Model):
                                                          ('bots_cut_off', '=', False)], context=context)
                 if purchase_ids:
                     session = ConnectorSession(cr, uid, context=context)
-                    purchase_cutoff.delay(session, 'bots.warehouse', warehouse.id, purchase_ids)
+                    for purchase_id in purchase_ids:
+                        purchase_cutoff.delay(session, 'bots.warehouse', warehouse.id, [purchase_id])
         return True
