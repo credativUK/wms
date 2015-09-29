@@ -3,6 +3,11 @@ from bots.botsconfig import *
 
 nextmessage = ({'BOTSID':'ISA'},{'BOTSID':'GS'},{'BOTSID':'ST'})
 
+syntax = { 
+        'add_crlfafterrecord_sep':'',
+        'ISA05':'ZZ',
+        'ISA07':'ZZ',
+    }
 
 structure = [
     {ID:'ISA',MIN:0,MAX:99999,    
