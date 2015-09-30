@@ -77,6 +77,7 @@ class StockPickingIn(orm.Model):
                 readonly=True, states={'draft':[('readonly',False)], 'confirmed':[('readonly',False)]},
                 help="Scheduled time for the shipment to be processed"
             ),
+            'carrier_tracking_ref': fields.char('Carrier Tracking Ref', size=128),
         }
 
     _defaults = {
@@ -167,6 +168,7 @@ class StockPickingOut(orm.Model):
                 readonly=True, states={'draft':[('readonly',False)], 'confirmed':[('readonly',False)]},
                 help="Scheduled time for the shipment to be processed"
             ),
+            'carrier_tracking_ref': fields.char('Carrier Tracking Ref', size=128),
         }
 
     _defaults = {
@@ -229,14 +231,12 @@ class StockPicking(orm.Model):
 
     _columns = {
             'bots_customs': fields.boolean('Bonded Goods', help='If this picking is subject to duties.', states={'done':[('readonly', True)], 'cancel':[('readonly',True)], 'assigned':[('readonly',True)]}),
+            'carrier_tracking_ref': fields.char('Carrier Tracking Ref', size=128),
         }
 
     _defaults = {
             'bots_customs':  lambda *a: False,
         }
-
-class StockPicking(osv.osv):
-    _inherit = "stock.picking"
 
     def do_partial(self, cr, uid, ids, partial_datas, context=None):
         if context is None:
