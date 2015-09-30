@@ -66,8 +66,10 @@ def main(inn,out):
         for pline in plines:
             itemnode = out.putloop({'BOTSID':'ST'},{'BOTSID':'HL','HL01':hlcounter,'HL02':currentpack,'HL03':'I'})
             hlcounter += 1
-            itemnode.put({'BOTSID':'HL'},{'BOTSID':'LIN','LIN01':pline.get({'BOTSID':'line','seq':None})})
-            itemnode.put({'BOTSID':'HL'},{'BOTSID':'LIN','LIN02':'SK','LIN03':pline.get({'BOTSID':'line','product_sku':None})})
+            itemnode.put({'BOTSID':'HL'},{'BOTSID':'LIN',
+                                          'LIN01':pline.get({'BOTSID':'line','seq':None}),
+                                          'LIN02':'SK',
+                                          'LIN03':pline.get({'BOTSID':'line','product':None})})
             ordered_qty = pline.get({'BOTSID':'line','ordered_qty':None})
             total_ordered_qty += ordered_qty and int(ordered_qty) or 0
             itemnode.put({'BOTSID':'HL'},{'BOTSID':'SN1',
