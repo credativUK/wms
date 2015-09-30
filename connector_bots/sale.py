@@ -32,13 +32,43 @@ class SaleOrderLine(orm.Model):
 
     def _bots_exported_rate(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
+        picking_obj = self.pool.get('stock.picking')
+        bots_picking_out_obj = self.pool.get('bots.stock.picking.out')
+        # Get all pickings related to all lines so we are not duplicating reads
+        picking_ids = []
+        for line in self.browse(cr, uid, ids, context=context):
+            for move in line.move_ids:
+                if move.picking_id and move.picking_id.type == 'out' and move.picking_id.id not in picking_ids:
+                    picking_ids.append(move.picking_id.id)
+        # Read if they are exported
+        picking_exported_dict = {}
+        for picking_id in picking_ids:
+            if picking_exported_dict.get(picking_id, False):
+                continue
+            exported = bots_picking_out_obj.search(cr, uid, [('openerp_id', '=', picking_id), ('bots_id', '!=', False)], context=context) and True or False
+            picking_exported_dict[picking_id] = exported
+            if not exported:
+                # If not exported check for backorders which replace this one
+                backorder_ids = picking_obj.search(cr, uid, [('backorder_id' ,'=', picking_id)], context=context)
+                if backorder_ids:
+                    for backorder_id in backorder_ids:
+                        if backorder_id not in picking_ids:
+                            picking_ids.append(backorder_id)
+            else:
+                # If we are exported and we are a backorder, mark the ones we are replacing also as exported
+                picking = picking_obj.browse(cr, uid, picking_id, context=context)
+                while picking.backorder_id:
+                    picking_exported_dict[picking.backorder_id.id] = True
+                    picking = picking.backorder_id
+
+        # From the cached exported data, calculate the rates
         for line in self.browse(cr, uid, ids, context=context):
             moves_exported, moves_total = 0, 0
             for move in line.move_ids:
                 if move.state == 'cancel':
                     continue
                 moves_total += move.product_qty
-                if move.bots_test_exported().get('exported'):
+                if move.picking_id and picking_exported_dict.get(move.picking_id.id, False):
                     moves_exported += move.product_qty
             res[line.id] = "%d / %d" % (moves_exported, moves_total)
         return res
