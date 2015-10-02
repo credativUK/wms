@@ -1,16 +1,23 @@
 #mapping-script
 import bots.transform as transform
+import re
 
 def main(inn,out):
     #sender, receiver is correct via QUERIES in grammar. 
     out.put({'BOTSID':'ST','ST01':'810','ST02':out.ta_info['reference'].zfill(4)})
 
-    out.put({'BOTSID':'ST'},{'BOTSID':'BIG','BIG01':transform.datemask(inn.get({'BOTSID':'invoice'},{'BOTSID':'header','date_msg':None}),'CCYY-MM-DD HH:mm','CCYYMMDD')})
-    out.put({'BOTSID':'ST'},{'BOTSID':'BIG','BIG02':inn.get({'BOTSID':'invoice'},{'BOTSID':'invoices','ref':None})})
-    out.put({'BOTSID':'ST'},{'BOTSID':'BIG','BIG04':inn.get({'BOTSID':'invoice'},{'BOTSID':'invoices','sale':None})})
+    INV_REF = re.sub(r'[^a-zA-Z0-9 ]', r'', inn.get({'BOTSID':'invoice'},{'BOTSID':'invoices','ref':None}) or "")
+    SALE_REF = inn.get({'BOTSID':'invoice'},{'BOTSID':'invoices','sale':None}) or ""
+    DATE_INV = transform.datemask(inn.get({'BOTSID':'invoice'},{'BOTSID':'invoices','date':None}),'CCYY-MM-DD','CCYYMMDD')
+    DATE_SALE = transform.datemask(inn.get({'BOTSID':'invoice'},{'BOTSID':'invoices','sale_date':None}),'CCYY-MM-DD HH:mm','CCYYMMDD')
+
+    out.put({'BOTSID':'ST'},{'BOTSID':'BIG','BIG01': DATE_INV})
+    out.put({'BOTSID':'ST'},{'BOTSID':'BIG','BIG02': INV_REF})
+    out.put({'BOTSID':'ST'},{'BOTSID':'BIG','BIG03': DATE_SALE})
+    out.put({'BOTSID':'ST'},{'BOTSID':'BIG','BIG04': SALE_REF})
     
     # DTM01:011 is "ship date"
-    out.put({'BOTSID':'ST'},{'BOTSID':'DTM','DTM01':'011','DTM02':transform.datemask(inn.get({'BOTSID':'message','sale_date':None}),'CCYY-MM-DD HH:mm','CCYYMMDD')})
+    out.put({'BOTSID':'ST'},{'BOTSID':'DTM','DTM01':'011','DTM02': DATE_SALE})
 
     # Partner
     pou = out.putloop({'BOTSID':'ST'},{'BOTSID':'N1'})
