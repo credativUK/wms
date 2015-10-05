@@ -39,6 +39,10 @@ class PurchaseOrder(orm.Model):
         restricted_ids = super(PurchaseOrder, self).allocate_check_restrict(cr, uid, ids, context=context)
         bots_picking_obj = self.pool.get('bots.stock.picking.in')
         for purchase in self.browse(cr, uid, ids, context=context):
-            if purchase.bots_cross_dock and purchase.bots_cut_off:
+            all_picking_ids = bots_picking_obj.search(cr, uid, [('purchase_id', '=', purchase.id)], context=context)
+            override_picking_ids = bots_picking_obj.search(cr, uid, [('purchase_id', '=', purchase.id), ('bots_override', '=', True)], context=context)
+            if override_picking_ids or not all_picking_ids:
+                continue
+            elif purchase.bots_cross_dock and purchase.bots_cut_off:
                 restricted_ids.append(purchase.id)
         return list(set(restricted_ids))

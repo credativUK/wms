@@ -24,3 +24,4 @@ import product
 import stock_warehouse
 import stock
 import purchase
+import procurement
