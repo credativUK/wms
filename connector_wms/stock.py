@@ -18,7 +18,7 @@
 #
 ##############################################################################
 
-from openerp.osv import orm,osv
+from openerp.osv import orm, fields, osv
 
 from openerp.addons.connector.session import ConnectorSession
 from .event import on_picking_out_done, on_picking_out_available, on_picking_in_available, on_picking_out_cancel, on_picking_in_cancel
@@ -26,14 +26,24 @@ from .event import on_picking_out_done, on_picking_out_available, on_picking_in_
 class stock_picking(orm.Model):
     _inherit = 'stock.picking'
 
+    _columns = {
+        'wms_disable_events': fields.boolean('Disable WMS Events', help='Prevent events from fireing to allow overriding the workflow'),
+    }
+
+    _defaults = {
+        'wms_disable_events': False,
+    }
+
     def action_assign_wkf(self, cr, uid, ids, context=None):
         res = super(stock_picking, self).action_assign_wkf(cr, uid, ids, context=context)
         if res:
             session = ConnectorSession(cr, uid, context=context)
             picking_records = self.read(cr, uid, ids,
-                                    ['id', 'type'],
+                                    ['id', 'type', 'wms_disable_events'],
                                     context=context)
             for picking_vals in picking_records:
+                if picking_vals['wms_disable_events']:
+                    continue
                 if picking_vals['type'] == 'out':
                     on_picking_out_available.fire(session, self._name, picking_vals['id'])
                 elif picking_vals['type'] == 'in':
@@ -48,9 +58,11 @@ class stock_picking(orm.Model):
         if res:
             session = ConnectorSession(cr, uid, context=None)
             picking_records = self.read(cr, uid, ids,
-                                    ['id', 'type'],
+                                    ['id', 'type', 'wms_disable_events'],
                                     context=None)
             for picking_vals in picking_records:
+                if picking_vals['wms_disable_events']:
+                    continue
                 if picking_vals['type'] == 'out':
                     on_picking_out_available.fire(session, self._name, picking_vals['id'])
                 elif picking_vals['type'] == 'in':
@@ -63,7 +75,9 @@ class stock_picking(orm.Model):
         context = kwargs.get('context', {})
         # If the state of the picking is already cancelled we should not export it again
         cancel_ids = []
-        for picking_vals in self.read(cr, uid, ids, ['id', 'state'], context=context):
+        for picking_vals in self.read(cr, uid, ids, ['id', 'state', 'wms_disable_events'], context=context):
+            if picking_vals['wms_disable_events']:
+                continue
             if picking_vals['state'] != 'cancel':
                 cancel_ids.append(picking_vals['id'])
         res = super(stock_picking, self).action_cancel(cr, uid, ids, *args, **kwargs)
@@ -87,9 +101,11 @@ class stock_picking(orm.Model):
         if res:
             session = ConnectorSession(cr, uid, context=None)
             picking_records = self.read(cr, uid, ids,
-                                    ['id', 'type'],
+                                    ['id', 'type', 'wms_disable_events'],
                                     context=None)
             for picking_vals in picking_records:
+                if picking_vals['wms_disable_events']:
+                    continue
                 if picking_vals['type'] == 'out':
                     on_picking_out_done.fire(session, self._name, picking_vals['id'])
                 else:

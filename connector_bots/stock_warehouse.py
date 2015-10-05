@@ -127,7 +127,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                 'product_price' : move.price_unit,
                 'product_currency' : move_currency,
             }
-        split = picking_obj.do_partial(cr, uid, [stock_picking.openerp_id.id], moves_to_ship, context=context)
+        split = picking_obj.do_partial(cr, uid, [stock_picking.id], moves_to_ship, context=context)
         return split, old_backorder_id
 
     def _handle_cancellations(self, cr, uid, stock_picking, prod_cancel, context=None):
@@ -239,6 +239,43 @@ class WarehouseAdapter(BotsCRUDAdapter):
             add_checkpoint(self.session, stock_picking.openerp_id._name, stock_picking.openerp_id.id, self.backend_record.id)
 
         return res
+
+    def _handle_additional_done_incoming(self, cr, uid, picking_id, product_qtys, context=None):
+        if context == None:
+            context = {}
+
+        picking_obj = self.session.pool.get('stock.picking')
+        move_obj = self.session.pool.get('stock.move')
+        purchase_obj = self.session.pool.get('purchase.order')
+        purchase_line_obj = self.session.pool.get('purchase.order.line')
+
+        picking_old = picking_obj.browse(cr, uid, picking_id, context=context)
+        purchase = picking_old.purchase_id
+        if not purchase:
+            raise NotImplementedError("Unable to process unexpected incoming stock for %s: Not linked to a PO" % (picking_id,))
+
+        picking_new_data = purchase_obj._prepare_order_picking(cr, uid, purchase, context=context)
+        picking_new_data.update({'wms_disable_events': True})
+        picking_new_id = picking_obj.create(cr, uid, picking_new_data, context=context)
+
+        prod_confirm = {}
+        for product_id, qty in product_qtys:
+            pol_data = purchase_line_obj._generate_purchase_line(cr, uid, product_id, qty, purchase.pricelist_id.id, purchase.partner_id.id, purchase.minimum_planned_date, context=context)
+            pol_data.update({'order_id': purchase.id,
+                             'state': 'confirmed'})
+            purchase_line_id = purchase_line_obj.create(cr, uid, pol_data, context=context)
+            purchase_line = purchase_line_obj.browse(cr, uid, purchase_line_id, context=context)
+
+            move_data = purchase_obj._prepare_order_line_move(cr, uid, purchase, purchase_line, picking_new_id, context=context)
+            move_id = move_obj.create(cr, uid, move_data, context=context)
+            prod_confirm[move_id] = qty
+
+        picking_obj.draft_force_assign(cr, uid, [picking_new_id])
+        picking_obj.write(cr, uid, [picking_new_id], {'wms_disable_events': False}, context=context)
+        picking_new = picking_obj.browse(cr, uid, picking_new_id, context=context)
+
+        self._handle_confirmations(cr, uid, picking_new, prod_confirm, context=None)
+        return True
 
     def _get_tracking(self, cr, uid, picking, contect=None):
         carrier_obj = self.session.pool.get('delivery.carrier')
@@ -401,8 +438,12 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 bots_picking = bots_picking_obj.browse(_cr, self.session.uid, bots_picking_id, context=ctx)
 
                                 if ptype == 'DONE':
-                                    split, old_backorder_id = self._handle_confirmations(_cr, self.session.uid, bots_picking, moves_part, context=ctx)
+                                    split, old_backorder_id = self._handle_confirmations(_cr, self.session.uid, bots_picking.openerp_id, moves_part, context=ctx)
                                     backorders.append((bots_picking, picking_id, split, old_backorder_id))
+                                    if moves_extra.get('DONE') and picking['type'] == 'in':
+                                        # Any additional done stock should be added to an incoming PO
+                                        self._handle_additional_done_incoming(_cr, self.session.uid, picking_id, moves_extra.get('DONE'), context=ctx)
+                                        del moves_extra['DONE']
                                 elif ptype == 'CANCELLED':
                                     self._handle_cancellations(_cr, self.session.uid, bots_picking, type_picking_prod_dict.get((picking_id, ptype), {}), context=ctx)
                                 elif ptype == 'RETURNED': # TODO: Handle returns
@@ -415,7 +456,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             for bots_picking, picking_id, split, old_backorder_id in backorders:
                                 self._handle_backorder(_cr, self.session.uid, bots_picking, picking_id, split, old_backorder_id, context=ctx)
 
-                            # TODO: Handle various opperations for extra stock
+                            # TODO: Handle various opperations for extra stock (Additional done incoming for PO handled above)
                             if moves_extra:
                                 raise NotImplementedError("Unable to process unexpected incoming stock for %s: %s" % (picking['id'], moves_extra,))
 
