@@ -130,7 +130,7 @@ class BotsAccountInvoiceAdapter(BotsCRUDAdapter):
                     'id': "%sS%s" % (bots_id, seq),
                     'seq': seq,
                     'product_sku': product_binder.to_backend(line.product_id.id) or False,
-                    'product_qty': line.quantity,
+                    'product_qty': int(line.quantity),
                     'total': line.price_subtotal,
                     'desc': line.name,
                     'unit_price': line.price_unit,
