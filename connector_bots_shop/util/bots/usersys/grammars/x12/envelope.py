@@ -5,6 +5,7 @@ nextmessage = ({'BOTSID':'ISA'},{'BOTSID':'GS'},{'BOTSID':'ST'})
 
 syntax = { 
         'add_crlfafterrecord_sep':'',
+        'reserve':'U',
         'ISA05':'ZZ',
         'ISA07':'ZZ',
     }

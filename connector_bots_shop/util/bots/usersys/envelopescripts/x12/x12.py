@@ -20,6 +20,7 @@
 
 def ta_infocontent(ta_info,*args,**kwargs):
     ta_info['add_crlfafterrecord_sep'] = ''
+    ta_info['reserve'] = 'U'
     ta_info['ISA05'] = 'ZZ'
     ta_info['ISA07'] = 'ZZ'
     # FIXME: Not the best way to write this - if we are receiving a message then
