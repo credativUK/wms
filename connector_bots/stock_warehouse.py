@@ -439,7 +439,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
                                 if ptype == 'DONE':
                                     split, old_backorder_id = self._handle_confirmations(_cr, self.session.uid, bots_picking.openerp_id, moves_part, context=ctx)
-                                    backorders.append((bots_picking, picking_id, split, old_backorder_id))
+                                    backorders.append((bots_picking_id, picking_id, split, old_backorder_id))
                                     if moves_extra.get('DONE') and picking['type'] == 'in':
                                         # Any additional done stock should be added to an incoming PO
                                         self._handle_additional_done_incoming(_cr, self.session.uid, picking_id, moves_extra.get('DONE'), context=ctx)
@@ -453,7 +453,8 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 else:
                                     raise NotImplementedError("Unable to process picking confirmation of type %s" % (ptype,))
 
-                            for bots_picking, picking_id, split, old_backorder_id in backorders:
+                            for bots_picking_id, picking_id, split, old_backorder_id in backorders:
+                                bots_picking = bots_picking_obj.browse(_cr, self.session.uid, bots_picking_id, context=ctx)
                                 self._handle_backorder(_cr, self.session.uid, bots_picking, picking_id, split, old_backorder_id, context=ctx)
 
                             # TODO: Handle various opperations for extra stock (Additional done incoming for PO handled above)
