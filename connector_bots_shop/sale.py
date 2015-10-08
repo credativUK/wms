@@ -113,6 +113,9 @@ class BotsSaleOrderImport(ImportSynchronizer):
 class BotsSaleOrderImportMapper(ImportMapper):
     _model_name = 'bots.sale.order'
 
+    def _format_partner_name(self, name):
+        return name
+
     def name_duplicated(self, name):
         if self.session.search('sale.order', [('name','=',name)]):
             return True
@@ -151,6 +154,8 @@ class BotsSaleOrderImportMapper(ImportMapper):
 
     @mapping
     def customer_and_addresses(self, record):
+        partner_name = record.get('partner_name', False)
+        partner_name = self._format_partner_name(partner_name)
         customer_email = record['partner_email']
         matching_customer_id = self.session.search('res.partner', [('email','=',customer_email)])
         address = False
@@ -184,7 +189,7 @@ class BotsSaleOrderImportMapper(ImportMapper):
                 shipping_invoice_address = matching_address_id[0]
             else:
                 new_address_vals = {'parent_id': matching_customer_id,
-                                    'name': record.get('partner_name', False),
+                                    'name': partner_name,
                                     'street': address.get('address1', False),
                                     'street2': address.get('address2', False),
                                     'city': address.get('city', False),
@@ -201,7 +206,7 @@ class BotsSaleOrderImportMapper(ImportMapper):
                     'partner_invoice_id': shipping_invoice_address,
                     'partner_shipping_id': shipping_invoice_address}
         else:
-            new_partner_vals = {'name': record.get('partner_name', False),
+            new_partner_vals = {'name': partner_name,
                                 'street': address.get('address1', False),
                                 'street2': address.get('address2', False),
                                 'city': address.get('city', False),
