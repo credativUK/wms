@@ -37,6 +37,10 @@ import json
 import traceback
 from datetime import datetime
 
+from psycopg2 import OperationalError
+
+file_lock_msg = 'could not obtain lock on row in relation "bots_file"'
+
 class BotsWarehouse(orm.Model):
     _name = 'bots.warehouse'
     _inherit = 'bots.binding'
@@ -460,6 +464,12 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             if moves_extra:
                                 raise NotImplementedError("Unable to process unexpected incoming stock for %s: %s" % (picking['id'], moves_extra,))
 
+            except OperationalError, e:
+                # file_lock_msg suggests that another job is already handling these files,
+                # so it is safe to continue without any further action.
+                if e.message != file_lock_msg:
+                    exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
+                    exceptions.append(exception)
             except Exception, e:
                 # Log error then continue processing files
                 exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
@@ -562,6 +572,12 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 'bots_id': '%s %s' % (self.backend_record.name, time,),})
                             add_checkpoint(_session, 'stock.inventory', inventory_id, self.backend_record.id)
 
+            except OperationalError, e:
+                # file_lock_msg suggests that another job is already handling these files,
+                # so it is safe to continue without any further action.
+                if e.message != file_lock_msg:
+                    exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
+                    exceptions.append(exception)
             except Exception, e:
                 # Log error then continue processing files
                 exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
