@@ -176,12 +176,12 @@ def main(inn,out):
                 LINE_SEQ = "%03d" % (int(pline.get({'BOTSID': 'line', 'seq': None})),)
                 LINE_PRODUCT = pline.get({'BOTSID': 'line', 'product': None}).upper()
                 LINE_TYPE = '*FIRST'
-                LINE_QTY = pline.get({'BOTSID': 'line', 'product_qty': None})
+                LINE_QTY = pline.get({'BOTSID': 'line', 'product_qty': None}) or 0.0
                 LINE_DESC = pline.get({'BOTSID': 'line', 'desc': None})
                 LINE_VOLUME_NET = pline.get({'BOTSID': 'line', 'volume_net': None})
                 LINE_WEIGHT = pline.get({'BOTSID': 'line', 'weight': None})
                 LINE_WEIGHT_NET = pline.get({'BOTSID': 'line', 'weight_net': None})
-                LINE_PRICE_UNIT = pline.get({'BOTSID': 'line', 'price_unit': None})
+                LINE_PRICE_UNIT = pline.get({'BOTSID': 'line', 'price_unit_ex_vat': None}) or 0.0
                 LINE_CURRENCY = pline.get({'BOTSID': 'line', 'price_currency': None})
                 LINE_CUSTOMS_FROM = pline.get({'BOTSID': 'line', 'customs_free_from': None})
                 LINE_CUSTOMS_FROM = (LINE_CUSTOMS_FROM in ("1", "True", None) and 'FR') or 'T1'

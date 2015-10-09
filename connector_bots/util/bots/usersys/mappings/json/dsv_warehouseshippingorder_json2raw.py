@@ -200,7 +200,7 @@ def main(inn,out):
                 LINE_VOLUME_NET = pline.get({'BOTSID': 'line', 'volume_net': None})
                 LINE_WEIGHT = pline.get({'BOTSID': 'line', 'weight': None})
                 LINE_WEIGHT_NET = pline.get({'BOTSID': 'line', 'weight_net': None})
-                LINE_PRICE_UNIT = pline.get({'BOTSID': 'line', 'price_unit': None})
+                LINE_PRICE_UNIT = pline.get({'BOTSID': 'line', 'price_unit_ex_vat': None}) or 0.0
                 LINE_CURRENCY = pline.get({'BOTSID': 'line', 'price_currency': None})
 
                 line_root = OrderedDict([
