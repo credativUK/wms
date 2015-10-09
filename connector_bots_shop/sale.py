@@ -37,6 +37,14 @@ import json
 import traceback
 
 
+class SaleOrder(orm.Model):
+    _name = 'sale.order'
+    _inherit = 'sale.order'
+
+    _columns = {
+            'bots_imported_json' : fields.text('Raw JSON data imported from BOTS'),
+    }
+
 class BotsSaleOrder(orm.Model):
     _name = 'bots.sale.order'
     _inherit = 'bots.binding'
@@ -142,8 +150,8 @@ class BotsSaleOrderImportMapper(ImportMapper):
 
     @mapping
     def data_summary(self, record):
-        # Add 'record' as note against sale order so all imported data is visible for reference
-        return {'note': str(record)}
+        # Store 'record' on sale order so all imported data is available for reference
+        return {'bots_imported_json': str(record)}
 
     @mapping
     def ship_date(self, record):
