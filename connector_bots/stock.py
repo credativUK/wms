@@ -942,9 +942,10 @@ def delay_export_picking_in_available(session, model_name, record_id, vals):
 
 @job
 def export_picking_available(session, model_name, record_id):
-    picking = session.browse(model_name, record_id)
-    if not picking:
+    picking_id = session.search(model_name, [('id', '=', record_id)])
+    if not picking_id:
         return "Unable to export %s, the mapping record has been deleted" % (record_id,)
+    picking = session.browse(model_name, record_id)
     if picking.bots_id:
         return "Unable to export %s, the mapping record has already been exported" % (picking.name,)
     if picking.state == 'done' and session.search(model_name, [('backorder_id', '=', picking.openerp_id.id)]):
