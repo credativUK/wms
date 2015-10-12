@@ -21,6 +21,9 @@
 from openerp.osv import fields, orm
 from .stock_warehouse import import_stock_levels, import_picking_confirmation
 from openerp.addons.connector.session import ConnectorSession
+from openerp.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
+import pytz
+from datetime import datetime
 
 class BotsBackend(orm.Model):
     _name = 'bots.backend'
@@ -53,6 +56,7 @@ class BotsBackend(orm.Model):
         'feat_reexport_backorder': fields.boolean('Re-export Back Orders', help='When we receive a partial delivery from the 3PL,\n' \
                                                   'if True this will re-export the remaining undelivered stock,\n' \
                                                   'if False it will assume the 3PL is handling the remaining items and will send subsequent confirmations with the same order reference.'),
+        'timezone': fields.char('Timezone', help='The timezone which will be used in incoming and outgoing messages'),
     }
 
     _defaults = {
@@ -127,6 +131,14 @@ class BotsBackend(orm.Model):
                 session = ConnectorSession(cr, uid, context=context)
                 import_picking_confirmation.delay(session, 'bots.warehouse', warehouse.id, picking_types, new_cr=new_cr)
         return True
+
+    def datetime_convert(self, cr, uid, ids, dt=None, context=None):
+        for backend in self.browse(cr, uid, ids, context=context):
+            if backend.timezone in pytz.all_timezones:
+                if len(dt) == 19:
+                    datetime_utc = pytz.utc.localize(datetime.strptime(dt, DEFAULT_SERVER_DATETIME_FORMAT))
+                    return datetime_utc.astimezone(pytz.timezone(backend.timezone)).strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+        return dt
 
 class BotsFile(orm.TransientModel):
     _name = 'bots.file'

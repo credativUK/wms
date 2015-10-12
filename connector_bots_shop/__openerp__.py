@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Copyright 2014 credativ Ltd
+#    Copyright 2015 credativ Ltd
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,34 +18,32 @@
 #
 ##############################################################################
 
-{'name': 'Connector for Bots EDI server',
+{'name': 'Shop connector for Bots EDI server',
  'version': '1.1.0',
  'category': 'Connector',
  'author': 'credativ Ltd',
  'website': 'http://www.credativ.co.uk',
  'license': 'AGPL-3',
  'description': """
-Connector for Bots EDI server
-=============================
+Shop connector for Bots EDI server
+==================================
 
-This module provides a way for OpenERP to communicate with EDI
-systems through Bots which is used to translate to the specific
-data format for the external EDI system.
+This module provides a way for OpenERP to communicate shop data
+with EDI systems through Bots which is used to translate to the
+specific data format for the external EDI system.
+
+This module has mappings to export data to Bots in JSON and then
+forward this on to the external system using a specific version
+of the X12 4010 EDI format.
 """,
  'depends': [
-     'connector',
-     'connector_wms',
-     'delivery',
-     'partner_incoterms',
+     'connector_bots',
+     'product_m2mcategories',
+     'sale_payment_method',
  ],
  'data': [
      'bots_model_view.xml',
-     'bots_data.xml',
-     'sale_view.xml',
-     'stock_view.xml',
-     'purchase_view.xml',
-     'bots_menu.xml',
-     'security/ir.model.access.csv',
+     'data.xml',
  ],
  'installable': True,
-}
+ }

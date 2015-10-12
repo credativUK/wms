@@ -77,6 +77,7 @@ def main(inn,out):
             SEGMENT = "10"
             rec_counts[SEGMENT] = rec_counts.setdefault(SEGMENT, 0) + 1
 
+            INCOTERM = pick.get({'BOTSID': 'pickings', 'incoterm': None})
             ORD_REMARK = pick.get({'BOTSID': 'pickings', 'desc': None})
             ORD_DELIVERY_DATE, dummy = get_datetime(pick.get({'BOTSID': 'pickings', 'date': None}) + ' 00:00:00.00000')
 
@@ -87,6 +88,7 @@ def main(inn,out):
                 ('Order_Reference', ORD_ID),
                 ('Indicator_Labelling', 'Y'),
                 ('Indicator_contact_cl', 'Y'),
+                ('Terms_of_Delivery', INCOTERM),
                 ('COD_amount', '0.0'),
                 ('Currency_COD-amount', ''),
                 ('Order_Category', 'N'), # N = New
@@ -199,7 +201,7 @@ def main(inn,out):
                 LINE_VOLUME_NET = pline.get({'BOTSID': 'line', 'volume_net': None})
                 LINE_WEIGHT = pline.get({'BOTSID': 'line', 'weight': None})
                 LINE_WEIGHT_NET = pline.get({'BOTSID': 'line', 'weight_net': None})
-                LINE_PRICE_UNIT = pline.get({'BOTSID': 'line', 'price_unit': None})
+                LINE_PRICE_UNIT = pline.get({'BOTSID': 'line', 'price_unit_ex_vat': None}) or 0.0
                 LINE_CURRENCY = pline.get({'BOTSID': 'line', 'price_currency': None})
 
                 line_root = OrderedDict([

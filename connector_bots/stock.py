@@ -446,7 +446,7 @@ class BotsStockPickingOut(orm.Model):
     def reexport_order(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
         for id in ids:
-            export_picking_available.delay(session, self._name, id)
+            export_picking.delay(session, self._name, id)
         return True
 
     def reexport_cancel(self, cr, uid, ids, context=None):
@@ -533,12 +533,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
             MODEL = 'bots.stock.picking.in'
             TYPE = 'in'
             FILENAME = 'picking_in_%s.json'
-            ALLOWED_STATES = ('waiting', 'confirmed', 'assigned',)
+            ALLOWED_STATES = ('waiting', 'confirmed', 'assigned', 'done')
         elif self._picking_type == 'out':
             MODEL = 'bots.stock.picking.out'
             TYPE = 'out'
             FILENAME = 'picking_out_%s.json'
-            ALLOWED_STATES = ('assigned',)
+            ALLOWED_STATES = ('assigned', 'done')
         else:
             raise NotImplementedError('Unable to adapt stock picking of type %s' % (self._picking_type,))
 
@@ -564,12 +564,15 @@ class StockPickingAdapter(BotsCRUDAdapter):
         if self._picking_type == 'out':
             order_number = picking.sale_id and picking.sale_id.name or picking.name
             address = picking.partner_id or picking.sale_id and picking.sale_id.partner_shipping_id
+            incoterm = picking.sale_id and picking.sale_id.incoterm and picking.sale_id.incoterm.code or ""
         elif self._picking_type == 'in':
             order_number = picking.purchase_id and picking.purchase_id.name or picking.name
             address = picking.partner_id or picking.purchase_id and (picking.purchase_id.warehouse_id and picking.purchase_id.warehouse_id.partner_id or picking.purchase_id.dest_address_id)
+            incoterm = picking.purchase_id and picking.purchase_id.incoterm_id and picking.purchase_id.incoterm_id.code or ""
         else:
             order_number = picking.name
             address = picking.partner_id
+            incoterm = ""
 
         if picking.bots_id:
             raise JobError(_('The Bots picking %s already has an external ID. Will not export again.') % (picking.id,))
@@ -614,13 +617,18 @@ class StockPickingAdapter(BotsCRUDAdapter):
             discount = 0
             price_unit = move.product_id.standard_price
             currency = default_company.currency_id
+            tax_id = []
             if move.sale_line_id:
                 price_unit = move.sale_line_id.price_unit
                 currency = move.sale_line_id.order_id.currency_id
                 discount = move.sale_line_id.discount
+                tax_id = move.sale_line_id.tax_id
+                ordered_qty = move.sale_line_id.product_uom_qty # FIXME: Could also use product_uos_qty - may be worth specifying and converting UoM
             elif move.purchase_line_id:
                 price_unit = move.purchase_line_id.price_unit
                 currency = move.purchase_line_id.order_id.currency_id
+                tax_id = move.purchase_line_id.taxes_id
+                ordered_qty = move.purchase_line_id.product_qty
             elif move.picking_id:
                 default_currency = currency
                 order = False
@@ -643,10 +651,16 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     # Fallback - no price could be found on the pricelist.
                     # Convery standard_price to the correct currency.
                     price_unit = currency_obj.compute(self.session.cr, self.session.uid, default_currency.id, currency.id, price_unit, round=False, context=ctx)
+                ordered_qty = move.product_qty
 
             price = currency_obj.round(self.session.cr, self.session.uid, currency, (1 - (discount/100.0)) * price_unit)
+
+            price_exc_tax = tax_obj.compute_all(self.session.cr, self.session.uid, tax_id, price_unit * (1-(discount or 0.0)/100.0),
+                                            1, move.product_id, move.partner_id)['total'] # Use product quantity of 1 as the unit price is being exported
+
             precision = dp.get_precision('bots')(self.session.cr)
             precision = precision and precision[1] or 2
+
             order_line = {
                     "id": "%sS%s" % (bots_id, seq),
                     "seq": seq,
@@ -657,6 +671,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "uom": move.product_uom.name,
                     "product_uos_qty": int(move.product_uos_qty),
                     "uos": move.product_uos.name,
+                    "price_unit_ex_vat": round(price_exc_tax, precision),
                     "price_unit": round(price, precision),
                     "price_currency": currency.name,
                 }
@@ -761,8 +776,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 'state': 'new',
                 'type': TYPE,
                 'date': datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT).strftime('%Y-%m-%d'),
+                'ship_date': picking.backend_id.datetime_convert(picking.date_done),
                 'partner': partner_data,
                 'client_order_ref': TYPE == 'out' and picking.sale_id and picking.sale_id.client_order_ref or '',
+                'incoterm': incoterm,
+                'tracking_number': picking.carrier_tracking_ref or "",
+                'order_date': TYPE == 'out' and picking.sale_id and picking.sale_id.date_order or '',
                 'line': order_lines,
             }
         if billing_data:
@@ -782,7 +801,8 @@ class StockPickingAdapter(BotsCRUDAdapter):
                                 'partner_to': picking.backend_id.name_to,
                                 'partner_from': picking.backend_id.name_from,
                                 'message_id': '0',
-                                'date_msg': datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'),
+                                'date_msg': picking.backend_id.datetime_convert(datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')),
+                                'docnum': bots_id,
                             }],
                     },
                 }
@@ -933,15 +953,15 @@ class BotsPickingExport(ExportSynchronizer):
 
 
 @on_record_create(model_names='bots.stock.picking.out')
-def delay_export_picking_out_available(session, model_name, record_id, vals):
-    export_picking_available.delay(session, model_name, record_id)
+def delay_export_picking_out(session, model_name, record_id, vals):
+    export_picking.delay(session, model_name, record_id)
 
 @on_record_create(model_names='bots.stock.picking.in')
-def delay_export_picking_in_available(session, model_name, record_id, vals):
-    export_picking_available.delay(session, model_name, record_id)
+def delay_export_picking_in(session, model_name, record_id, vals):
+    export_picking.delay(session, model_name, record_id)
 
 @job
-def export_picking_available(session, model_name, record_id):
+def export_picking(session, model_name, record_id):
     picking = session.browse(model_name, record_id)
     if not picking:
         raise MappingError('Unable to export, the mapping record has been deleted')

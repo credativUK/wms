@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Copyright 2014 credativ Ltd
+#    Copyright 2015 credativ Ltd
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,34 +18,20 @@
 #
 ##############################################################################
 
-{'name': 'Connector for Bots EDI server',
- 'version': '1.1.0',
- 'category': 'Connector',
- 'author': 'credativ Ltd',
- 'website': 'http://www.credativ.co.uk',
- 'license': 'AGPL-3',
- 'description': """
-Connector for Bots EDI server
-=============================
+def ta_infocontent(ta_info,*args,**kwargs):
+    ta_info['add_crlfafterrecord_sep'] = ''
+    ta_info['reserve'] = 'U'
+    ta_info['ISA05'] = 'ZZ'
+    ta_info['ISA07'] = 'ZZ'
+    # FIXME: Not the best way to write this - if we are receiving a message then
+    # we do not want a confirmation when sending out a confirmation
+    if 'inbound' in ta_info['idroute']:
+        ta_info['ISA14'] = '0'
+    # FIXME: Not the best way to write this - if the route is for testing then
+    # we should set the test flag acordingly
+    if 'test' in ta_info['idroute']:
+        ta_info['ISA15'] = 'T'
 
-This module provides a way for OpenERP to communicate with EDI
-systems through Bots which is used to translate to the specific
-data format for the external EDI system.
-""",
- 'depends': [
-     'connector',
-     'connector_wms',
-     'delivery',
-     'partner_incoterms',
- ],
- 'data': [
-     'bots_model_view.xml',
-     'bots_data.xml',
-     'sale_view.xml',
-     'stock_view.xml',
-     'purchase_view.xml',
-     'bots_menu.xml',
-     'security/ir.model.access.csv',
- ],
- 'installable': True,
-}
+def envelopecontent(ta_info, out, *args, **kwargs):
+    pass
+
