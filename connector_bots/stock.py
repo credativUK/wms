@@ -496,7 +496,7 @@ class BotsStockPickingIn(orm.Model):
     def reexport_order(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
         for id in ids:
-            export_picking_available.delay(session, self._name, id)
+            export_picking.delay(session, self._name, id)
         return True
 
     def reexport_cancel(self, cr, uid, ids, context=None):
