@@ -23,10 +23,44 @@ from openerp import pooler, netsvc, SUPERUSER_ID
 from openerp.tools.translate import _
 from openerp.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
 
+from openerp import sql_db
 from openerp.addons.connector.queue.job import job
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 
 from datetime import datetime, timedelta
+
+from openerp.addons.connector_bots.backend import bots
+from openerp.addons.connector_bots.stock_warehouse import WarehouseAdapter
+from openerp.addons.connector.exception import RetryableJobError
+
+@bots(replacing=WarehouseAdapter)
+class PrismWarehouseAdapter(WarehouseAdapter):
+    _model_name = 'bots.warehouse'
+
+    def _handle_confirmations(self, cr, uid, stock_picking, prod_confirm, context=None):
+        if picking.type == 'in' and picking.purchase_id:
+            purchase = picking.purchase_id
+            purchase_obj = self.session.pool.get('purchase.order')
+            read_fields = ['bots_cross_dock', 'bots_cut_off']
+            purchase_data = purchase_obj.read(cr, uid, purchase.id, read_fields, context=context)
+            if purchase_data['bots_cross_dock'] and not purchase_data['bots_cut_off']:
+                bots_wh_obj = self.session.pool.get('bots.warehouse')
+                wh_id = purchase_id.warehouse_id.id
+                bots_wh_ids = bots_wh_obj.search(cr, uid, [('warehouse_id', '=', wh_id)], context=context)
+                if bots_wh_ids:
+                    _cr = sql_db.db_connect(cr.dbname).cursor()
+                    session.cr = _cr
+                    purchase_cutoff.delay(session, 'bots.warehouse', bots_wh_ids[0], [purchase.id])
+                    _cr.commit()
+                    _cr.close()
+                    session.cr = cr
+                    raise RetryableJobError(
+                            'Picking %s can be confirmed only once Purchase Order %s has been cut off. '
+                            'This has now been scheduled; the job will be retried later.' %
+                            (picking.name, purchase.name)
+                    )
+
+        return super(PrismWarehouseAdapter, self)._handle_confirmations(cr, uid, stock_picking, prod_confirm, context=context)
 
 class BotsStockWarehouse(orm.Model):
     _inherit = 'bots.warehouse'
