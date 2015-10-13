@@ -2,4 +2,4 @@
 "access_bots_sale_order_user","bots_sale_order user","model_bots_sale_order","base.group_sale_salesman",1,1,1,0
 "access_bots_sale_order_manager","bots_sale_order manager","model_bots_sale_order","base.group_sale_manager",1,1,1,1
 "access_bots_account_invoice_user","bots_account_invoice user","model_bots_account_invoice","account.group_account_user",1,1,1,0
-"access_bots_account_invoice_manager","bots_account_invoice manager","model_bots_account_invoice","base.group_account_manager",1,1,1,1
+"access_bots_account_invoice_manager","bots_account_invoice manager","model_bots_account_invoice","account.group_account_manager",1,1,1,1
