@@ -405,15 +405,18 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                                                  ('state', 'not in', ('cancel', 'draft', 'done')),
                                                                 ], context=ctx))
 
-                                # Distribute qty over the moves, sperating by type
-                                for move in move_obj.read(_cr, self.session.uid, move_ids, ['picking_id', 'product_qty', 'product_id'], context=ctx):
-                                    key = (move['id'], move['picking_id'][0], move['product_id'][0])
-                                    if qty and sum(move_dict.get(key, {}).values()) < move['product_qty']:
-                                        qty_to_add = min(move['product_qty'], qty)
-                                        qty -= qty_to_add
-                                        move_dict.setdefault(key, {})[ptype] = move_dict.setdefault(key, {}).get(ptype, 0) + qty_to_add
-                                    if qty == 0:
-                                        break
+                                # Distribute qty over the moves, sperating by type - Use SQL to avoid slow name_get function
+                                if move_ids:
+                                    _cr.execute("""select id "id", picking_id "picking_id", product_qty "product_qty", product_id "product_id"
+                                                from stock_move where id in %s """, [tuple(move_ids),])
+                                    for move in _cr.dictfetchall():
+                                        key = (move['id'], move['picking_id'], move['product_id'])
+                                        if qty and sum(move_dict.get(key, {}).values()) < move['product_qty']:
+                                            qty_to_add = min(move['product_qty'], qty)
+                                            qty -= qty_to_add
+                                            move_dict.setdefault(key, {})[ptype] = move_dict.setdefault(key, {}).get(ptype, 0) + qty_to_add
+                                        if qty == 0:
+                                            break
 
                                 # No moves found or unallocated qty, handle these separatly if possible
                                 if qty:
