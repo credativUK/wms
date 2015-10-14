@@ -36,7 +36,12 @@ def picking_done(session, model_name, record_id, picking_type, location_type):
         bots_sale_obj = session.pool.get('bots.sale.order')
         bots_sale_id = bots_sale_obj.search(session.cr, session.uid, [('openerp_id','=',sale_id)]) # FIXME: Match backend as well as ID for multi-backend support
         bots_sales = bots_sale_obj.browse(session.cr, session.uid, bots_sale_id)
-        assert len(bots_sales)== 1 # Ensure 1 and only 1 matching bots sale order
+
+         # Ensure never more than 1 matching bots sale order
+        assert len(bots_sales) <= 1
+        if len(bots_sales) == 0:
+            return
+
         sale_backend_id = bots_sales[0].backend_id and bots_sales[0].backend_id.id or False
         if not sale_backend_id: # Do not export picking if not linked to imported sale order
             return
