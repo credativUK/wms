@@ -151,7 +151,7 @@ class BotsBackendAdapter(BotsCRUDAdapter):
             # TODO: How should zero and negative virtual quantities be handled?
             product_data = {
                 'product_sku': product['default_code'],
-                'quantity': product['virtual_available'],
+                'quantity': int(product['virtual_available'] or 0),
                 }
             product_datas.append(product_data)
 
