@@ -381,9 +381,12 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
                             move_dict = {}
                             moves_extra = {}
+                            
+                            product_external_ids = [line['product'] for line in picking['line']]
+                            product_external_dict = product_binder.to_openerp_multi(product_external_ids)
                             for line in picking['line']:
                                 # Handle products and qtys
-                                product_id = product_binder.to_openerp(line['product'])
+                                product_id = product_external_dict.get(line['product'], False)
                                 if not product_id:
                                     raise NoExternalId("Product %s could not be found in OpenERP" % (line['product'],))
                                 qty = int('qty_real' in line and line['qty_real'] or line['uom_qty'])
