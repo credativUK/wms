@@ -32,7 +32,7 @@ class ProductProduct(orm.Model):
     _inherit = 'product.product'
 
     _columns = {
-        'magento_prism_sku': fields.char('Prism SKU'),
+        'magento_prism_sku': fields.char('Prism SKU', select=1),
         'magento_commodity_code': fields.char('Customs Commodity Code'),
     }
 

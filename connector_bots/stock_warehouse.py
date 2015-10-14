@@ -118,20 +118,29 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
         old_backorder_id = stock_picking.backorder_id and stock_picking.backorder_id.id or False
         moves_to_ship = {}
-        for move_id, qty in prod_confirm.iteritems():
-            move = move_obj.browse(cr, uid, move_id, context=context)
-            move_currency = move.price_currency_id.id
-            move_currency = move_currency or (move.picking_id.sale_id and move.picking_id.sale_id.currency_id.id)
-            move_currency = move_currency or (move.picking_id.purchase_id and move.picking_id.purchase_id.currency_id.id)
-            moves_to_ship['move%s' % (move.id)] = {
-                'product_id': move.product_id.id,
+        cr.execute("""
+            select
+                sm.id "id", sm.product_id "product_id", sm.product_uom "product_uom", sm.prodlot_id "prodlot_id",
+                sm.price_unit "price_unit", pl.currency_id "currency_id"
+            from stock_move sm
+            left outer join stock_picking sp on sp.id = sm.picking_id
+            left outer join sale_order so on so.id = sp.sale_id
+            left outer join purchase_order po on po.id = sp.purchase_id
+            left outer join product_pricelist pl on pl.id = coalesce(so.pricelist_id, po.pricelist_id)
+            where sm.id in %s
+            """, [tuple(prod_confirm.keys())])
+        for move_item in cr.dictfetchall():
+            qty = prod_confirm.get(move_item['id'], 0)
+            moves_to_ship['move%s' % (move_item['id'])] = {
+                'product_id': move_item['product_id'] or False,
                 'product_qty': qty,
-                'product_uom': move.product_uom.id,
-                'prodlot_id': move.prodlot_id.id,
-                'product_price' : move.price_unit,
-                'product_currency' : move_currency,
+                'product_uom': move_item['product_uom'] or False,
+                'prodlot_id': move_item['prodlot_id'] or False,
+                'product_price' : move_item['price_unit'] or 0.0,
+                'product_currency' : move_item['currency_id'] or False,
             }
         split = picking_obj.do_partial(cr, uid, [stock_picking.id], moves_to_ship, context=context)
+
         return split, old_backorder_id
 
     def _handle_cancellations(self, cr, uid, stock_picking, prod_cancel, context=None):
@@ -382,20 +391,22 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
                                 # Attempt to find moves for this line
                                 move_ids = [int(x) for x in line.get('move_ids', '').split(',') if x]
+                                move_ids = move_obj.search(_cr, self.session.uid, [('id', 'in', move_ids),
+                                                                                   ('state', 'not in', ('cancel', 'draft', 'done')),
+                                                                                   ], context=ctx)
 
                                 # Match moves from the main picking as a fallback
-                                for move in main_picking.openerp_id.move_lines:
-                                    if move.product_id.id == product_id:
-                                        move_ids.append(move.id)
+                                move_ids.extend(move_obj.search(_cr, self.session.uid,
+                                                                [('picking_id', '=', main_picking.openerp_id.id),
+                                                                 ('product_id', '=', product_id),
+                                                                 ('state', 'not in', ('cancel', 'draft', 'done')),
+                                                                ], context=ctx))
 
                                 # Distribute qty over the moves, sperating by type
-                                for move_id in move_ids:
-                                    move = move_obj.browse(_cr, self.session.uid, move_id, context=ctx)
-                                    if move.state in ('cancel', 'draft', 'done'):
-                                        continue
-                                    key = (move.id, move.picking_id.id)
-                                    if qty and sum(move_dict.get(key, {}).values()) < move.product_qty:
-                                        qty_to_add = min(move.product_qty, qty)
+                                for move in move_obj.read(_cr, self.session.uid, move_ids, ['picking_id', 'product_qty', 'product_id'], context=ctx):
+                                    key = (move['id'], move['picking_id'][0], move['product_id'][0])
+                                    if qty and sum(move_dict.get(key, {}).values()) < move['product_qty']:
+                                        qty_to_add = min(move['product_qty'], qty)
                                         qty -= qty_to_add
                                         move_dict.setdefault(key, {})[ptype] = move_dict.setdefault(key, {}).get(ptype, 0) + qty_to_add
                                     if qty == 0:
@@ -408,8 +419,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             # Group moves and qtys by pickings and type
                             type_picking_move_dict = {} # Dicts of move_id and qty
                             type_picking_prod_dict = {} # Dicts of product_id and qty
-                            for (move_id, picking_id), type_qtys in move_dict.iteritems():
-                                move = move_obj.browse(_cr, self.session.uid, move_id, context=ctx)
+                            for (move_id, picking_id, product_id), type_qtys in move_dict.iteritems():
                                 if not picking_id:
                                     raise NotImplementedError("Stock confirmation must be for a picking. Move ID %d with no picking are not supported" % (move_id,))
                                 if type_qtys and picking_id not in picking_ids:
@@ -417,7 +427,8 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 for ptype, qty in type_qtys.iteritems():
                                     key = (picking_id, ptype)
                                     type_picking_move_dict.setdefault(key, {})[move_id] = type_picking_move_dict.get(key, {}).get(move_id, 0) + qty
-                                    type_picking_prod_dict.setdefault(key, {})[move.product_id.id] = type_picking_prod_dict.get(key, {}).get(move.product_id.id, 0) + qty
+                                    type_picking_prod_dict.setdefault(key, {})[product_id] = type_picking_prod_dict.get(key, {}).get(product_id, 0) + qty
+                            del move_dict
 
                             # Handle tracking information
                             tracking_data = self._get_tracking(_cr, self.session.uid, picking, contect=ctx)
