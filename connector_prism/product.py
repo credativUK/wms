@@ -32,7 +32,7 @@ class ProductProduct(orm.Model):
     _inherit = 'product.product'
 
     _columns = {
-        'magento_prism_sku': fields.char('Prism SKU'),
+        'magento_prism_sku': fields.char('Prism SKU', select=1),
         'magento_commodity_code': fields.char('Customs Commodity Code'),
     }
 
@@ -46,23 +46,54 @@ class PrismProductBinder(BotsProductBinder):
         '''Match the SKU from Bots to the OpenERP product. Since product master sync is not yet implemented we will attempt to match directly on SKU with overrides'''
         # Attempt to get overriding mappings
         bots_product_ids = self.session.search('bots.product', [('bots_id', '=', str(external_id)), ('backend_id', '=', self.backend_record.id)])
+        openerp_ids = []
         if bots_product_ids:
             bots_product_data = self.session.read('bots.product', bots_product_ids, ['product_id'])
-            binding_ids = [x['product_id'][0] for x in bots_product_data]
+            openerp_ids = [x['product_id'][0] for x in bots_product_data]
         else:
             # If no overriding mappings, try to match the SKU directly
-            binding_ids = self.session.search('product.product', [('magento_prism_sku', '=', str(external_id))])
+            openerp_ids = self.session.search('product.product', [('magento_prism_sku', '=', str(external_id))])
             #if not binding_ids: # Do not default to default_code, only use the value imported from 3rd party site (magento_prism_sku)
             #    binding_ids = self.session.search('product.product', [('default_code', '=', str(external_id))])
-        if not binding_ids:
+        if not openerp_ids:
             return None
-        if len(binding_ids) > 1:
+        if len(openerp_ids) > 1:
             _logger.warning('Found multiple OpenERP IDs for product with Bots SKU %s' % (external_id,))
-        binding_id = binding_ids[0]
-        if unwrap:
-            return self.session.read('product.product', binding_id, ['openerp_id'])['openerp_id'][0]
-        else:
-            return binding_id
+        openerp_id = openerp_ids[0]
+        return openerp_id
+
+    def to_openerp_multi(self, external_ids, unwrap=False):
+        '''Match list of SKUs from Bots and return a dict of {External_ID: OpenERP_ID}'''
+        external_ids = [str(xid) for xid in external_ids]
+        res = dict.fromkeys(external_ids, False)
+        bots_product_ids = self.session.search('bots.product', [('bots_id', 'in', external_ids), ('backend_id', '=', self.backend_record.id)])
+        if bots_product_ids:
+            bots_product_data = self.session.read('bots.product', bots_product_ids, ['bots_id', 'openerp_id'])
+            for bots_product in bots_product_data:
+                res[bots_product['bots_id']] = bots_product['id']
+
+        # For any with no mappings attempt to map directly to OpenERP SKU
+        external_ids = [xid for (xid, oeid) in res.iteritems() if oeid == False]
+        if external_ids:
+            product_ids = self.session.search('product.product', [('magento_prism_sku', 'in', external_ids)])
+            product_data = self.session.read('product.product', product_ids, ['magento_prism_sku'])
+            for product in product_data:
+                res[product['magento_prism_sku']] = product['id']
+
+        return res
+
+        # For any with no mappings attempt to map directly to OpenERP SKU
+        external_ids = [xid for (xid, oeid) in res.iteritems() if oeid == False]
+        if external_ids:
+            bots_product_ids = self.session.search('bots.product', [('default_code', 'in', external_ids), ('backend_id', '=', self.backend_record.id)])
+            bots_product_data = self.session.read('bots.product', bots_product_ids, ['bots_id', 'openerp_id'])
+            for bots_product in bots_product_data:
+                if unwrap:
+                    res[bots_product['bots_id']] = bots_product['openerp_id'][0]
+                else:
+                    res[bots_product['bots_id']] = bots_product['id']
+
+        return res
 
     def to_backend(self, record_id, wrap=False):
         '''Export the SKU to Bots from the OpenERP product. Since product master sync is not yet implimented we will attempt to match directly on SKU with overrides'''
