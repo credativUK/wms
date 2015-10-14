@@ -43,6 +43,16 @@ from datetime import datetime
 import re
 import openerp.addons.decimal_precision as dp
 
+def get_bots_picking_ids(cr, uid, ids, ids_skipped, table, not_in_move_states, bots_id_condition, context={}):
+    cr.execute("SELECT DISTINCT(bsp.id) FROM "+ table +" AS bsp " \
+                "INNER JOIN stock_picking AS sp ON sp.id = bsp.openerp_id " \
+                "LEFT JOIN stock_move AS sm ON sp.id = sm.picking_id " \
+                "WHERE bsp.openerp_id IN %s " \
+                "AND bsp.bots_override = False " \
+                "AND bsp.id NOT IN %s " \
+                "AND sm.state NOT IN %s " \
+                "AND bsp.bots_id " + bots_id_condition , (tuple(ids), tuple(ids_skipped), tuple(not_in_move_states)))
+    return cr.fetchall()
 
 class StockPickingIn(orm.Model):
     _inherit = 'stock.picking.in'
@@ -92,11 +102,13 @@ class StockPickingIn(orm.Model):
         backend_obj = self.pool.get('bots.backend')
         res = {}
         ids_skipped = self.pool.get('stock.picking').bots_skip_ids(cr, uid, ids, type='in', context=context)
-        ids_pending = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False), ('id', 'not in', ids_skipped)], context=context)
+
+        ids_pending = get_bots_picking_ids(cr, uid, ids, ids_skipped, picking_model='bots_stock_picking_in', not_in_move_states=('done', 'cancel'), bots_id_condition='IS NULL', context=context)
         states = ['cancel']
         if doraise:
             states.append('done')
-        ids_exported = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', states), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
+        ids_exported = get_bots_picking_ids(cr, uid, ids, ids_skipped, picking_model='bots_stock_picking_in', not_in_move_states=states, bots_id_condition='IS NOT NULL', context=context)
+
         ids_all = ids_pending + ids_exported
         if ids_all and cancel:
             backend_ids = backend_obj.search(cr, SUPERUSER_ID, [('feat_picking_in_cancel','=', True)], context=context)
@@ -185,11 +197,13 @@ class StockPickingOut(orm.Model):
         backend_obj = self.pool.get('bots.backend')
         res = {}
         ids_skipped = self.pool.get('stock.picking').bots_skip_ids(cr, uid, ids, type='out', context=context)
-        ids_pending = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False), ('id', 'not in', ids_skipped)], context=context)
+
+        ids_pending = get_bots_picking_ids(cr, uid, ids, ids_skipped, table='bots_stock_picking_out', not_in_move_states=('done', 'cancel'), bots_id_condition='IS NULL', context=context)
         states = ['cancel']
         if doraise:
             states.append('done')
-        ids_exported = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', states), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
+        ids_exported = get_bots_picking_ids(cr, uid, ids, ids_skipped, table='bots_stock_picking_out', not_in_move_states=states, bots_id_condition='IS NOT NULL', context=context)
+
         ids_all = ids_pending + ids_exported
         if ids_all and cancel:
             backend_ids = backend_obj.search(cr, SUPERUSER_ID, [('feat_picking_out_cancel','=', True)], context=context)
@@ -280,9 +294,11 @@ class StockPicking(orm.Model):
             picking_type = pick_read['type']
             if picking_type == 'in':
                 MODEL = 'bots.stock.picking.in'
+                TABLE = 'bots_stock_picking_in'
                 PARAM = 'feat_picking_in_cancel'
             elif picking_type == 'out':
                 MODEL = 'bots.stock.picking.out'
+                TABLE = 'bots_stock_picking_out'
                 PARAM = 'feat_picking_out_cancel'
             else:
                 continue
@@ -292,7 +308,8 @@ class StockPicking(orm.Model):
             states = ['cancel']
             if doraise:
                 states.append('done')
-            ids_exported = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', pick.id), ('move_lines.state', 'not in', states), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
+            ids_exported = get_bots_picking_ids(cr, uid, ids, ids_skipped, table=TABLE, not_in_move_states=states, bots_id_condition='IS NOT NULL', context=context)
+
             ids_all = ids_pending + ids_exported
             if ids_all and cancel:
                 backend_ids = backend_obj.search(cr, SUPERUSER_ID, [(PARAM,'=', True)], context=context)
