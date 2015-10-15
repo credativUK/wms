@@ -31,6 +31,9 @@ from openerp.addons.connector_bots.unit.binder import BotsModelBinder
 from openerp.addons.connector_bots.unit.backend_adapter import BotsCRUDAdapter, file_to_process
 from openerp.addons.connector_bots.backend import bots
 from openerp.addons.connector_bots.connector import get_environment, add_checkpoint
+
+from openerp.addons.connector_ecommerce.unit.sale_order_onchange import (SaleOrderOnChange)
+
 import openerp.addons.decimal_precision as dp
 
 import json
@@ -116,6 +119,11 @@ class BotsSaleOrderImport(ImportSynchronizer):
 
 
 @bots
+class BotsSaleOrderOnChange(SaleOrderOnChange):
+    _model_name = 'bots.sale.order'
+
+
+@bots
 class BotsSaleOrderImportMapper(ImportMapper):
     _model_name = 'bots.sale.order'
 
@@ -126,6 +134,10 @@ class BotsSaleOrderImportMapper(ImportMapper):
         if self.session.search('sale.order', [('name','=',name)]):
             return True
         return False
+
+    def finalize(self, map_record, values):
+        onchange = self.get_connector_unit_for_model(SaleOrderOnChange)
+        return onchange._play_order_onchange(values)
 
     @mapping
     def name(self, record):
