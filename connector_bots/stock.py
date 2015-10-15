@@ -43,6 +43,16 @@ from datetime import datetime
 import re
 import openerp.addons.decimal_precision as dp
 
+def get_bots_picking_ids(cr, uid, ids, ids_skipped, table, not_in_move_states, bots_id_condition, context={}):
+    cr.execute("SELECT DISTINCT(bsp.id) FROM "+ table +" AS bsp " \
+                "INNER JOIN stock_picking AS sp ON sp.id = bsp.openerp_id " \
+                "LEFT JOIN stock_move AS sm ON sp.id = sm.picking_id " \
+                "WHERE bsp.openerp_id IN %s " \
+                "AND bsp.bots_override = False " \
+                "AND bsp.id NOT IN %s " \
+                "AND sm.state NOT IN %s " \
+                "AND bsp.bots_id " + bots_id_condition , (tuple(ids), tuple(ids_skipped), tuple(not_in_move_states)))
+    return [x[0] for x in cr.fetchall()]
 
 class StockPickingIn(orm.Model):
     _inherit = 'stock.picking.in'
@@ -89,17 +99,21 @@ class StockPickingIn(orm.Model):
         if context.get('wms_bots', False):
             return False
         bots_picking_obj = self.pool.get('bots.stock.picking.in')
+        backend_obj = self.pool.get('bots.backend')
         res = {}
         ids_skipped = self.pool.get('stock.picking').bots_skip_ids(cr, uid, ids, type='in', context=context)
-        ids_pending = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False), ('id', 'not in', ids_skipped)], context=context)
+
+        ids_pending = get_bots_picking_ids(cr, uid, ids, ids_skipped, picking_model='bots_stock_picking_in', not_in_move_states=('done', 'cancel'), bots_id_condition='IS NULL', context=context)
         states = ['cancel']
         if doraise:
             states.append('done')
-        ids_exported = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', states), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
+        ids_exported = get_bots_picking_ids(cr, uid, ids, ids_skipped, picking_model='bots_stock_picking_in', not_in_move_states=states, bots_id_condition='IS NOT NULL', context=context)
+
         ids_all = ids_pending + ids_exported
         if ids_all and cancel:
-            exported_obj = bots_picking_obj.browse(cr, uid, ids_all, context=context)
-            ids_all = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_in_cancel]
+            backend_ids = backend_obj.search(cr, SUPERUSER_ID, [('feat_picking_in_cancel','=', True)], context=context)
+            exported_pickings = bots_picking_obj.read(cr, uid, ids_all, ['bots_id', 'backend_id'], context=context)
+            ids_all = [x['id'] for x in exported_pickings if not x['bots_id'] or not x['backend_id'] in backend_ids]
         if ids_all and doraise:
             raise osv.except_osv(_('Error!'), _('This picking has been exported, or is pending export, to an external WMS and cannot be modified directly in OpenERP.'))
         if ids_exported:
@@ -180,17 +194,21 @@ class StockPickingOut(orm.Model):
         if context.get('wms_bots', False):
             return False
         bots_picking_obj = self.pool.get('bots.stock.picking.out')
+        backend_obj = self.pool.get('bots.backend')
         res = {}
         ids_skipped = self.pool.get('stock.picking').bots_skip_ids(cr, uid, ids, type='out', context=context)
-        ids_pending = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False), ('id', 'not in', ids_skipped)], context=context)
+
+        ids_pending = get_bots_picking_ids(cr, uid, ids, ids_skipped, table='bots_stock_picking_out', not_in_move_states=('done', 'cancel'), bots_id_condition='IS NULL', context=context)
         states = ['cancel']
         if doraise:
             states.append('done')
-        ids_exported = bots_picking_obj.search(cr, SUPERUSER_ID, [('openerp_id', 'in', ids), ('move_lines.state', 'not in', states), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
+        ids_exported = get_bots_picking_ids(cr, uid, ids, ids_skipped, table='bots_stock_picking_out', not_in_move_states=states, bots_id_condition='IS NOT NULL', context=context)
+
         ids_all = ids_pending + ids_exported
         if ids_all and cancel:
-            exported_obj = bots_picking_obj.browse(cr, uid, ids_all, context=context)
-            ids_all = [x.id for x in exported_obj if not x.bots_id or not x.backend_id.feat_picking_out_cancel]
+            backend_ids = backend_obj.search(cr, SUPERUSER_ID, [('feat_picking_out_cancel','=', True)], context=context)
+            exported_pickings = bots_picking_obj.read(cr, uid, ids_all, ['bots_id', 'backend_id'], context=context)
+            ids_all = [x['id'] for x in exported_pickings if not x['bots_id'] or not x['backend_id'] in backend_ids]
         if ids_all and doraise:
             raise osv.except_osv(_('Error!'), _('This picking has been exported, or is pending export, to an external WMS and cannot be modified directly in OpenERP.'))
         if ids_exported:
@@ -270,25 +288,33 @@ class StockPicking(orm.Model):
             return False
         exported = []
         pending = []
-        for pick in self.browse(cr, uid, ids, context=context):
-            if pick.type == 'in':
+        backend_obj = self.pool.get('bots.backend')
+        for pick_read in self.read(cr, uid, ids, ['type'], context=context):
+            picking_id = pick_read['id']
+            picking_type = pick_read['type']
+            if picking_type == 'in':
                 MODEL = 'bots.stock.picking.in'
+                TABLE = 'bots_stock_picking_in'
                 PARAM = 'feat_picking_in_cancel'
-            elif pick.type == 'out':
+            elif picking_type == 'out':
                 MODEL = 'bots.stock.picking.out'
+                TABLE = 'bots_stock_picking_out'
                 PARAM = 'feat_picking_out_cancel'
             else:
                 continue
-            ids_skipped = self.bots_skip_ids(cr, uid, ids, type=pick.type, context=context)
+            ids_skipped = self.bots_skip_ids(cr, uid, ids, type=picking_type, context=context)
+
             ids_pending = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', pick.id), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False), ('id', 'not in', ids_skipped)], context=context)
             states = ['cancel']
             if doraise:
                 states.append('done')
-            ids_exported = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', pick.id), ('move_lines.state', 'not in', states), ('bots_override', '=', False), ('bots_id', '!=', False), ('id', 'not in', ids_skipped)], context=context)
+            ids_exported = get_bots_picking_ids(cr, uid, ids, ids_skipped, table=TABLE, not_in_move_states=states, bots_id_condition='IS NOT NULL', context=context)
+
             ids_all = ids_pending + ids_exported
             if ids_all and cancel:
-                exported_obj = self.pool.get(MODEL).browse(cr, uid, ids_all, context=context)
-                ids_all = [x.id for x in exported_obj if not x.bots_id or not getattr(x.backend_id, PARAM)]
+                backend_ids = backend_obj.search(cr, SUPERUSER_ID, [(PARAM,'=', True)], context=context)
+                exported_pickings = self.pool.get(MODEL).read(cr, uid, ids_all, ['bots_id', 'backend_id'], context=context)
+                ids_all = [x['id'] for x in exported_pickings if not x['bots_id'] or not x['backend_id'] in backend_ids]
             if ids_all and doraise:
                 raise osv.except_osv(_('Error!'), _('This picking has been exported, or is pending export, to an external WMS and cannot be modified directly in OpenERP.'))
             exported.extend(ids_exported)
@@ -339,8 +365,9 @@ class StockMove(orm.Model):
         res = {}
         # Group moves by picking to improve performance
         picking_dict = {}
-        for move in self.browse(cr, uid, ids, context=context):
-            picking_dict.setdefault(move.picking_id.id, []).append(move.id)
+        for move_read in self.read(cr, uid, ids, ['picking_id'], context=context):
+            picking_id = move_read['picking_id'] and move_read['picking_id'][0]
+            picking_dict.setdefault(picking_id, []).append(move_read['id'])
         for picking_id, move_ids in picking_dict.iteritems():
             if picking_id and move_ids:
                 exported = self.bots_test_exported(cr, uid, move_ids, doraise=False, cancel=False, context=context).get('exported', False) and True or False
@@ -364,14 +391,16 @@ class StockMove(orm.Model):
     def bots_test_exported(self, cr, uid, ids, doraise=False, cancel=False, context=None):
         exported = False
         pickings = []
-        for move in self.browse(cr, uid, ids, context=context):
-            if move.picking_id and move.picking_id not in pickings:
-                pickings.append(move.picking_id)
-        for picking in pickings:
-            if picking.type == 'out':
-                exported = self.pool.get('stock.picking.out').bots_test_exported(cr, uid, [picking.id], doraise=doraise, cancel=cancel, context=context)
-            elif picking.type == 'in':
-                exported = self.pool.get('stock.picking.in').bots_test_exported(cr, uid, [picking.id], doraise=doraise, cancel=cancel, context=context)
+        for move_read in self.read(cr, uid, ids, ['picking_id', 'type'], context=context):
+            picking_id = move_read['picking_id'] and move_read['picking_id'][0]
+            picking_type = move_read['type']
+            if (picking_id, picking_type) not in pickings:
+                pickings.append((picking_id, picking_type))
+        for picking_id, picking_type in pickings:
+            if picking_type == 'out':
+                exported = self.pool.get('stock.picking.out').bots_test_exported(cr, uid, [picking_id], doraise=doraise, cancel=cancel, context=context)
+            elif picking_type == 'in':
+                exported = self.pool.get('stock.picking.in').bots_test_exported(cr, uid, [picking_id], doraise=doraise, cancel=cancel, context=context)
             if exported:
                 return exported
         return {}
