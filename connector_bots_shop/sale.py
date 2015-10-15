@@ -130,6 +130,11 @@ class BotsSaleOrderImportMapper(ImportMapper):
     def _format_partner_name(self, name):
         return name
 
+    def _get_partner_attributes(self, record):
+        # Hook function for extending customer import with additional attributes
+        # Return format: dict{field_name:field_value}
+        return {}
+
     def name_duplicated(self, name):
         if self.session.search('sale.order', [('name','=',name)]):
             return True
@@ -236,6 +241,9 @@ class BotsSaleOrderImportMapper(ImportMapper):
                                 'company_id': company_id,
                                 'customer': True,
                                 }
+            additional_partner_attributes = self._get_partner_attributes(record)
+            for key, value in additional_partner_attributes.iteritems():
+                new_partner_vals[key] = value
             new_partner_id = self.session.create('res.partner', new_partner_vals)
             return {'partner_id': new_partner_id,
                     'partner_invoice_id': new_partner_id,
