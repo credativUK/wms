@@ -31,6 +31,9 @@ from openerp.addons.connector_bots.unit.binder import BotsModelBinder
 from openerp.addons.connector_bots.unit.backend_adapter import BotsCRUDAdapter, file_to_process
 from openerp.addons.connector_bots.backend import bots
 from openerp.addons.connector_bots.connector import get_environment, add_checkpoint
+
+from openerp.addons.connector_ecommerce.unit.sale_order_onchange import (SaleOrderOnChange)
+
 import openerp.addons.decimal_precision as dp
 
 import json
@@ -96,8 +99,6 @@ class BotsSaleOrderAdapter(BotsCRUDAdapter):
 
                     # Create automatic payment for full order amount
                     sale_obj.automatic_payment(self.session.cr, self.session.uid, sale_id)
-
-                    add_checkpoint(self.session, 'sale.order', sale_id, backend_id)
         except Exception, e:
             exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
             exceptions.append(exception)
@@ -118,16 +119,30 @@ class BotsSaleOrderImport(ImportSynchronizer):
 
 
 @bots
+class BotsSaleOrderOnChange(SaleOrderOnChange):
+    _model_name = 'bots.sale.order'
+
+
+@bots
 class BotsSaleOrderImportMapper(ImportMapper):
     _model_name = 'bots.sale.order'
 
     def _format_partner_name(self, name):
         return name
 
+    def _get_partner_attributes(self, record):
+        # Hook function for extending customer import with additional attributes
+        # Return format: dict{field_name:field_value}
+        return {}
+
     def name_duplicated(self, name):
         if self.session.search('sale.order', [('name','=',name)]):
             return True
         return False
+
+    def finalize(self, map_record, values):
+        onchange = self.get_connector_unit_for_model(SaleOrderOnChange)
+        return onchange._play_order_onchange(values)
 
     @mapping
     def name(self, record):
@@ -226,6 +241,9 @@ class BotsSaleOrderImportMapper(ImportMapper):
                                 'company_id': company_id,
                                 'customer': True,
                                 }
+            additional_partner_attributes = self._get_partner_attributes(record)
+            for key, value in additional_partner_attributes.iteritems():
+                new_partner_vals[key] = value
             new_partner_id = self.session.create('res.partner', new_partner_vals)
             return {'partner_id': new_partner_id,
                     'partner_invoice_id': new_partner_id,

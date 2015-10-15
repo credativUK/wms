@@ -37,6 +37,7 @@ forward this on to the external system using a specific version
 of the X12 4010 EDI format.
 """,
  'depends': [
+     'connector_ecommerce',
      'connector_bots',
      'product_m2mcategories',
      'sale_payment_method',
@@ -44,6 +45,7 @@ of the X12 4010 EDI format.
  'data': [
      'bots_model_view.xml',
      'data.xml',
+     'product_view.xml',
      'security/ir.model.access.csv',
  ],
  'installable': True,

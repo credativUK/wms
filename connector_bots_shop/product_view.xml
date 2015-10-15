@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="bots_shop_product_form_view" model="ir.ui.view">
+            <field name="name">product.product.form.case.bots_shop</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view" />
+            <field name="arch" type="xml">
+                <group name="status" position="after">
+                    <group name="bots_sync" string="Bots Sync">
+                        <field name="exclude_from_bots_stock"/>
+                    </group>
+                </group>
+            </field>
+        </record>
+    </data>
+</openerp>
