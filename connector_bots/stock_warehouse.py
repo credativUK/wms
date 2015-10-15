@@ -156,6 +156,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
             # Duplicate the entire picking including moves lines and procurements
             new_picking_id = picking_obj.copy(cr, uid, stock_picking.id, {'move_lines': []}, context=context)
             new_picking = picking_obj.browse(cr, uid, new_picking_id, context=context)
+            moves = False
 
             # For the original picking remove lines which were cancelled
             for move in stock_picking.move_lines:
@@ -168,6 +169,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                     prod_cancel[move.product_id.id] = prod_cancel[move.product_id.id] - move.product_qty
                     procurement_id = procurement_obj.search(cr, uid, [('move_id', '=', move.id)], context=context)
                     new_move = stock_move_obj.copy(cr, uid, move.id, {'picking_id': new_picking_id}, context=context)
+                    moves = True
                     if procurement_id:
                         procurement = procurement_obj.browse(cr, uid, procurement_id[0], context=context)
                         cut_off = procurement.purchase_id and getattr(procurement.purchase_id, 'bots_cut_off', False) and procurement.purchase_id.bots_cut_off
@@ -198,6 +200,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                     procurement_obj.write(cr, uid, procurement_id, {'product_qty': reduce_qty, 'product_uos_qty': reduce_qty}, context=context)
 
                     new_move = stock_move_obj.copy(cr, uid, move.id, {'picking_id': new_picking_id, 'product_qty': new_qty, 'product_uos_qty': new_qty}, context=context)
+                    moves = True
                     if procurement_id:
                         defaults = {'move_id': new_move, 'purchase_id': False, 'product_qty': new_qty, 'product_uos_qty': new_qty}
                         if move.sale_line_id:
@@ -211,12 +214,14 @@ class WarehouseAdapter(BotsCRUDAdapter):
                 else:
                     pass
 
-            add_checkpoint(self.session, 'stock.picking', new_picking_id, self.backend_record.id)
-
-            wf_service.trg_validate(uid, 'stock.picking', new_picking_id, 'button_confirm', cr)
-            if stock_picking.type == 'out' and stock_picking.sale_id:
-                wf_service.trg_validate(uid, 'sale.order', stock_picking.sale_id.id, 'ship_corrected', cr)
-            wf_service.trg_write(uid, 'stock.picking', stock_picking.id, cr)
+            if moves:
+                add_checkpoint(self.session, 'stock.picking', new_picking_id, self.backend_record.id)
+                wf_service.trg_validate(uid, 'stock.picking', new_picking_id, 'button_confirm', cr)
+                if stock_picking.type == 'out' and stock_picking.sale_id:
+                    wf_service.trg_validate(uid, 'sale.order', stock_picking.sale_id.id, 'ship_corrected', cr)
+                wf_service.trg_write(uid, 'stock.picking', stock_picking.id, cr)
+            else: # If no moves were backordered then unlink the new picking
+                picking_obj.unlink(cr, uid, [new_picking_id], context=context)
 
             return new_picking_id
         else:
@@ -398,17 +403,23 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 qty = int('qty_real' in line and line['qty_real'] or line['uom_qty'])
                                 ptype = line.get('status') or 'DONE'
 
+                                ignore_states = ('cancel', 'draft', 'done')
+                                if ptype == 'CANCELLED':
+                                    ignore_states = ('draft', 'done')
+                                elif ptype == 'DONE':
+                                    ignore_states = ('cancel', 'draft')
+
                                 # Attempt to find moves for this line
                                 move_ids = [int(x) for x in line.get('move_ids', '').split(',') if x]
                                 move_ids = move_obj.search(_cr, self.session.uid, [('id', 'in', move_ids),
-                                                                                   ('state', 'not in', ('cancel', 'draft', 'done')),
-                                                                                   ], context=ctx)
+                                                                                ('state', 'not in', ignore_states),
+                                                                                ], context=ctx)
 
                                 # Match moves from the main picking as a fallback
                                 move_ids.extend(move_obj.search(_cr, self.session.uid,
                                                                 [('picking_id', '=', main_picking.openerp_id.id),
-                                                                 ('product_id', '=', product_id),
-                                                                 ('state', 'not in', ('cancel', 'draft', 'done')),
+                                                                ('product_id', '=', product_id),
+                                                                ('state', 'not in', ignore_states),
                                                                 ], context=ctx))
 
                                 # Distribute qty over the moves, sperating by type - Use SQL to avoid slow name_get function

@@ -926,7 +926,9 @@ def picking_cancel(session, model_name, record_id, picking_type):
         if min_date and not picking.bots_override and datetime.now().date() >= min_date.date():
             late_pickings.append(picking.name)
             continue
-        export_picking_cancel.delay(session, picking_type, picking.id)
+        if (picking_type == 'bots.stock.picking.out' and picking.backend_id.feat_picking_out_cancel) or \
+            (picking_type == 'bots.stock.picking.in' and picking.backend_id.feat_picking_in_cancel):
+            export_picking_cancel.delay(session, picking_type, picking.id)
 
     if late_pickings:
         raise osv.except_osv(_('Error!'), _('Could not cancel the following pickings, they might have already been delivered by the warehouse: %s') % ", ".join(late_pickings))
