@@ -96,8 +96,6 @@ class BotsSaleOrderAdapter(BotsCRUDAdapter):
 
                     # Create automatic payment for full order amount
                     sale_obj.automatic_payment(self.session.cr, self.session.uid, sale_id)
-
-                    add_checkpoint(self.session, 'sale.order', sale_id, backend_id)
         except Exception, e:
             exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
             exceptions.append(exception)
