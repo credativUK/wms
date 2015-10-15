@@ -242,8 +242,7 @@ class BotsSaleOrderImportMapper(ImportMapper):
                                 'customer': True,
                                 }
             additional_partner_attributes = self._get_partner_attributes(record)
-            for key, value in additional_partner_attributes.iteritems():
-                new_partner_vals[key] = value
+            new_partner_vals.update(additional_partner_attributes)
             new_partner_id = self.session.create('res.partner', new_partner_vals)
             return {'partner_id': new_partner_id,
                     'partner_invoice_id': new_partner_id,
