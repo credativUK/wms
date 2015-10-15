@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Copyright 2014 credativ Ltd
+#    Author: Ondrej Kuznik
+#    Copyright 2014 credativ ltd.
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,11 +19,13 @@
 #
 ##############################################################################
 
-import stock
-import connector
-import backend
-import bots_model
-import product
-import sale
-import stock_warehouse
-import purchase
+from openerp.osv import orm, fields
+
+class magento_backend(orm.Model):
+    _inherit = 'magento.backend'
+
+    _columns = {
+        'location_ids': fields.many2many('magento.stock.location', 'magento_backend_location_rel',
+                                        'backend_id', 'location_id', 'Exported stock locations',
+                                        help='Locations whose stock levels are exported.'),
+    }

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Copyright 2014 credativ Ltd
+#    Author: Ondrej Kuznik
+#    Copyright 2014 credativ ltd.
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,11 +19,24 @@
 #
 ##############################################################################
 
-import stock
-import connector
-import backend
-import bots_model
-import product
-import sale
-import stock_warehouse
-import purchase
+{'name': 'Magento stock export for Advanced Warehousing module',
+ 'version': '1.0.0',
+ 'category': 'Connector',
+ 'depends': ['magentoerpconnect',
+             ],
+ 'author': 'credativ ltd.',
+ 'license': 'AGPL-3',
+ 'description': """
+Magento stock export for Advanced Warehousing module
+================================
+
+Makes it possible to export the stock levels towards a magento using the Advanced Warehousing module.
+
+Will only export the locations configured for the backend.
+""",
+ 'data': [
+     "magento_store.xml",
+     ],
+ 'installable': True,
+ 'application': False,
+}

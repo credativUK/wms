@@ -12,6 +12,9 @@
                 <xpath expr="/form//form//div[@name='discount']" position="after">
                     <field name="bots_exported_rate" widget="progressbar_custom"/>
                 </xpath>
+                <field name="partner_shipping_id" position="after">
+                    <field name="prio_id"/>
+                </field>
             </field>
         </record>
     </data>

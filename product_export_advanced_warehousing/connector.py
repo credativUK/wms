@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Copyright 2014 credativ Ltd
+#    Author: Guewen Baconnier
+#    Copyright 2013 Camptocamp SA
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,11 +19,7 @@
 #
 ##############################################################################
 
-import stock
-import connector
-import backend
-import bots_model
-import product
-import sale
-import stock_warehouse
-import purchase
+from openerp.addons.connector.connector import install_in_connector
+
+
+install_in_connector()
