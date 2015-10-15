@@ -52,7 +52,7 @@ def get_bots_picking_ids(cr, uid, ids, ids_skipped, table, not_in_move_states, b
                 "AND bsp.id NOT IN %s " \
                 "AND sm.state NOT IN %s " \
                 "AND bsp.bots_id " + bots_id_condition , (tuple(ids), tuple(ids_skipped), tuple(not_in_move_states)))
-    return cr.fetchall()
+    return [x[0] for x in cr.fetchall()]
 
 class StockPickingIn(orm.Model):
     _inherit = 'stock.picking.in'
