@@ -143,22 +143,27 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
         return split, old_backorder_id
 
-    def _handle_cancellations(self, cr, uid, stock_picking, prod_cancel, context=None):
+    def _handle_cancellations(self, cr, uid, bots_stock_picking, prod_cancel, context=None):
         picking_obj = self.session.pool.get('stock.picking')
         stock_move_obj = self.session.pool.get('stock.move')
         procurement_obj = self.session.pool.get('procurement.order')
         sale_line_obj = self.session.pool.get('sale.order.line')
         wf_service = netsvc.LocalService("workflow")
 
-        stock_picking.refresh()
+        stock_picking = picking_obj.browse(cr, uid, bots_stock_picking.openerp_id.id, context=context)
         # If there are any cancellations we need to reset them back to confirmed so they are re-procured
         if prod_cancel:
             # Duplicate the entire picking including moves lines and procurements
-            new_picking_id = picking_obj.copy(cr, uid, stock_picking.openerp_id.id, {'move_lines': []}, context=context)
+            new_picking_id = picking_obj.copy(cr, uid, stock_picking.id, {'move_lines': []}, context=context)
             new_picking = picking_obj.browse(cr, uid, new_picking_id, context=context)
 
             # For the original picking remove lines which were cancelled
             for move in stock_picking.move_lines:
+                if move.state == 'cancel': # If we were cancelled in OpenERP already then stay cancelled
+                    prod_cancel[move.product_id.id] = prod_cancel[move.product_id.id] - move.product_qty
+                    continue
+                elif move.state == 'done': # This move is already completed so cannot be cancelled
+                    continue
                 if prod_cancel.get(move.product_id.id, 0) >= move.product_qty:
                     prod_cancel[move.product_id.id] = prod_cancel[move.product_id.id] - move.product_qty
                     procurement_id = procurement_obj.search(cr, uid, [('move_id', '=', move.id)], context=context)
@@ -206,7 +211,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                 else:
                     pass
 
-            add_checkpoint(self.session, 'stock.picking.out', new_picking_id, self.backend_record.id)
+            add_checkpoint(self.session, 'stock.picking', new_picking_id, self.backend_record.id)
 
             wf_service.trg_validate(uid, 'stock.picking', new_picking_id, 'button_confirm', cr)
             if stock_picking.type == 'out' and stock_picking.sale_id:
@@ -219,7 +224,6 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
     def _handle_backorder(self, cr, uid, stock_picking, bots_picking_id, split, old_backorder_id, context=None):
         res = {}
-        stock_picking.refresh()
 
         picking_obj = self.session.pool.get('stock.picking')
         if stock_picking.type == 'in':
@@ -228,6 +232,8 @@ class WarehouseAdapter(BotsCRUDAdapter):
         elif stock_picking.type == 'out':
             picking_binder = self.get_binder_for_model('bots.stock.picking.out')
             bots_picking_obj = self.session.pool.get('bots.stock.picking.out')
+
+        stock_picking = bots_picking_obj.browse(cr, uid, stock_picking.id, context=context)
 
         # If there is a backorder, we need to assert that the current picking remains available
         # The backorder should be flagged for a checkpoint
