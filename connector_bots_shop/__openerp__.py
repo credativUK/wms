@@ -44,6 +44,7 @@ of the X12 4010 EDI format.
  'data': [
      'bots_model_view.xml',
      'data.xml',
+     'product_view.xml',
      'security/ir.model.access.csv',
  ],
  'installable': True,
