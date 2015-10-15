@@ -103,11 +103,11 @@ class StockPickingIn(orm.Model):
         res = {}
         ids_skipped = self.pool.get('stock.picking').bots_skip_ids(cr, uid, ids, type='in', context=context)
 
-        ids_pending = get_bots_picking_ids(cr, uid, ids, ids_skipped, picking_model='bots_stock_picking_in', not_in_move_states=('done', 'cancel'), bots_id_condition='IS NULL', context=context)
+        ids_pending = get_bots_picking_ids(cr, uid, ids, ids_skipped, table='bots_stock_picking_in', not_in_move_states=('done', 'cancel'), bots_id_condition='IS NULL', context=context)
         states = ['cancel']
         if doraise:
             states.append('done')
-        ids_exported = get_bots_picking_ids(cr, uid, ids, ids_skipped, picking_model='bots_stock_picking_in', not_in_move_states=states, bots_id_condition='IS NOT NULL', context=context)
+        ids_exported = get_bots_picking_ids(cr, uid, ids, ids_skipped, table='bots_stock_picking_in', not_in_move_states=states, bots_id_condition='IS NOT NULL', context=context)
 
         ids_all = ids_pending + ids_exported
         if ids_all and cancel:
