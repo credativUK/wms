@@ -478,10 +478,6 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 if ptype == 'DONE':
                                     split, old_backorder_id = self._handle_confirmations(_cr, self.session.uid, bots_picking.openerp_id, moves_part, context=ctx)
                                     backorders.append((bots_picking, picking_id, split, old_backorder_id))
-                                    if moves_extra.get('DONE') and picking['type'] == 'in':
-                                        # Any additional done stock should be added to an incoming PO
-                                        self._handle_additional_done_incoming(_cr, self.session.uid, picking_id, moves_extra.get('DONE'), context=ctx)
-                                        del moves_extra['DONE']
                                 elif ptype == 'CANCELLED':
                                     self._handle_cancellations(_cr, self.session.uid, bots_picking, type_picking_prod_dict.get((picking_id, ptype), {}), context=ctx)
                                 elif ptype == 'RETURNED': # TODO: Handle returns
@@ -490,6 +486,12 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                     raise NotImplementedError('Handling refunded lines is not currently supported')
                                 else:
                                     raise NotImplementedError("Unable to process picking confirmation of type %s" % (ptype,))
+
+                            for picking_id in picking_ids:
+                                if moves_extra.get('DONE') and picking['type'] == 'in':
+                                    # Any additional done stock should be added to an incoming PO
+                                    self._handle_additional_done_incoming(_cr, self.session.uid, picking_id, moves_extra.get('DONE'), context=ctx)
+                                    del moves_extra['DONE']
 
                             for bots_picking, picking_id, split, old_backorder_id in backorders:
                                 self._handle_backorder(_cr, self.session.uid, bots_picking, picking_id, split, old_backorder_id, context=ctx)
