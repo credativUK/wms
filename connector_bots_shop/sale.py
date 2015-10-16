@@ -33,6 +33,7 @@ from openerp.addons.connector_bots.backend import bots
 from openerp.addons.connector_bots.connector import get_environment, add_checkpoint
 
 from openerp.addons.connector_ecommerce.unit.sale_order_onchange import (SaleOrderOnChange)
+from openerp.addons.connector_ecommerce.sale import ShippingLineBuilder
 
 import openerp.addons.decimal_precision as dp
 
@@ -124,6 +125,11 @@ class BotsSaleOrderOnChange(SaleOrderOnChange):
 
 
 @bots
+class BotsShippingLineBuilder(ShippingLineBuilder):
+    _model_name = 'bots.sale.order'
+
+
+@bots
 class BotsSaleOrderImportMapper(ImportMapper):
     _model_name = 'bots.sale.order'
 
@@ -140,8 +146,19 @@ class BotsSaleOrderImportMapper(ImportMapper):
             return True
         return False
 
+    def _add_shipping_line(self, map_record, values):
+        record = map_record.source
+        if record.get('total', False) and record['total'][0] and record['total'][0].get('handling_charges', False):
+            line_builder = self.get_connector_unit_for_model(BotsShippingLineBuilder)
+            line_builder.price_unit = float(record['total'][0]['handling_charges'])
+
+            line = (0, 0, line_builder.get_line())
+            values['order_line'].append(line)
+        return values
+
     def finalize(self, map_record, values):
         onchange = self.get_connector_unit_for_model(SaleOrderOnChange)
+        values = self._add_shipping_line(map_record, values)
         return onchange._play_order_onchange(values)
 
     @mapping

@@ -2,6 +2,14 @@
 from x12lib import get_art_num          #import x12 specifc helper function
 import bots.transform as transform      #import div bots helper functions
 
+TOTALS_MAPPING = {
+    '1':'line_item_total',
+    'TF':'transaction_fee',
+    'F7':'sales_tax',
+    'OH':'handling_charges',
+    '5':'total_invoice_amount',
+    }
+
 def main(inn,out):
     #pick up some values from ISA envelope
     # Expected values for current implementation:
@@ -82,10 +90,7 @@ def main(inn,out):
         lou.put({'BOTSID':'line','product_sku':get_art_num(po1,'SK')}) # Product stock keeping unit (SKU)
 
     #loop over transaction totals
-    for tot in inn.getloop({'BOTSID':'ST'},{'BOTSID':'CTT'}):
-        tou = oout.putloop({'BOTSID':'sales'},{'BOTSID':'total'})
-        tou.put({'BOTSID':'total','line_item_total':get_art_num(tot,'1')})
-        tou.put({'BOTSID':'total','transaction_fee':get_art_num(tot,'TF')})
-        tou.put({'BOTSID':'total','sales_tax':get_art_num(tot,'F7')})
-        tou.put({'BOTSID':'total','handling_charges':get_art_num(tot,'OH')})
-        tou.put({'BOTSID':'total','total_invoice_amount':get_art_num(tot,'5')})
+    for tots in inn.getloop({'BOTSID':'ST'},{'BOTSID':'CTT'},{'BOTSID':'AMT'}):
+        qualifier = tots.get({'BOTSID':'AMT','AMT01':None})
+        value = tots.get({'BOTSID':'AMT','AMT02':None})
+        oout.put({'BOTSID':'sales'},{'BOTSID':'total',TOTALS_MAPPING[qualifier]:value})
