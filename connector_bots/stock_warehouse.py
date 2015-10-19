@@ -501,7 +501,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
             except OperationalError, e:
                 # file_lock_msg suggests that another job is already handling these files,
                 # so it is safe to continue without any further action.
-                if e.message != file_lock_msg:
+                if e.message and file_lock_msg in e.message:
                     exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
                     exceptions.append(exception)
             except Exception, e:
@@ -611,7 +611,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
             except OperationalError, e:
                 # file_lock_msg suggests that another job is already handling these files,
                 # so it is safe to continue without any further action.
-                if e.message != file_lock_msg:
+                if e.message and file_lock_msg in e.message:
                     exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
                     exceptions.append(exception)
             except Exception, e:
