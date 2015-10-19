@@ -13,3 +13,5 @@
 "access_bots_stock_picking_in_manager","bots_stock_picking_in manager","model_bots_stock_picking_in","stock.group_stock_manager",1,1,1,1
 "access_bots_stock_picking_out_manager","bots_stock_picking_out manager","model_bots_stock_picking_out","stock.group_stock_manager",1,1,1,1
 "access_bots_stock_inventory_manager","bots_stock_inventory manager","model_bots_stock_inventory","stock.group_stock_manager",1,1,1,1
+"access_order_prio_user","order_prio user","model_order_prio","base.group_user",1,0,0,0
+"access_order_prio_manager","order_prio manager","model_order_prio","connector.group_connector_manager",1,1,1,1
