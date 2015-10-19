@@ -857,7 +857,10 @@ class StockPickingAdapter(BotsCRUDAdapter):
         if picking.partner_id.vat:
             picking_data['partner']['vat'] = picking.partner_id.vat
 
-        picking_data['prio'] = picking.prio_id.code or '4' # 4 = Use delivery date
+        if self._picking_type == 'out':
+            picking_data['prio'] = picking.prio_id.code or '4' # 4 = Use delivery date
+        else:
+            picking_data['prio'] = '4' # 4 = Use delivery date
 
         data = {
                 'picking': {
