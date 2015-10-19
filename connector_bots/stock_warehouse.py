@@ -262,6 +262,9 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
             add_checkpoint(self.session, stock_picking.openerp_id._name, stock_picking.openerp_id.id, self.backend_record.id)
 
+        elif split == False: # We skipped the partial picking as there was nothing to pick
+            res.update({'stock.picking': [stock_picking.openerp_id.id]})
+
         return res
 
     def _handle_additional_done_incoming(self, cr, uid, picking_id, product_qtys, context=None):
@@ -477,7 +480,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
                                 if ptype == 'DONE':
                                     split, old_backorder_id = self._handle_confirmations(_cr, self.session.uid, bots_picking.openerp_id, moves_part, context=ctx)
-                                    backorders.append((bots_picking, picking_id, split, old_backorder_id))
+                                    backorders.append((bots_picking, picking['id'], split, old_backorder_id))
                                 elif ptype == 'CANCELLED':
                                     self._handle_cancellations(_cr, self.session.uid, bots_picking, type_picking_prod_dict.get((picking_id, ptype), {}), context=ctx)
                                 elif ptype == 'RETURNED': # TODO: Handle returns
@@ -488,10 +491,20 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                     raise NotImplementedError("Unable to process picking confirmation of type %s" % (ptype,))
 
                             for picking_id in picking_ids:
+                                bots_picking_id = bots_picking_obj.search(_cr, self.session.uid, [('openerp_id', '=', picking_id), ('backend_id', '=', self.backend_record.id)], context=ctx)
+                                if bots_picking_id:
+                                    bots_picking_id = bots_picking_id[0]
+                                if not bots_picking_id:
+                                    bots_picking_id = main_picking_id # Fallback if not found
+
+                                bots_picking = bots_picking_obj.browse(_cr, self.session.uid, bots_picking_id, context=ctx)
+
                                 if moves_extra.get('DONE') and picking['type'] == 'in':
                                     # Any additional done stock should be added to an incoming PO
                                     self._handle_additional_done_incoming(_cr, self.session.uid, picking_id, moves_extra.get('DONE'), context=ctx)
                                     del moves_extra['DONE']
+                                    if (picking_id, 'DONE') not in type_picking_move_dict: # If this is the only additional stock then create a backorder for the origional
+                                        backorders.append((bots_picking, picking['id'], False, False))
 
                             for bots_picking, picking_id, split, old_backorder_id in backorders:
                                 self._handle_backorder(_cr, self.session.uid, bots_picking, picking_id, split, old_backorder_id, context=ctx)
