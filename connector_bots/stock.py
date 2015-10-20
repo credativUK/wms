@@ -340,7 +340,7 @@ class StockPicking(orm.Model):
                 continue
             ids_skipped = self.bots_skip_ids(cr, uid, ids, type=picking_type, context=context)
 
-            ids_pending = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', picking_id), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False), ('id', 'not in', ids_skipped)], context=context)
+            ids_pending = get_bots_picking_ids(cr, uid, ids, ids_skipped, table=TABLE, not_in_move_states=('done', 'cancel'), bots_id_condition='IS NULL', context=context)
             states = ['cancel']
             if doraise:
                 states.append('done')
