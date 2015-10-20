@@ -39,6 +39,9 @@ from datetime import datetime
 
 from psycopg2 import OperationalError
 
+import logging
+_logger = logging.getLogger(__name__)
+
 file_lock_msg = 'could not obtain lock on row in relation "bots_file"'
 
 class BotsWarehouse(orm.Model):
@@ -341,7 +344,11 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
         return tracking_data
 
+    def time_now(self):
+        return datetime.now().strftime('%H:%M:%S.%f')
+
     def get_picking_conf(self, picking_types, new_cr=True):
+        _logger.info('get_picking_conf 000: %s' % (self.time_now(),))
         product_binder = self.get_binder_for_model('bots.product')
         picking_in_binder = self.get_binder_for_model('bots.stock.picking.in')
         picking_out_binder = self.get_binder_for_model('bots.stock.picking.out')
@@ -355,20 +362,26 @@ class WarehouseAdapter(BotsCRUDAdapter):
         exceptions = []
 
         FILENAME = r'^picking_conf_.*\.json$'
+        _logger.info('get_picking_conf 001: %s' % (self.time_now(),))
         file_ids = self._search(FILENAME)
+        _logger.info('get_picking_conf 002: %s - file_ids:%s' % (self.time_now(),file_ids,))
         res = []
         ctx = self.session.context.copy()
         ctx['wms_bots'] = True
+        _logger.info('get_picking_conf 003: %s - ctx:%s' % (self.time_now(),ctx,))
 
         for file_id in file_ids:
+            _logger.info('get_picking_conf 004: %s - file_id:%s' % (self.time_now(),file_id,))
             try:
                 with file_to_process(self.session, file_id[0], new_cr=new_cr, serialized_cr=False) as f:
                     json_data = json.load(f)
+                    _logger.info('get_picking_conf 005: %s' % (self.time_now(),))
                     _cr = self.session.cr
 
                     json_data = json_data if type(json_data) in (list, tuple) else [json_data,]
                     for pickings in json_data:
                         for picking in pickings['orderconf']['shipment']:
+                            _logger.info('get_picking_conf 006: %s' % (self.time_now(),))
                             if picking['type'] not in picking_types:
                                 # We are not a picking we want to import, discarded
                                 continue
@@ -386,6 +399,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             main_picking_id = picking_binder.to_openerp(picking['id'])
                             if not main_picking_id:
                                 raise NoExternalId("Picking %s could not be found in OpenERP" % (picking['id'],))
+                            _logger.info('get_picking_conf 007: %s' % (self.time_now(),))
                             main_picking = bots_picking_obj.browse(_cr, self.session.uid, main_picking_id, context=ctx)
                             picking_ids = [main_picking.openerp_id.id]
                             ctx.update({'company_id' : main_picking.openerp_id.company_id.id})
@@ -393,9 +407,13 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             move_dict = {}
                             moves_extra = {}
                             
+                            _logger.info('get_picking_conf 008: %s' % (self.time_now(),))
                             product_external_ids = [line['product'] for line in picking['line']]
+                            _logger.info('get_picking_conf 009: %s' % (self.time_now(),))
                             product_external_dict = product_binder.to_openerp_multi(product_external_ids)
+                            _logger.info('get_picking_conf 010: %s' % (self.time_now(),))
                             for line in picking['line']:
+                                _logger.info('get_picking_conf 011: %s' % (self.time_now(),))
                                 # Handle products and qtys
                                 product_id = product_external_dict.get(line['product'], False)
                                 if not product_id:
@@ -410,10 +428,13 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                     ignore_states = ('cancel', 'draft')
 
                                 # Attempt to find moves for this line
+                                _logger.info('get_picking_conf 012: %s' % (self.time_now(),))
                                 move_ids = [int(x) for x in line.get('move_ids', '').split(',') if x]
+                                _logger.info('get_picking_conf 013: %s' % (self.time_now(),))
                                 move_ids = move_obj.search(_cr, self.session.uid, [('id', 'in', move_ids),
                                                                                 ('state', 'not in', ignore_states),
                                                                                 ], context=ctx)
+                                _logger.info('get_picking_conf 014: %s' % (self.time_now(),))
 
                                 # Match moves from the main picking as a fallback
                                 move_ids.extend(move_obj.search(_cr, self.session.uid,
@@ -421,12 +442,16 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                                                 ('product_id', '=', product_id),
                                                                 ('state', 'not in', ignore_states),
                                                                 ], context=ctx))
+                                _logger.info('get_picking_conf 015: %s' % (self.time_now(),))
 
                                 # Distribute qty over the moves, sperating by type - Use SQL to avoid slow name_get function
                                 if move_ids:
+                                    _logger.info('get_picking_conf 016: %s' % (self.time_now(),))
                                     _cr.execute("""select id "id", picking_id "picking_id", product_qty "product_qty", product_id "product_id"
                                                 from stock_move where id in %s """, [tuple(move_ids),])
+                                    _logger.info('get_picking_conf 017: %s' % (self.time_now(),))
                                     for move in _cr.dictfetchall():
+                                        _logger.info('get_picking_conf 018: %s' % (self.time_now(),))
                                         key = (move['id'], move['picking_id'], move['product_id'])
                                         if qty and sum(move_dict.get(key, {}).values()) < move['product_qty']:
                                             qty_to_add = min(move['product_qty'], qty)
@@ -434,6 +459,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                             move_dict.setdefault(key, {})[ptype] = move_dict.setdefault(key, {}).get(ptype, 0) + qty_to_add
                                         if qty == 0:
                                             break
+                                _logger.info('get_picking_conf 019: %s' % (self.time_now(),))
 
                                 # No moves found or unallocated qty, handle these separatly if possible
                                 if qty:
@@ -442,19 +468,24 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             # Group moves and qtys by pickings and type
                             type_picking_move_dict = {} # Dicts of move_id and qty
                             type_picking_prod_dict = {} # Dicts of product_id and qty
+                            _logger.info('get_picking_conf 020: %s' % (self.time_now(),))
                             for (move_id, picking_id, product_id), type_qtys in move_dict.iteritems():
+                                _logger.info('get_picking_conf 021: %s' % (self.time_now(),))
                                 if not picking_id:
                                     raise NotImplementedError("Stock confirmation must be for a picking. Move ID %d with no picking are not supported" % (move_id,))
                                 if type_qtys and picking_id not in picking_ids:
                                     picking_ids.append(picking_id)
                                 for ptype, qty in type_qtys.iteritems():
+                                    _logger.info('get_picking_conf 022: %s' % (self.time_now(),))
                                     key = (picking_id, ptype)
                                     type_picking_move_dict.setdefault(key, {})[move_id] = type_picking_move_dict.get(key, {}).get(move_id, 0) + qty
                                     type_picking_prod_dict.setdefault(key, {})[product_id] = type_picking_prod_dict.get(key, {}).get(product_id, 0) + qty
                             del move_dict
 
                             # Handle tracking information
+                            _logger.info('get_picking_conf 023: %s' % (self.time_now(),))
                             tracking_data = self._get_tracking(_cr, self.session.uid, picking, contect=ctx)
+                            _logger.info('get_picking_conf 024: %s' % (self.time_now(),))
                             if tracking_data:
                                 picking_obj.write(_cr, self.session.uid, picking_ids, tracking_data, context=ctx)
 
@@ -464,10 +495,13 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
                             # Handle opperations
                             backorders = []
+                            _logger.info('get_picking_conf 026: %s' % (self.time_now(),))
                             for (picking_id, ptype), moves_part in type_picking_move_dict.iteritems():
+                                _logger.info('get_picking_conf 027: %s' % (self.time_now(),))
 
                                 # Get the binding ID for this picking
                                 bots_picking_id = bots_picking_obj.search(_cr, self.session.uid, [('openerp_id', '=', picking_id), ('backend_id', '=', self.backend_record.id)], context=ctx)
+                                _logger.info('get_picking_conf 028: %s' % (self.time_now(),))
                                 if bots_picking_id:
                                     bots_picking_id = bots_picking_id[0]
                                 if not bots_picking_id:
@@ -476,14 +510,20 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 bots_picking = bots_picking_obj.browse(_cr, self.session.uid, bots_picking_id, context=ctx)
 
                                 if ptype == 'DONE':
+                                    _logger.info('get_picking_conf 029: %s' % (self.time_now(),))
                                     split, old_backorder_id = self._handle_confirmations(_cr, self.session.uid, bots_picking.openerp_id, moves_part, context=ctx)
+                                    _logger.info('get_picking_conf 030: %s' % (self.time_now(),))
                                     backorders.append((bots_picking, picking_id, split, old_backorder_id))
                                     if moves_extra.get('DONE') and picking['type'] == 'in':
                                         # Any additional done stock should be added to an incoming PO
+                                        _logger.info('get_picking_conf 031: %s' % (self.time_now(),))
                                         self._handle_additional_done_incoming(_cr, self.session.uid, picking_id, moves_extra.get('DONE'), context=ctx)
+                                        _logger.info('get_picking_conf 032: %s' % (self.time_now(),))
                                         del moves_extra['DONE']
                                 elif ptype == 'CANCELLED':
+                                    _logger.info('get_picking_conf 033: %s' % (self.time_now(),))
                                     self._handle_cancellations(_cr, self.session.uid, bots_picking, type_picking_prod_dict.get((picking_id, ptype), {}), context=ctx)
+                                    _logger.info('get_picking_conf 034: %s' % (self.time_now(),))
                                 elif ptype == 'RETURNED': # TODO: Handle returns
                                     raise NotImplementedError('Handling returned lines is not currently supported')
                                 elif ptype == 'REFUNDED': # TODO: Handle refunds
@@ -491,8 +531,11 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 else:
                                     raise NotImplementedError("Unable to process picking confirmation of type %s" % (ptype,))
 
+                            _logger.info('get_picking_conf 035: %s' % (self.time_now(),))
                             for bots_picking, picking_id, split, old_backorder_id in backorders:
+                                _logger.info('get_picking_conf 036: %s' % (self.time_now(),))
                                 self._handle_backorder(_cr, self.session.uid, bots_picking, picking_id, split, old_backorder_id, context=ctx)
+                                _logger.info('get_picking_conf 037: %s' % (self.time_now(),))
 
                             # TODO: Handle various opperations for extra stock (Additional done incoming for PO handled above)
                             if moves_extra:
@@ -510,6 +553,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                 exceptions.append(exception)
                 pass
 
+        _logger.info('get_picking_conf 038: %s' % (self.time_now(),))
         # If we hit any errors, fail the job with a list of all errors now
         if exceptions:
             raise JobError('The following exceptions were encountered:\n\n%s' % ('\n\n'.join(exceptions),))
