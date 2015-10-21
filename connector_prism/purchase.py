@@ -35,6 +35,12 @@ class PurchaseOrder(orm.Model):
             'bots_cut_off':  lambda *a: False,
         }
 
+    def copy_data(self, cr, uid, id, default=None, context=None):
+        if not default:
+            default = {}
+        default['bots_cut_off'] = False
+        return super(PurchaseOrder, self).copy_data(cr, uid, id, default, context=context)
+
     def allocate_check_restrict(self, cr, uid, ids, context=None):
         restricted_ids = super(PurchaseOrder, self).allocate_check_restrict(cr, uid, ids, context=context)
         bots_picking_obj = self.pool.get('bots.stock.picking.in')
