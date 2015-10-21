@@ -21,7 +21,7 @@
 
 def main(inn,out):
 
-    pinn = inn.getloop({'BOTSID': 'purchaseOrders'}, {'BOTSID': 'order'})
+    pinn = inn.getloop({'BOTSID': 'order'})
     lout = out.putloop({'BOTSID':'orderconf'})
 
     for pick in pinn:
