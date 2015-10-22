@@ -57,6 +57,9 @@ def file_to_process(session, filename_id, new_cr=True, serialized_cr=True):
             session.cr = cr
 
         cr.execute("SELECT id FROM bots_file WHERE id = %s FOR UPDATE NOWAIT" % (filename_id,))
+        ids = [x[0] for x in cr.fetchall()]
+        if not ids: # We acquired 0 locks which means the bots_file record has already been processed
+            raise RetryableJobError('The bots.file record %s is no longer available, the file may have already been processed by another thread, skipping.' % (filename_id,))
         file = file_obj.browse(cr, SUPERUSER_ID, filename_id)
         fd = open(file.full_path, "rb")
         yield fd
