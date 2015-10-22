@@ -778,7 +778,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
             raise MappingError(_('Unable to export any order lines on export of Bots picking %s.') % (picking_id,))
 
         # Split picking depending on order policy
-        sale_policy = picking.sale_id and picking.sale_id.picking_policy or 'direct'
+        sale_policy = (TYPE == 'out') and picking.sale_id and picking.sale_id.picking_policy or 'direct'
         picking_policy = picking.move_type or sale_policy
         if not picking_complete:
             if TYPE == 'in':
