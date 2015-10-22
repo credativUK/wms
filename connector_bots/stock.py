@@ -663,7 +663,10 @@ class StockPickingAdapter(BotsCRUDAdapter):
         order_lines = []
         seq = 1
         for move in picking.move_lines:
-            if move.state not in ALLOWED_STATES:
+            if move.state == 'cancel':
+                moves_to_split.append(move.id)
+                continue
+            elif move.state not in ALLOWED_STATES:
                 picking_complete = False
                 moves_to_split.append(move.id)
                 continue
@@ -775,13 +778,14 @@ class StockPickingAdapter(BotsCRUDAdapter):
             raise MappingError(_('Unable to export any order lines on export of Bots picking %s.') % (picking_id,))
 
         # Split picking depending on order policy
+        sale_policy = picking.sale_id and picking.sale_id.picking_policy or 'direct'
+        picking_policy = picking.move_type or sale_policy
         if not picking_complete:
             if TYPE == 'in':
                 raise NotImplementedError(_('Exporting a partial incoming picking is not implemented'))
-            sale_policy = picking.sale_id and picking.sale_id.picking_policy or 'direct'
-            picking_policy = picking.move_type or sale_policy
             if picking_policy != 'direct':
                 raise InvalidDataError(_('Unable to export picking %s. Picking policy does not allow it to be split and is not fully complete or some products are not mapped for export.') % (picking_id,))
+        if moves_to_split:
             # Split the picking
             new_picking_id = picking_obj.copy(self.session.cr, self.session.uid, picking.openerp_id.id,
                                               {
@@ -1044,6 +1048,9 @@ def export_picking(session, model_name, record_id):
     if picking.state == 'done' and session.search(model_name, [('backorder_id', '=', picking.openerp_id.id)]):
         # We are an auto-created back order completed - ignore this export
         return "Not creating backorder for auto-created done picking backorder %s" % (picking.name,)
+    if picking.state == 'cancel':
+        # We are an auto-created back order completed - ignore this export
+        return "Picking %s was cancelled before exported, ignorning." % (picking.name,)
     backend_id = picking.backend_id.id
     env = get_environment(session, model_name, backend_id)
     picking_exporter = env.get_connector_unit(BotsPickingExport)
