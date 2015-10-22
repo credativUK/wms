@@ -517,7 +517,9 @@ class BotsStockPickingOut(orm.Model):
     def reexport_cancel(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
         for id in ids:
-            export_picking_cancel.delay(session, self._name, id)
+            picking = self.browse(cr, uid, id, context=context)
+            if picking.backend_id.feat_picking_out_cancel:
+                export_picking_cancel.delay(session, self._name, id)
         return True
 
 class BotsStockPickingIn(orm.Model):
@@ -567,7 +569,9 @@ class BotsStockPickingIn(orm.Model):
     def reexport_cancel(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
         for id in ids:
-            export_picking_cancel.delay(session, self._name, id)
+            picking = self.browse(cr, uid, id, context=context)
+            if picking.backend_id.feat_picking_in_cancel:
+                export_picking_cancel.delay(session, self._name, id)
         return True
 
 @bots
