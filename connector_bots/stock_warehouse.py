@@ -25,7 +25,7 @@ from openerp.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
 
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
-from openerp.addons.connector.exception import JobError, NoExternalId
+from openerp.addons.connector.exception import JobError, NoExternalId, RetryableJobError
 from openerp.addons.connector.unit.synchronizer import ImportSynchronizer
 
 from .unit.binder import BotsModelBinder
@@ -262,6 +262,9 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
             add_checkpoint(self.session, stock_picking.openerp_id._name, stock_picking.openerp_id.id, self.backend_record.id)
 
+        elif split == False: # We skipped the partial picking as there was nothing to pick
+            res.update({'stock.picking': [stock_picking.openerp_id.id]})
+
         return res
 
     def _handle_additional_done_incoming(self, cr, uid, picking_id, product_qtys, context=None):
@@ -353,6 +356,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
         bots_warehouse_obj = self.session.pool.get('bots.warehouse')
         wf_service = netsvc.LocalService("workflow")
         exceptions = []
+        retry = False
 
         FILENAME = r'^picking_conf_.*\.json$'
         file_ids = self._search(FILENAME)
@@ -477,11 +481,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
                                 if ptype == 'DONE':
                                     split, old_backorder_id = self._handle_confirmations(_cr, self.session.uid, bots_picking.openerp_id, moves_part, context=ctx)
-                                    backorders.append((bots_picking, picking_id, split, old_backorder_id))
-                                    if moves_extra.get('DONE') and picking['type'] == 'in':
-                                        # Any additional done stock should be added to an incoming PO
-                                        self._handle_additional_done_incoming(_cr, self.session.uid, picking_id, moves_extra.get('DONE'), context=ctx)
-                                        del moves_extra['DONE']
+                                    backorders.append((bots_picking, picking['id'], split, old_backorder_id))
                                 elif ptype == 'CANCELLED':
                                     self._handle_cancellations(_cr, self.session.uid, bots_picking, type_picking_prod_dict.get((picking_id, ptype), {}), context=ctx)
                                 elif ptype == 'RETURNED': # TODO: Handle returns
@@ -490,6 +490,22 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                     raise NotImplementedError('Handling refunded lines is not currently supported')
                                 else:
                                     raise NotImplementedError("Unable to process picking confirmation of type %s" % (ptype,))
+
+                            for picking_id in picking_ids:
+                                bots_picking_id = bots_picking_obj.search(_cr, self.session.uid, [('openerp_id', '=', picking_id), ('backend_id', '=', self.backend_record.id)], context=ctx)
+                                if bots_picking_id:
+                                    bots_picking_id = bots_picking_id[0]
+                                if not bots_picking_id:
+                                    bots_picking_id = main_picking_id # Fallback if not found
+
+                                bots_picking = bots_picking_obj.browse(_cr, self.session.uid, bots_picking_id, context=ctx)
+
+                                if moves_extra.get('DONE') and picking['type'] == 'in':
+                                    # Any additional done stock should be added to an incoming PO
+                                    self._handle_additional_done_incoming(_cr, self.session.uid, picking_id, moves_extra.get('DONE'), context=ctx)
+                                    del moves_extra['DONE']
+                                    if (picking_id, 'DONE') not in type_picking_move_dict: # If this is the only additional stock then create a backorder for the origional
+                                        backorders.append((bots_picking, picking['id'], False, False))
 
                             for bots_picking, picking_id, split, old_backorder_id in backorders:
                                 self._handle_backorder(_cr, self.session.uid, bots_picking, picking_id, split, old_backorder_id, context=ctx)
@@ -501,18 +517,25 @@ class WarehouseAdapter(BotsCRUDAdapter):
             except OperationalError, e:
                 # file_lock_msg suggests that another job is already handling these files,
                 # so it is safe to continue without any further action.
-                if e.message != file_lock_msg:
+                if e.message and file_lock_msg in e.message:
                     exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
                     exceptions.append(exception)
+            except RetryableJobError, e:
+                # Log error then continue processing files
+                retry = True
+                exception = "Retryable exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
+                exceptions.append(exception)
             except Exception, e:
                 # Log error then continue processing files
                 exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
                 exceptions.append(exception)
-                pass
 
         # If we hit any errors, fail the job with a list of all errors now
         if exceptions:
-            raise JobError('The following exceptions were encountered:\n\n%s' % ('\n\n'.join(exceptions),))
+            if retry:
+                raise RetryableJobError('The following exceptions were encountered:\n\n%s\n\nSome are retryable, will re-schedule job.' % ('\n\n'.join(exceptions),))
+            else:
+                raise JobError('The following exceptions were encountered:\n\n%s' % ('\n\n'.join(exceptions),))
 
         return res
 
@@ -611,7 +634,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
             except OperationalError, e:
                 # file_lock_msg suggests that another job is already handling these files,
                 # so it is safe to continue without any further action.
-                if e.message != file_lock_msg:
+                if e.message and file_lock_msg in e.message:
                     exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
                     exceptions.append(exception)
             except Exception, e:

@@ -44,6 +44,8 @@ structure=    [
     ]},
 ]
 
+nextmessage = ({'BOTSID':'purchaseOrders'},{'BOTSID':'order'})
+
 recorddefs = {
     'envelope':[
             ['BOTSID','M',255,'A'],

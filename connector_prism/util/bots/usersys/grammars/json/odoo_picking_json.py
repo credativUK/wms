@@ -65,6 +65,7 @@ recorddefs = {
             ['order', 'C', 64, 'AN'],
             ['order_date', 'C', 64, 'AN'],
             ['desc', 'C', 64, 'AN'],
+            ['prio', 'C', 1, 'AN'],
             ['state', 'C', 64, 'AN'],
             ['type', 'C', 64, 'AN'],
             ['date', 'C', 64, 'AN'],

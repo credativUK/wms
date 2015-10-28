@@ -23,15 +23,49 @@ from openerp import pooler, netsvc, SUPERUSER_ID
 from openerp.tools.translate import _
 from openerp.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
 
+from openerp import sql_db
 from openerp.addons.connector.queue.job import job
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 
 from datetime import datetime, timedelta
 
+from openerp.addons.connector_bots.backend import bots
+from openerp.addons.connector_bots.stock_warehouse import WarehouseAdapter
+from openerp.addons.connector.exception import RetryableJobError
+
+@bots(replacing=WarehouseAdapter)
+class PrismWarehouseAdapter(WarehouseAdapter):
+    _model_name = 'bots.warehouse'
+
+    def _handle_confirmations(self, cr, uid, stock_picking, prod_confirm, context=None):
+        if stock_picking.type == 'in' and stock_picking.purchase_id:
+            purchase = stock_picking.purchase_id
+            purchase_obj = self.session.pool.get('purchase.order')
+            read_fields = ['bots_cross_dock', 'bots_cut_off']
+            purchase_data = purchase_obj.read(cr, uid, purchase.id, read_fields, context=context)
+            if purchase_data['bots_cross_dock'] and not purchase_data['bots_cut_off']:
+                bots_wh_obj = self.session.pool.get('bots.warehouse')
+                wh_id = purchase.warehouse_id.id
+                bots_wh_ids = bots_wh_obj.search(cr, uid, [('warehouse_id', '=', wh_id)], context=context)
+                if bots_wh_ids:
+                    _cr = sql_db.db_connect(cr.dbname).cursor()
+                    self.session.cr = _cr
+                    purchase_cutoff.delay(self.session, 'bots.warehouse', bots_wh_ids[0], [purchase.id])
+                    _cr.commit()
+                    _cr.close()
+                    self.session.cr = cr
+                    raise RetryableJobError(
+                            'Picking %s can be confirmed only once Purchase Order %s has been cut off. '
+                            'This has now been scheduled; the job will be retried later.' %
+                            (stock_picking.name, purchase.name)
+                    )
+
+        return super(PrismWarehouseAdapter, self)._handle_confirmations(cr, uid, stock_picking, prod_confirm, context=context)
+
 class BotsStockWarehouse(orm.Model):
     _inherit = 'bots.warehouse'
 
-    def purchase_cutoff(self, cr, uid, ids, purchase_ids, context=None):
+    def purchase_cutoff(self, cr, uid, ids, all_purchase_ids, context=None):
         '''Find purchases with cut-off passed and export'''
 
         purchase_obj = self.pool.get('purchase.order')
@@ -43,7 +77,7 @@ class BotsStockWarehouse(orm.Model):
 
         for warehouse in self.browse(cr, uid, ids, context=context):
             purchase_ids = purchase_obj.search(cr, uid, [('warehouse_id', '=', warehouse.warehouse_id.id),
-                                                         ('id', 'in', purchase_ids),
+                                                         ('id', 'in', all_purchase_ids),
                                                          ('bots_cut_off', '=', False)], context=context)
             # Find all linked moves for all purchases
             moves = []

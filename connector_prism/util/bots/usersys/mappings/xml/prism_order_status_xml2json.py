@@ -33,7 +33,7 @@ CARRIER_DEFAULT = ''
 
 def main(inn,out):
 
-    pinn = inn.getloop({'BOTSID': 'orders'}, {'BOTSID': 'order'})
+    pinn = inn.getloop({'BOTSID': 'order'})
     lout = out.putloop({'BOTSID':'orderconf'})
 
     for pick in pinn:

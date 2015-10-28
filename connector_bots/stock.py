@@ -19,13 +19,13 @@
 ##############################################################################
 
 from openerp.osv import orm, fields, osv
-from openerp import pooler, netsvc, SUPERUSER_ID
+from openerp import netsvc, SUPERUSER_ID
 from openerp.tools.translate import _
 from openerp.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
 
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
-from openerp.addons.connector.exception import JobError, NoExternalId, MappingError
+from openerp.addons.connector.exception import JobError, MappingError, InvalidDataError
 from openerp.addons.connector.unit.synchronizer import ExportSynchronizer
 from openerp.addons.connector.event import on_record_create
 from openerp.addons.connector_wms.event import on_picking_out_available, on_picking_in_available, on_picking_out_cancel, on_picking_in_cancel
@@ -35,10 +35,9 @@ from openerp.addons.stock import stock_picking as stock_StockPicking
 from .unit.binder import BotsModelBinder
 from .unit.backend_adapter import BotsCRUDAdapter
 from .backend import bots
-from .connector import get_environment, add_checkpoint
+from .connector import get_environment
 
 import json
-import traceback
 from datetime import datetime
 import re
 import openerp.addons.decimal_precision as dp
@@ -326,7 +325,6 @@ class StockPicking(orm.Model):
         pending = []
         backend_obj = self.pool.get('bots.backend')
         for pick_read in self.read(cr, uid, ids, ['type'], context=context):
-            picking_id = pick_read['id']
             picking_type = pick_read['type']
             if picking_type == 'in':
                 MODEL = 'bots.stock.picking.in'
@@ -340,7 +338,7 @@ class StockPicking(orm.Model):
                 continue
             ids_skipped = self.bots_skip_ids(cr, uid, ids, type=picking_type, context=context)
 
-            ids_pending = self.pool.get(MODEL).search(cr, SUPERUSER_ID, [('openerp_id', '=', picking_id), ('move_lines.state', 'not in', ('done', 'cancel')), ('bots_override', '=', False), ('bots_id', '=', False), ('id', 'not in', ids_skipped)], context=context)
+            ids_pending = get_bots_picking_ids(cr, uid, ids, ids_skipped, table=TABLE, not_in_move_states=('done', 'cancel'), bots_id_condition='IS NULL', context=context)
             states = ['cancel']
             if doraise:
                 states.append('done')
@@ -517,7 +515,9 @@ class BotsStockPickingOut(orm.Model):
     def reexport_cancel(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
         for id in ids:
-            export_picking_cancel.delay(session, self._name, id)
+            picking = self.browse(cr, uid, id, context=context)
+            if picking.backend_id.feat_picking_out_cancel:
+                export_picking_cancel.delay(session, self._name, id)
         return True
 
 class BotsStockPickingIn(orm.Model):
@@ -567,7 +567,9 @@ class BotsStockPickingIn(orm.Model):
     def reexport_cancel(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
         for id in ids:
-            export_picking_cancel.delay(session, self._name, id)
+            picking = self.browse(cr, uid, id, context=context)
+            if picking.backend_id.feat_picking_in_cancel:
+                export_picking_cancel.delay(session, self._name, id)
         return True
 
 @bots
@@ -612,7 +614,6 @@ class StockPickingAdapter(BotsCRUDAdapter):
         bots_picking_obj = self.session.pool.get(MODEL)
         picking_obj = self.session.pool.get('stock.picking')
         move_obj = self.session.pool.get('stock.move')
-        bots_warehouse_obj = self.session.pool.get('bots.warehouse')
         currency_obj = self.session.pool.get('res.currency')
         tax_obj = self.session.pool.get('account.tax')
         wf_service = netsvc.LocalService("workflow")
@@ -663,7 +664,10 @@ class StockPickingAdapter(BotsCRUDAdapter):
         order_lines = []
         seq = 1
         for move in picking.move_lines:
-            if move.state not in ALLOWED_STATES:
+            if move.state == 'cancel':
+                moves_to_split.append(move.id)
+                continue
+            elif move.state not in ALLOWED_STATES:
                 picking_complete = False
                 moves_to_split.append(move.id)
                 continue
@@ -733,6 +737,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "product": product_bots_id,
                     "product_supplier_sku": product_supplier_sku,
                     "product_qty": int(move.product_qty),
+                    "ordered_qty": int(ordered_qty),
                     "uom": move.product_uom.name,
                     "product_uos_qty": int(move.product_uos_qty),
                     "uos": move.product_uos.name,
@@ -775,13 +780,14 @@ class StockPickingAdapter(BotsCRUDAdapter):
             raise MappingError(_('Unable to export any order lines on export of Bots picking %s.') % (picking_id,))
 
         # Split picking depending on order policy
+        sale_policy = (TYPE == 'out') and picking.sale_id and picking.sale_id.picking_policy or 'direct'
+        picking_policy = picking.move_type or sale_policy
         if not picking_complete:
             if TYPE == 'in':
                 raise NotImplementedError(_('Exporting a partial incoming picking is not implemented'))
-            sale_policy = picking.sale_id and picking.sale_id.picking_policy or 'direct'
-            picking_policy = picking.move_type or sale_policy
             if picking_policy != 'direct':
                 raise InvalidDataError(_('Unable to export picking %s. Picking policy does not allow it to be split and is not fully complete or some products are not mapped for export.') % (picking_id,))
+        if moves_to_split:
             # Split the picking
             new_picking_id = picking_obj.copy(self.session.cr, self.session.uid, picking.openerp_id.id,
                                               {
@@ -832,8 +838,6 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 "language": picking.sale_id.partner_invoice_id.lang or '',
             }
 
-        attr_data = {} # TODO
-
         picking_data = {
                 'id': bots_id,
                 'name': order_number,
@@ -857,7 +861,10 @@ class StockPickingAdapter(BotsCRUDAdapter):
         if picking.partner_id.vat:
             picking_data['partner']['vat'] = picking.partner_id.vat
 
-        picking_data['prio'] = picking.prio_id.code or '4' # 4 = Use delivery date
+        if self._picking_type == 'out':
+            picking_data['prio'] = picking.prio_id.code or '4' # 4 = Use delivery date
+        else:
+            picking_data['prio'] = '4' # 4 = Use delivery date
 
         data = {
                 'picking': {
@@ -919,7 +926,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
         data, FILENAME, bots_id = self._prepare_create_data(picking_id)
         data = json.dumps(data, indent=4)
         filename_id = self._get_unique_filename(FILENAME)
-        res = self._write(filename_id, data)
+        self._write(filename_id, data)
         return bots_id
 
     def delete(self, picking_id):
@@ -927,8 +934,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
         data = json.dumps(data, indent=4)
 
         filename_id = self._get_unique_filename(FILENAME)
-        res = self._write(filename_id, data)
-        return
+        self._write(filename_id, data)
 
 @bots
 class StockPickingOutAdapter(StockPickingAdapter):
@@ -981,8 +987,6 @@ def picking_available(session, model_name, record_id, picking_type, location_typ
                             'warehouse_id': warehouse['id'],})
 
 def picking_cancel(session, model_name, record_id, picking_type):
-    warehouse_obj = session.pool.get('stock.warehouse')
-    bots_warehouse_obj = session.pool.get('bots.warehouse')
     picking_ids = session.search(picking_type, [('openerp_id', '=', record_id)])
     pickings = session.browse(picking_type, picking_ids)
 
@@ -990,7 +994,8 @@ def picking_cancel(session, model_name, record_id, picking_type):
 
     for picking in pickings:
         min_date = picking.min_date and datetime.strptime(picking.min_date, DEFAULT_SERVER_DATETIME_FORMAT)
-        if min_date and not picking.bots_override and datetime.now().date() >= min_date.date():
+        if min_date and not picking.bots_override and datetime.now().date() >= min_date.date() \
+                and not all([move.state == 'cancel' for move in picking.move_lines]):
             late_pickings.append(picking.name)
             continue
         if (picking_type == 'bots.stock.picking.out' and picking.backend_id.feat_picking_out_cancel) or \
@@ -1040,6 +1045,9 @@ def export_picking(session, model_name, record_id):
     if picking.state == 'done' and session.search(model_name, [('backorder_id', '=', picking.openerp_id.id)]):
         # We are an auto-created back order completed - ignore this export
         return "Not creating backorder for auto-created done picking backorder %s" % (picking.name,)
+    if picking.state == 'cancel':
+        # We are an auto-created back order completed - ignore this export
+        return "Picking %s was cancelled before exported, ignorning." % (picking.name,)
     backend_id = picking.backend_id.id
     env = get_environment(session, model_name, backend_id)
     picking_exporter = env.get_connector_unit(BotsPickingExport)

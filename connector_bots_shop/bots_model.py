@@ -128,6 +128,9 @@ class BotsBackendExport(ExportSynchronizer):
 class BotsBackendAdapter(BotsCRUDAdapter):
     _model_name = 'bots.backend'
 
+    def quantity_field(self):
+        return 'virtual_available'
+
     def export_stock_levels(self, backend_id, new_cr=True):
         """
         Export the stock levels to Bots
@@ -144,14 +147,15 @@ class BotsBackendAdapter(BotsCRUDAdapter):
             product_domain += ['|', ('categ_id', 'child_of', categ_ids), ('categ_ids', 'child_of', categ_ids)]
 
         product_ids_to_export = product_obj.search(self.session.cr, self.session.uid, product_domain, context=ctx)
-        product_data_to_export = product_obj.read(self.session.cr, self.session.uid, product_ids_to_export, ['default_code', 'virtual_available'], context=ctx)
+        quantity_field = self.quantity_field()
+        product_data_to_export = product_obj.read(self.session.cr, self.session.uid, product_ids_to_export, ['default_code', quantity_field], context=ctx)
 
         product_datas = []
         for product in product_data_to_export:
             # TODO: How should zero and negative virtual quantities be handled?
             product_data = {
                 'product_sku': product['default_code'],
-                'quantity': int(product['virtual_available'] or 0),
+                'quantity': int(product[quantity_field] or 0),
                 }
             product_datas.append(product_data)
 
