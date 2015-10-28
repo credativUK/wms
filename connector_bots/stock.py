@@ -19,13 +19,13 @@
 ##############################################################################
 
 from openerp.osv import orm, fields, osv
-from openerp import pooler, netsvc, SUPERUSER_ID
+from openerp import netsvc, SUPERUSER_ID
 from openerp.tools.translate import _
 from openerp.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
 
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
-from openerp.addons.connector.exception import JobError, NoExternalId, MappingError, InvalidDataError
+from openerp.addons.connector.exception import JobError, MappingError, InvalidDataError
 from openerp.addons.connector.unit.synchronizer import ExportSynchronizer
 from openerp.addons.connector.event import on_record_create
 from openerp.addons.connector_wms.event import on_picking_out_available, on_picking_in_available, on_picking_out_cancel, on_picking_in_cancel
@@ -35,10 +35,9 @@ from openerp.addons.stock import stock_picking as stock_StockPicking
 from .unit.binder import BotsModelBinder
 from .unit.backend_adapter import BotsCRUDAdapter
 from .backend import bots
-from .connector import get_environment, add_checkpoint
+from .connector import get_environment
 
 import json
-import traceback
 from datetime import datetime
 import re
 import openerp.addons.decimal_precision as dp
@@ -326,7 +325,6 @@ class StockPicking(orm.Model):
         pending = []
         backend_obj = self.pool.get('bots.backend')
         for pick_read in self.read(cr, uid, ids, ['type'], context=context):
-            picking_id = pick_read['id']
             picking_type = pick_read['type']
             if picking_type == 'in':
                 MODEL = 'bots.stock.picking.in'
@@ -616,7 +614,6 @@ class StockPickingAdapter(BotsCRUDAdapter):
         bots_picking_obj = self.session.pool.get(MODEL)
         picking_obj = self.session.pool.get('stock.picking')
         move_obj = self.session.pool.get('stock.move')
-        bots_warehouse_obj = self.session.pool.get('bots.warehouse')
         currency_obj = self.session.pool.get('res.currency')
         tax_obj = self.session.pool.get('account.tax')
         wf_service = netsvc.LocalService("workflow")
@@ -840,8 +837,6 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 "language": picking.sale_id.partner_invoice_id.lang or '',
             }
 
-        attr_data = {} # TODO
-
         picking_data = {
                 'id': bots_id,
                 'name': order_number,
@@ -930,7 +925,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
         data, FILENAME, bots_id = self._prepare_create_data(picking_id)
         data = json.dumps(data, indent=4)
         filename_id = self._get_unique_filename(FILENAME)
-        res = self._write(filename_id, data)
+        self._write(filename_id, data)
         return bots_id
 
     def delete(self, picking_id):
@@ -938,8 +933,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
         data = json.dumps(data, indent=4)
 
         filename_id = self._get_unique_filename(FILENAME)
-        res = self._write(filename_id, data)
-        return
+        self._write(filename_id, data)
 
 @bots
 class StockPickingOutAdapter(StockPickingAdapter):
@@ -992,8 +986,6 @@ def picking_available(session, model_name, record_id, picking_type, location_typ
                             'warehouse_id': warehouse['id'],})
 
 def picking_cancel(session, model_name, record_id, picking_type):
-    warehouse_obj = session.pool.get('stock.warehouse')
-    bots_warehouse_obj = session.pool.get('bots.warehouse')
     picking_ids = session.search(picking_type, [('openerp_id', '=', record_id)])
     pickings = session.browse(picking_type, picking_ids)
 
