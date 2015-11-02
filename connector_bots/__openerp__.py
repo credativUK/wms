@@ -37,6 +37,7 @@ data format for the external EDI system.
      'connector_wms',
      'delivery',
      'partner_incoterms',
+     'purchase_edit_utils', # https://github.com/credativUK/credativ-addons
  ],
  'data': [
      'bots_model_view.xml',
