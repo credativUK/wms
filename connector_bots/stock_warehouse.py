@@ -407,11 +407,11 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 qty = int('qty_real' in line and line['qty_real'] or line['uom_qty'])
                                 ptype = line.get('status') or 'DONE'
 
-                                ignore_states = ('cancel', 'draft', 'done')
+                                ignore_states = ('cancel', 'draft', 'done', 'confirmed')
                                 if ptype == 'CANCELLED':
                                     ignore_states = ('draft', 'done')
                                 elif ptype == 'DONE':
-                                    ignore_states = ('cancel', 'draft')
+                                    ignore_states = ('cancel', 'draft', 'confirmed')
 
                                 # Attempt to find moves for this line
                                 move_ids = [int(x) for x in line.get('move_ids', '').split(',') if x]
@@ -512,7 +512,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
                             # TODO: Handle various opperations for extra stock (Additional done incoming for PO handled above)
                             if moves_extra:
-                                raise NotImplementedError("Unable to process unexpected incoming stock for %s: %s" % (picking['id'], moves_extra,))
+                                raise NotImplementedError("Unable to process unexpected stock for %s: %s" % (picking['id'], moves_extra,))
 
             except OperationalError, e:
                 # file_lock_msg suggests that another job is already handling these files,
