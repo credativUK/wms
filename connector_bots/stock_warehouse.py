@@ -25,7 +25,7 @@ from openerp.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
 
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
-from openerp.addons.connector.exception import JobError, NoExternalId, RetryableJobError
+from openerp.addons.connector.exception import JobError, NoExternalId
 from openerp.addons.connector.unit.synchronizer import ImportSynchronizer
 
 from .unit.binder import BotsModelBinder
@@ -356,7 +356,6 @@ class WarehouseAdapter(BotsCRUDAdapter):
         bots_warehouse_obj = self.session.pool.get('bots.warehouse')
         wf_service = netsvc.LocalService("workflow")
         exceptions = []
-        retry = False
 
         FILENAME = r'^picking_conf_.*\.json$'
         file_ids = self._search(FILENAME)
@@ -520,22 +519,15 @@ class WarehouseAdapter(BotsCRUDAdapter):
                 if e.message and file_lock_msg in e.message:
                     exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
                     exceptions.append(exception)
-            except RetryableJobError, e:
-                # Log error then continue processing files
-                retry = True
-                exception = "Retryable exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
-                exceptions.append(exception)
             except Exception, e:
                 # Log error then continue processing files
                 exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
                 exceptions.append(exception)
+                pass
 
         # If we hit any errors, fail the job with a list of all errors now
         if exceptions:
-            if retry:
-                raise RetryableJobError('The following exceptions were encountered:\n\n%s\n\nSome are retryable, will re-schedule job.' % ('\n\n'.join(exceptions),))
-            else:
-                raise JobError('The following exceptions were encountered:\n\n%s' % ('\n\n'.join(exceptions),))
+            raise JobError('The following exceptions were encountered:\n\n%s' % ('\n\n'.join(exceptions),))
 
         return res
 
