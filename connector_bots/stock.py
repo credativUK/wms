@@ -793,6 +793,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                                               {
                                                   'move_type': sale_policy,
                                                   'move_lines': [],
+                                                  'origin': picking.origin,
                                               },
                                               context=ctx)
             move_obj.write(self.session.cr, self.session.uid, moves_to_split, {'picking_id': new_picking_id}, context=ctx)
