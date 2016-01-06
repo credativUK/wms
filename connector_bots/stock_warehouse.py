@@ -470,6 +470,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             for (picking_id, ptype), moves_part in type_picking_move_dict.iteritems():
 
                                 # Get the binding ID for this picking
+                                openerp_picking = picking_obj.browse(_cr, self.session.uid, picking_id, context=ctx)
                                 bots_picking_id = bots_picking_obj.search(_cr, self.session.uid, [('openerp_id', '=', picking_id), ('backend_id', '=', self.backend_record.id)], context=ctx)
                                 if bots_picking_id:
                                     bots_picking_id = bots_picking_id[0]
@@ -479,7 +480,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 bots_picking = bots_picking_obj.browse(_cr, self.session.uid, bots_picking_id, context=ctx)
 
                                 if ptype == 'DONE':
-                                    split, old_backorder_id = self._handle_confirmations(_cr, self.session.uid, bots_picking.openerp_id, moves_part, context=ctx)
+                                    split, old_backorder_id = self._handle_confirmations(_cr, self.session.uid, openerp_picking, moves_part, context=ctx)
                                     backorders.append((bots_picking, picking['id'], split, old_backorder_id))
                                 elif ptype == 'CANCELLED':
                                     self._handle_cancellations(_cr, self.session.uid, bots_picking, type_picking_prod_dict.get((picking_id, ptype), {}), context=ctx)
