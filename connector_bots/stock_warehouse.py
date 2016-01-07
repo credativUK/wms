@@ -429,7 +429,9 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 if move_ids:
                                     _cr.execute("""select id "id", picking_id "picking_id", product_qty "product_qty", product_id "product_id"
                                                 from stock_move where id in %s """, [tuple(move_ids),])
-                                    for move in _cr.dictfetchall():
+                                    res_dict = dict([(res['id'], res) for res in _cr.dictfetchall()]) # Convert to a dict to read them back in the correct order
+                                    for move_id in move_ids:
+                                        move = res_dict[move_id]
                                         key = (move['id'], move['picking_id'], move['product_id'])
                                         if qty and sum(move_dict.get(key, {}).values()) < move['product_qty']:
                                             qty_to_add = min(move['product_qty'], qty)
