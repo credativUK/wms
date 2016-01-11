@@ -429,7 +429,9 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 if move_ids:
                                     _cr.execute("""select id "id", picking_id "picking_id", product_qty "product_qty", product_id "product_id"
                                                 from stock_move where id in %s """, [tuple(move_ids),])
-                                    for move in _cr.dictfetchall():
+                                    res_dict = dict([(res['id'], res) for res in _cr.dictfetchall()]) # Convert to a dict to read them back in the correct order
+                                    for move_id in move_ids:
+                                        move = res_dict[move_id]
                                         key = (move['id'], move['picking_id'], move['product_id'])
                                         if qty and sum(move_dict.get(key, {}).values()) < move['product_qty']:
                                             qty_to_add = min(move['product_qty'], qty)
@@ -470,6 +472,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             for (picking_id, ptype), moves_part in type_picking_move_dict.iteritems():
 
                                 # Get the binding ID for this picking
+                                openerp_picking = picking_obj.browse(_cr, self.session.uid, picking_id, context=ctx)
                                 bots_picking_id = bots_picking_obj.search(_cr, self.session.uid, [('openerp_id', '=', picking_id), ('backend_id', '=', self.backend_record.id)], context=ctx)
                                 if bots_picking_id:
                                     bots_picking_id = bots_picking_id[0]
@@ -479,7 +482,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 bots_picking = bots_picking_obj.browse(_cr, self.session.uid, bots_picking_id, context=ctx)
 
                                 if ptype == 'DONE':
-                                    split, old_backorder_id = self._handle_confirmations(_cr, self.session.uid, bots_picking.openerp_id, moves_part, context=ctx)
+                                    split, old_backorder_id = self._handle_confirmations(_cr, self.session.uid, openerp_picking, moves_part, context=ctx)
                                     backorders.append((bots_picking, picking['id'], split, old_backorder_id))
                                 elif ptype == 'CANCELLED':
                                     self._handle_cancellations(_cr, self.session.uid, bots_picking, type_picking_prod_dict.get((picking_id, ptype), {}), context=ctx)
