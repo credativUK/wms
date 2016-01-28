@@ -76,10 +76,10 @@ def main(inn,out):
                                 ORD_CARRIER = carrier
                                 break
                 if ATTR_NAME == 'uniqueRecordID' and ATTR_VALUE:
-                    if ATTR_VALUE[2] == '0':
-                        LINE_INTERNAL_ID = ATTR_VALUE[3:]
+                    if ATTR_VALUE[3] == 'M':
+                        LINE_INTERNAL_ID = ATTR_VALUE[4:]
                     else:
-                        LINE_INTERNAL_ID = ATTR_VALUE[2:]
+                        LINE_INTERNAL_ID = ATTR_VALUE[3:]
                     if LINE_INTERNAL_ID not in LINE_INTERNAL_IDS:
                         LINE_INTERNAL_IDS.append(LINE_INTERNAL_ID)
             ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)]['LINE_INTERNAL_IDS'] = LINE_INTERNAL_IDS
