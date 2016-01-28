@@ -157,7 +157,7 @@ def main(inn,out):
         ORDER_POSTAGERATE = order_attrs.get('basicPostageRate') or 0.0
         ORDER_PREFCARRIER = order_attrs.get('preferredCarrier') or ''
         ORDER_PREFSERVICE = order_attrs.get('preferredCarrierService') or ''
-        ORDER_EXPRESS = order_attrs.get('expressDelivery') and 1 or 0
+        ORDER_EXPRESS = 1 if order_attrs.get('expressDelivery') else 0
         ORDER_GIFTMSG = order_attrs.get('giftMessage', '') or ''
         ORDER_CARRIERPREMIUM = order_attrs.get('carrier_premium') or 0.00
         ORDER_EXPRESSPREMIUM = order_attrs.get('express_premium') or 0.00
