@@ -123,7 +123,8 @@ class PrismPickingOutAdapter(StockPickingOutAdapter):
                                                                                ('state', '!=', 'cancel')], context=self.session.context)
                 if move_ids:
                     move_po = move_obj.browse(self.session.cr, self.session.uid, move_ids[0], self.session.context)
-                    if move_po.picking_id:
+                    # We cannot cross-dock a PO which has already been received into the warehouse, eg "deliver at once" stock
+                    if move_po.picking_id and not move_po.state == 'done':
                         po_name = picking_binder.to_backend(move_po.picking_id.id, wrap=True) or ""
                         if not po_name:
                             raise NoExternalId("No PO ID found, try again later")
