@@ -365,7 +365,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
         for file_id in file_ids:
             try:
-                with file_to_process(self.session, file_id[0], new_cr=new_cr, serialized_cr=False) as f:
+                with file_to_process(self.session, file_id[0], new_cr=new_cr) as f:
                     json_data = json.load(f)
                     _cr = self.session.cr
 

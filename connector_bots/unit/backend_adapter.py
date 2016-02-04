@@ -35,7 +35,7 @@ import re
 _logger = logging.getLogger(__name__)
 
 @contextmanager
-def file_to_process(session, filename_id, new_cr=True, serialized_cr=True):
+def file_to_process(session, filename_id, new_cr=True):
     """
         Open file for reading and return the contents as a stream.
 
@@ -51,7 +51,7 @@ def file_to_process(session, filename_id, new_cr=True, serialized_cr=True):
 
     file_obj = session.pool.get('bots.file')
     try:
-        cr = pooler.get_db(session.cr.dbname).cursor(serialized=serialized_cr)
+        cr = pooler.get_db(session.cr.dbname).cursor()
         if new_cr:
             orig_cr = session.cr
             session.cr = cr
