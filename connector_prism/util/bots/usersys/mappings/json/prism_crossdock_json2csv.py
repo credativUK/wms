@@ -49,7 +49,7 @@ def main(inn,out):
         for dummy in xrange(int(LINE_QTY or 0)):
             itr += 1
             LINE_QTY = 1.0
-            LINE_UUID = "%s0%s" % (itr, LINE_INTERNAL_ID)
+            LINE_UUID = "%s0M%s" % (itr, LINE_INTERNAL_ID)
 
             main_out = out.putloop({'BOTSID': 'LINE'})
             main_out.put({'BOTSID':'LINE', 'itemID': LINE_UUID})

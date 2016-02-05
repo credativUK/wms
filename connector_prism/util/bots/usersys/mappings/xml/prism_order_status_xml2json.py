@@ -19,6 +19,9 @@
 #
 ##############################################################################
 
+import re
+
+
 CARRIER_MAPING = {
     'RM': 'Royal Mail Untracked',
     'FJ77': 'Royal Mail Tracked',
@@ -61,7 +64,7 @@ def main(inn,out):
             ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)]['DATETIME'] = ORDL_DATETIME
             ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)]['QTY'] = ORDL_QTY
 
-            LINE_INTERNAL_IDS = []
+            LINE_INTERNAL_IDS = set()
             pinn_attr = item.getloop({'BOTSID': 'item'}, {'BOTSID': 'attributes'}, {'BOTSID': 'attribute'})
             for attr in pinn_attr:
                 ATTR_NAME = attr.get({'BOTSID': 'attribute', 'name': None})
@@ -76,13 +79,13 @@ def main(inn,out):
                                 ORD_CARRIER = carrier
                                 break
                 if ATTR_NAME == 'uniqueRecordID' and ATTR_VALUE:
-                    if ATTR_VALUE[2] == '0':
-                        LINE_INTERNAL_ID = ATTR_VALUE[3:]
-                    else:
-                        LINE_INTERNAL_ID = ATTR_VALUE[2:]
-                    if LINE_INTERNAL_ID not in LINE_INTERNAL_IDS:
-                        LINE_INTERNAL_IDS.append(LINE_INTERNAL_ID)
-            ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)]['LINE_INTERNAL_IDS'] = LINE_INTERNAL_IDS
+
+                    LINE_INTERNAL_ID = re.match("^[1-9]+0+M?(\d+)$", ATTR_VALUE)
+
+                    if LINE_INTERNAL_ID:
+                        LINE_INTERNAL_IDS.add(LINE_INTERNAL_ID.groups()[0])
+
+            ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)]['LINE_INTERNAL_IDS'] = list(LINE_INTERNAL_IDS)
 
         for (LINE_PRODUCT, LINE_STATUS), LINE_DATA in ORD_PRODUCTS.iteritems():
             olout = oout.putloop({'BOTSID': 'shipment'}, {'BOTSID':'line'})
