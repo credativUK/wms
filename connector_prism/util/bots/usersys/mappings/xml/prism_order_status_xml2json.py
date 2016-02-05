@@ -80,7 +80,7 @@ def main(inn,out):
                                 break
                 if ATTR_NAME == 'uniqueRecordID' and ATTR_VALUE:
 
-                    LINE_INTERNAL_ID = re.match("^\d+0M?(\d+)$", ATTR_VALUE)
+                    LINE_INTERNAL_ID = re.match("^[1-9]+0+M?(\d+)$", ATTR_VALUE)
 
                     if LINE_INTERNAL_ID:
                         LINE_INTERNAL_IDS.add(LINE_INTERNAL_ID.groups()[0])
