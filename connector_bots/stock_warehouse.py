@@ -160,7 +160,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
             # For the original picking remove lines which were cancelled
             for move in stock_picking.move_lines:
-                if move.state == 'cancel': # If we were cancelled in OpenERP already then stay cancelled
+                if move.state == 'cancel' and move.product_id.id in prod_cancel: # If we were cancelled in OpenERP already then stay cancelled
                     prod_cancel[move.product_id.id] = prod_cancel[move.product_id.id] - move.product_qty
                     continue
                 elif move.state == 'done': # This move is already completed so cannot be cancelled
@@ -365,7 +365,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
         for file_id in file_ids:
             try:
-                with file_to_process(self.session, file_id[0], new_cr=new_cr, serialized_cr=False) as f:
+                with file_to_process(self.session, file_id[0], new_cr=new_cr) as f:
                     json_data = json.load(f)
                     _cr = self.session.cr
 
