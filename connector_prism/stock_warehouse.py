@@ -137,6 +137,8 @@ class BotsStockWarehouse(orm.Model):
                 # We cannot split the delivery and there are moves which cannot be completed, remove moves from their purchases
                 procurement_ids = procurement_obj.search(cr, uid, [('move_id', 'in', deallocate_move_ids)], context=context)
                 procurement_obj.write(cr, uid, procurement_ids, {'purchase_id': False}, context=context)
+
+            force_move_ids = move_obj.search(cr, uid, [('id', 'in', force_move_ids), ('state', 'in', ('confirmed','waiting'))], context=context)
             if force_move_ids:
                 # We are either complete or are able to split the order, assign everything that doesn't need splitting
                 move_obj.force_assign(cr, uid, force_move_ids, context=context)
