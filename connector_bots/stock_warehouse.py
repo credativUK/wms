@@ -153,8 +153,21 @@ class WarehouseAdapter(BotsCRUDAdapter):
         stock_picking = picking_obj.browse(cr, uid, bots_stock_picking.openerp_id.id, context=context)
         # If there are any cancellations we need to reset them back to confirmed so they are re-procured
         if prod_cancel:
-            # Duplicate the entire picking including moves lines and procurements
-            new_picking_id = picking_obj.copy(cr, uid, stock_picking.id, {'move_lines': []}, context=context)
+
+            confirm_moves = False
+
+            if stock_picking.sale_id:
+                search_domain = [('sale_id','=',stock_picking.sale_id.id), ('state','=','confirmed')]
+                pick_ids = picking_obj.search(cr, uid, search_domain, context=context)
+                new_picking_id = pick_ids and pick_ids[0] or False
+
+            if new_picking_id:
+                # The picking's already confirmed, so we'll need to explicitly confirm the move.
+                confirm_moves = True
+            else:
+                # Duplicate the entire picking including moves lines and procurements
+                new_picking_id = picking_obj.copy(cr, uid, stock_picking.id, {'move_lines': []}, context=context)
+
             new_picking = picking_obj.browse(cr, uid, new_picking_id, context=context)
             moves = False
 
@@ -187,6 +200,8 @@ class WarehouseAdapter(BotsCRUDAdapter):
                         if sol_ids:
                             sale_line_obj.write(cr, uid, sol_ids, {'procurement_id': new_procurement_id}, context=context)
 
+                    if confirm_moves:
+                        stock_move_obj.action_confirm(cr, uid, [new_move], context=context)
                     move.action_cancel()
                     if procurement_id and cut_off:
                         procurement.purchase_id.write({'bots_cut_off': True})
