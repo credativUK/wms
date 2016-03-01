@@ -169,7 +169,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                 new_picking_id = picking_obj.copy(cr, uid, stock_picking.id, {'move_lines': []}, context=context)
 
             new_picking = picking_obj.browse(cr, uid, new_picking_id, context=context)
-            moves = False
+            moves = []
 
             # For the original picking remove lines which were cancelled
             for move in stock_picking.move_lines:
@@ -182,7 +182,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                     prod_cancel[move.product_id.id] = prod_cancel[move.product_id.id] - move.product_qty
                     procurement_id = procurement_obj.search(cr, uid, [('move_id', '=', move.id)], context=context)
                     new_move = stock_move_obj.copy(cr, uid, move.id, {'picking_id': new_picking_id}, context=context)
-                    moves = True
+                    moves.append(new_move)
                     if procurement_id:
                         procurement = procurement_obj.browse(cr, uid, procurement_id[0], context=context)
                         cut_off = procurement.purchase_id and getattr(procurement.purchase_id, 'bots_cut_off', False) and procurement.purchase_id.bots_cut_off
@@ -200,8 +200,6 @@ class WarehouseAdapter(BotsCRUDAdapter):
                         if sol_ids:
                             sale_line_obj.write(cr, uid, sol_ids, {'procurement_id': new_procurement_id}, context=context)
 
-                    if confirm_moves:
-                        stock_move_obj.action_confirm(cr, uid, [new_move], context=context)
                     move.action_cancel()
                     if procurement_id and cut_off:
                         procurement.purchase_id.write({'bots_cut_off': True})
@@ -215,7 +213,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                     procurement_obj.write(cr, uid, procurement_id, {'product_qty': reduce_qty, 'product_uos_qty': reduce_qty}, context=context)
 
                     new_move = stock_move_obj.copy(cr, uid, move.id, {'picking_id': new_picking_id, 'product_qty': new_qty, 'product_uos_qty': new_qty}, context=context)
-                    moves = True
+                    moves.append(new_move)
                     if procurement_id:
                         defaults = {'move_id': new_move, 'purchase_id': False, 'product_qty': new_qty, 'product_uos_qty': new_qty}
                         if move.sale_line_id:
@@ -229,13 +227,15 @@ class WarehouseAdapter(BotsCRUDAdapter):
                 else:
                     pass
 
-            if moves:
+            if moves and confirm_moves:
+                stock_move_obj.action_confirm(cr, uid, moves, context=context)
+            if moves: # Run this anyway if we need to confirm the picking or not, since it is a workflow there is no harm in emitting the signal
                 add_checkpoint(self.session, 'stock.picking', new_picking_id, self.backend_record.id)
                 wf_service.trg_validate(uid, 'stock.picking', new_picking_id, 'button_confirm', cr)
                 if stock_picking.type == 'out' and stock_picking.sale_id:
                     wf_service.trg_validate(uid, 'sale.order', stock_picking.sale_id.id, 'ship_corrected', cr)
                 wf_service.trg_write(uid, 'stock.picking', stock_picking.id, cr)
-            else: # If no moves were backordered then unlink the new picking
+            elif not confirm_moves: # If no moves were backordered and we created a new picking, then unlink it
                 picking_obj.unlink(cr, uid, [new_picking_id], context=context)
 
             return new_picking_id
