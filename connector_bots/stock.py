@@ -1006,12 +1006,16 @@ def picking_cancel(session, model_name, record_id, picking_type):
                 and not all([move.state == 'cancel' for move in picking.move_lines]):
             late_pickings.append(picking.name)
             continue
-        if (picking_type == 'bots.stock.picking.out' and picking.backend_id.feat_picking_out_cancel) or \
+        if not picking.bots_id:
+            picking.unlink()
+        elif (picking_type == 'bots.stock.picking.out' and picking.backend_id.feat_picking_out_cancel) or \
             (picking_type == 'bots.stock.picking.in' and picking.backend_id.feat_picking_in_cancel):
             export_picking_cancel.delay(session, picking_type, picking.id)
+        else:
+            raise osv.except_osv(_('Error!'), _('Cancellations are not enabled and this picking has already been exported to the warehouse: %s') % (picking.name,))
 
     if late_pickings:
-        raise osv.except_osv(_('Error!'), _('Could not cancel the following pickings, they might have already been delivered by the warehouse: %s') % ", ".join(late_pickings))
+        raise osv.except_osv(_('Error!'), _('Could not cancel the following pickings, they might have already been delivered by the warehouse: %s') % (", ".join(late_pickings),))
 
 @bots
 class BotsPickingExport(ExportSynchronizer):
