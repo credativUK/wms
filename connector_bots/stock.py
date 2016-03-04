@@ -689,6 +689,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
             tax_id = []
             if move.sale_line_id:
                 price_unit = move.sale_line_id.price_unit
+                
+                # Take the parent line's price if no price on simple product
+                if move.sale_parent_line_id and not price_unit:
+                    sale_order_line = move.sale_parent_line_id
+                    price_unit = sale_order_line.price_unit
+                
                 currency = move.sale_line_id.order_id.currency_id
                 discount = move.sale_line_id.discount
                 tax_id = move.sale_line_id.tax_id
