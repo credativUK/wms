@@ -171,6 +171,9 @@ class WarehouseAdapter(BotsCRUDAdapter):
             new_picking = picking_obj.browse(cr, uid, new_picking_id, context=context)
             moves = []
 
+            events_orig = stock_picking.wms_disable_events
+            if not events_orig:
+                stock_picking.write({'wms_disable_events': True})
             # For the original picking remove lines which were cancelled
             for move in stock_picking.move_lines:
                 if move.state == 'cancel' and move.product_id.id in prod_cancel: # If we were cancelled in OpenERP already then stay cancelled
@@ -226,6 +229,9 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             sale_line_obj.write(cr, uid, sol_ids, {'procurement_id': new_procurement_id}, context=context)
                 else:
                     pass
+
+            if not events_orig:
+                stock_picking.write({'wms_disable_events': events_orig})
 
             if moves and confirm_moves:
                 stock_move_obj.action_confirm(cr, uid, moves, context=context)
