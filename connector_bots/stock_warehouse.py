@@ -211,9 +211,24 @@ class WarehouseAdapter(BotsCRUDAdapter):
                     new_qty = prod_cancel.get(move.product_id.id, 0)
                     reduce_qty = move.product_qty - new_qty
                     prod_cancel[move.product_id.id] = prod_cancel[move.product_id.id] - new_qty
-                    move.write({'product_qty': reduce_qty, 'product_uos_qty': reduce_qty})
                     procurement_id = procurement_obj.search(cr, uid, [('move_id', '=', move.id)], context=context)
+
+                    procurement = procurement_obj.browse(cr, uid, procurement_id[0], context=context)
+                    cut_off = procurement.purchase_id and getattr(procurement.purchase_id, 'bots_cut_off', False) and procurement.purchase_id.bots_cut_off
+
+                    # Temporarily un-cut-off PO and de-allocate procurement
+                    if cut_off:
+                        procurement.purchase_id.write({'bots_cut_off': False})
+                    proc_purchase_id = procurement.purchase_id
+                    procurement_obj.write(cr, uid, procurement_id, {'purchase_id': False}, context=context)
+
+                    move.write({'product_qty': reduce_qty, 'product_uos_qty': reduce_qty})
                     procurement_obj.write(cr, uid, procurement_id, {'product_qty': reduce_qty, 'product_uos_qty': reduce_qty}, context=context)
+
+                    # Re-allocate procurement and re-cut-off PO
+                    procurement_obj.write(cr, uid, procurement_id, {'purchase_id': proc_purchase_id}, context=context)
+                    if cut_off:
+                        procurement.purchase_id.write({'bots_cut_off': True})
 
                     new_move = stock_move_obj.copy(cr, uid, move.id, {'picking_id': new_picking_id, 'product_qty': new_qty, 'product_uos_qty': new_qty}, context=context)
                     moves.append(new_move)
