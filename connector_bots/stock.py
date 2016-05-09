@@ -684,7 +684,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     break
 
             discount = 0
-            price_unit = move.product_id.standard_price
+            price_unit = 0.0
             currency = default_company.currency_id
             tax_id = []
             if move.sale_line_id:
@@ -728,10 +728,15 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     price_unit = currency_obj.compute(self.session.cr, self.session.uid, default_currency.id, currency.id, price_unit, round=False, context=ctx)
                 ordered_qty = move.product_qty
 
-            price = currency_obj.round(self.session.cr, self.session.uid, currency, (1 - (discount/100.0)) * price_unit)
+            price_unit = price_unit or move.product_id.list_price
+            discounted_price = (1 - (discount / 100.0)) * price_unit
 
-            price_exc_tax = tax_obj.compute_all(self.session.cr, self.session.uid, tax_id, price_unit * (1-(discount or 0.0)/100.0),
-                                            1, move.product_id, move.partner_id)['total'] # Use product quantity of 1 as the unit price is being exported
+            price = currency_obj.round(self.session.cr, self.session.uid, currency, discounted_price)
+
+            taxes = tax_obj.compute_all(
+                self.session.cr, self.session.uid, tax_id, discounted_price, 1,
+                move.product_id, move.partner_id
+            )
 
             precision = dp.get_precision('bots')(self.session.cr)
             precision = precision and precision[1] or 2
@@ -747,7 +752,6 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "uom": move.product_uom.name,
                     "product_uos_qty": int(move.product_uos_qty),
                     "uos": move.product_uos.name,
-                    "price_unit_ex_vat": round(price_exc_tax, precision),
                     "price_unit": round(price, precision),
                     "price_currency": currency.name,
                 }
@@ -763,13 +767,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 order_line['customs_free_from'] = not picking.bots_customs
 
             if move.sale_line_id:
-                tax_price = price_unit * (1-(move.sale_line_id.discount or 0.0)/100.0)
-                taxes = tax_obj.compute_all(self.session.cr, self.session.uid, move.sale_line_id.tax_id, tax_price,
-                                            move.product_qty, move.product_id, move.sale_line_id.order_id.partner_id)
-                order_line['price_total_ex_tax'] = round(taxes['total'],precision)
-                order_line['price_total_inc_tax'] = round(taxes['total_included'],precision)
+                # Maintain backwards compatibility with the bots mapping... but should be removed in the future...
+                order_line['price_total_ex_tax'] = round(taxes['total'], precision)
+                order_line['price_total_inc_tax'] = round(taxes['total_included'], precision)
 
                 total_rate = 0.0
+                tax_rate = 0.0
                 for tax in move.sale_line_id.tax_id:
                     if tax.type == 'percent' and tax.price_include == False:
                         total_rate += tax.amount
@@ -777,8 +780,9 @@ class StockPickingAdapter(BotsCRUDAdapter):
                         break # Only supports aggregating percentage taxes
                         # raise osv.except_osv(_('Error !'), _('This report does not support tax with ID %s') % (tax.id,))
                 else:
-                    order_line['tax_rate'] = round(total_rate*100.0, precision)
+                    tax_rate = round(total_rate * 100.0, precision)
 
+                order_line['tax_rate'] = tax_rate or (100 * ((taxes['total_included'] - taxes['total']) / taxes['total']))
 
             order_lines.append(order_line)
             seq += 1
