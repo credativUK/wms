@@ -684,16 +684,18 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     break
 
             discount = 0
+            bundle = False
             price_unit = move.product_id.standard_price
             currency = default_company.currency_id
             tax_id = []
             if move.sale_line_id:
                 price_unit = move.sale_line_id.price_unit
-                
+
                 # Take the parent line's price if no price on simple product
                 if move.sale_parent_line_id and not price_unit:
                     sale_order_line = move.sale_parent_line_id
                     price_unit = sale_order_line.price_unit
+                    bundle = True
                 
                 currency = move.sale_line_id.order_id.currency_id
                 discount = move.sale_line_id.discount
@@ -750,6 +752,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "price_unit_ex_vat": round(price_exc_tax, precision),
                     "price_unit": round(price, precision),
                     "price_currency": currency.name,
+                    "bundle": bundle
                 }
             if move.product_id.volume:
                 order_line['volume_net'] = move.product_id.volume
