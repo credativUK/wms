@@ -750,7 +750,9 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "price_unit_ex_vat": round(price_exc_tax, precision),
                     "price_unit": round(price, precision),
                     "price_currency": currency.name,
+                    "alternative_description": move.name,
                 }
+
             if move.product_id.volume:
                 order_line['volume_net'] = move.product_id.volume
             if move.product_id.weight:
