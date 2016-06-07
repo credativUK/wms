@@ -23,7 +23,6 @@ from openerp.addons.connector_bots.stock import StockPickingOutAdapter
 
 @bots(replacing=StockPickingOutAdapter)
 class MagentoBundlePickingOutAdapter(StockPickingOutAdapter):
-    _picking_type = None
     _model_name = 'bots.stock.picking.out'
     _picking_type = 'out'
 
