@@ -124,7 +124,7 @@ class StockPickingIn(orm.Model):
 
         ids_all = ids_pending + ids_exported
         if ids_all and cancel:
-            backend_ids = backend_obj.search(cr, SUPERUSER_ID, [('feat_picking_in_cancel','=', True)], context=context)
+            backend_ids = backend_obj.search(cr, SUPERUSER_ID, [('feat_picking_in_cancel', '=', 'export')], context=context)
             exported_pickings = bots_picking_obj.read(cr, uid, ids_all, ['bots_id', 'backend_id'], context=context)
             ids_all = [x['id'] for x in exported_pickings if not x['bots_id'] or not x['backend_id'] in backend_ids]
         if ids_all and doraise:
@@ -224,7 +224,7 @@ class StockPickingOut(orm.Model):
 
         ids_all = ids_pending + ids_exported
         if ids_all and cancel:
-            backend_ids = backend_obj.search(cr, SUPERUSER_ID, [('feat_picking_out_cancel','=', True)], context=context)
+            backend_ids = backend_obj.search(cr, SUPERUSER_ID, [('feat_picking_out_cancel', '=', 'export')], context=context)
             exported_pickings = bots_picking_obj.read(cr, uid, ids_all, ['bots_id', 'backend_id'], context=context)
             ids_all = [x['id'] for x in exported_pickings if not x['bots_id'] or not x['backend_id'] in backend_ids]
         if ids_all and doraise:
@@ -347,7 +347,7 @@ class StockPicking(orm.Model):
 
             ids_all = ids_pending + ids_exported
             if ids_all and cancel:
-                backend_ids = backend_obj.search(cr, SUPERUSER_ID, [(PARAM,'=', True)], context=context)
+                backend_ids = backend_obj.search(cr, SUPERUSER_ID, [(PARAM, '=', 'export')], context=context)
                 exported_pickings = self.pool.get(MODEL).read(cr, uid, ids_all, ['bots_id', 'backend_id'], context=context)
                 ids_all = [x['id'] for x in exported_pickings if not x['bots_id'] or not x['backend_id'] in backend_ids]
             if ids_all and doraise:
@@ -517,7 +517,7 @@ class BotsStockPickingOut(orm.Model):
         session = ConnectorSession(cr, uid, context=context)
         for id in ids:
             picking = self.browse(cr, uid, id, context=context)
-            if picking.backend_id.feat_picking_out_cancel:
+            if picking.backend_id.feat_picking_out_cancel == 'export':
                 export_picking_cancel.delay(session, self._name, id)
         return True
 
@@ -569,7 +569,7 @@ class BotsStockPickingIn(orm.Model):
         session = ConnectorSession(cr, uid, context=context)
         for id in ids:
             picking = self.browse(cr, uid, id, context=context)
-            if picking.backend_id.feat_picking_in_cancel:
+            if picking.backend_id.feat_picking_in_cancel == 'export':
                 export_picking_cancel.delay(session, self._name, id)
         return True
 
@@ -1031,11 +1031,13 @@ def picking_cancel(session, model_name, record_id, picking_type):
             continue
         if not picking.bots_id:
             picking.unlink()
-        elif (picking_type == 'bots.stock.picking.out' and picking.backend_id.feat_picking_out_cancel) or \
-            (picking_type == 'bots.stock.picking.in' and picking.backend_id.feat_picking_in_cancel):
+        elif (picking_type == 'bots.stock.picking.out' and picking.backend_id.feat_picking_out_cancel == 'export') or \
+            (picking_type == 'bots.stock.picking.in' and picking.backend_id.feat_picking_in_cancel == 'export'):
             export_picking_cancel.delay(session, picking_type, picking.id)
-        #else:
-        #    raise osv.except_osv(_('Error!'), _('Cancellations are not enabled and this picking has already been exported to the warehouse: %s') % (picking.name,))
+        else:
+            if (picking_type == 'bots.stock.picking.out' and picking.backend_id.feat_picking_out_cancel == 'reject') or \
+                (picking_type == 'bots.stock.picking.in' and picking.backend_id.feat_picking_in_cancel == 'reject'):
+                raise osv.except_osv(_('Error!'), _('Cancellations are restricted and this picking has already been exported to the warehouse: %s') % (picking.name,))
 
     if late_pickings:
         raise osv.except_osv(_('Error!'), _('Could not cancel the following pickings, they might have already been delivered by the warehouse: %s') % (", ".join(late_pickings),))
