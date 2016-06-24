@@ -165,7 +165,7 @@ class PrismBotsPickingExport(BotsPickingExport):
 
     def run(self, binding_id):
         # Check if we are a PO edit and if the original already has a binding - use this instead if PO edits are not supported
-        if self.model._name == 'bots.stock.picking.in' and not self.backend_record.feat_picking_in_cancel:
+        if self.model._name == 'bots.stock.picking.in' and self.backend_record.feat_picking_in_cancel != 'export':
             picking = self.model.browse(self.session.cr, self.session.uid, binding_id).openerp_id
             if picking.purchase_id and picking.purchase_id.order_edit_id:
                 old_binding_ids = self.model.search(self.session.cr, self.session.uid, [('purchase_id', '=', picking.purchase_id.order_edit_id.id), ('bots_id', '!=', False)])
