@@ -149,6 +149,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
         procurement_obj = self.session.pool.get('procurement.order')
         sale_line_obj = self.session.pool.get('sale.order.line')
         wf_service = netsvc.LocalService("workflow")
+        new_picking_id = False
 
         stock_picking = picking_obj.browse(cr, uid, bots_stock_picking.openerp_id.id, context=context)
         # If there are any cancellations we need to reset them back to confirmed so they are re-procured
