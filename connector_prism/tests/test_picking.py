@@ -251,7 +251,7 @@ class TestPickingOut(TestPicking):
             'Output file has unexpected content')
 
         # 6. Temporarily disable cancelles and perform invalid actions again - should all fail
-        self.backend_model.write(self.cr, self.uid, self.backend_id, {'feat_picking_out_cancel': False})
+        self.backend_model.write(self.cr, self.uid, self.backend_id, {'feat_picking_out_cancel': 'reject'})
         wf_service.trg_validate(self.uid, 'stock.picking', picking.id, 'button_cancel', self.cr)
         picking.refresh()
         self.assertNotEquals(picking.state, 'cancel', 'Picking should not be cancelled')
@@ -271,7 +271,7 @@ class TestPickingOut(TestPicking):
             picking.move_lines[0].action_done()
         with self.assertRaises(osv.except_osv):
             picking.move_lines[0].unlink()
-        self.backend_model.write(self.cr, self.uid, self.backend_id, {'feat_picking_out_cancel': True})
+        self.backend_model.write(self.cr, self.uid, self.backend_id, {'feat_picking_out_cancel': 'export'})
 
         # 7. Attempt to cancel picking
         wf_service.trg_validate(self.uid, 'stock.picking', picking.id, 'button_cancel', self.cr) # FIXME: Workflow breaking after the first cancel attempt? (Core bug?)
@@ -955,7 +955,7 @@ class TestPickingIn(TestPicking):
             'Output file has unexpected content')
 
         # 6. Temporarily disable cancelles and perform invalid actions again - should all fail
-        self.backend_model.write(self.cr, self.uid, self.backend_id, {'feat_picking_in_cancel': False})
+        self.backend_model.write(self.cr, self.uid, self.backend_id, {'feat_picking_in_cancel': 'reject'})
         wf_service.trg_validate(self.uid, 'stock.picking', picking.id, 'button_cancel', self.cr)
         picking.refresh()
         self.assertNotEquals(picking.state, 'cancel', 'Picking should not be cancelled')
@@ -975,7 +975,7 @@ class TestPickingIn(TestPicking):
             picking.move_lines[0].action_done()
         with self.assertRaises(osv.except_osv):
             picking.move_lines[0].unlink()
-        self.backend_model.write(self.cr, self.uid, self.backend_id, {'feat_picking_in_cancel': True})
+        self.backend_model.write(self.cr, self.uid, self.backend_id, {'feat_picking_in_cancel': 'export'})
 
         # 7. Attempt to cancel picking
         wf_service.trg_validate(self.uid, 'stock.picking', picking.id, 'button_cancel', self.cr) # FIXME: Workflow breaking after the first cancel attempt? (Core bug?)
