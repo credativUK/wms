@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <record id="action_server_purchase_cutoff_multiple" model="ir.actions.server">
+            <field name="name">Trigger Cut-off</field>
+            <field name="condition">True</field>
+            <field name="model_id" ref="purchase.model_purchase_order"/>
+            <field name="state">code</field>
+            <field name="code">action = self.purchase_cutoff_defer(cr, uid, context.get('active_ids', []), context=context)</field>
+        </record>
+
+        <record model="ir.values" id="action_purchase_cutoff_multiple">
+            <field name="name">action_purchase_cutoff_multiple</field>
+            <field name="action_id" ref="action_server_purchase_cutoff_multiple"/>
+            <field name="value" eval="'ir.actions.server,' + str(ref('action_server_purchase_cutoff_multiple'))"/>
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model_id" ref="purchase.model_purchase_order"/>
+            <field name="model">purchase.order</field>
+        </record>
+    </data>
+</openerp>
