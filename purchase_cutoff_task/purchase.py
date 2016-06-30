@@ -12,7 +12,7 @@ class PurchaseOrder(orm.Model):
     @defer("Cut-off Purchase Order")
     def purchase_cutoff_defer(self, cr, uid, ids, context=None):
         warehouse_pool = self.pool.get('bots.warehouse')
-        for group in self.read_group([('id', 'in', ids)], ['warehouse_id'], ['warehouse_id'], context=context):
-            warehouse = warehouse_pool.browse(self, cr, uid, group['warehouse_id'][0], context=context)
+        for group in self.read_group(cr, uid, [('id', 'in', ids)], ['warehouse_id'], ['warehouse_id'], context=context):
+            warehouse = warehouse_pool.browse(cr, uid, group['warehouse_id'][0], context=context)
             purchase_ids = self.search(cr, uid, group['__domain'], context=context)
             warehouse.purchase_cutoff(purchase_ids)
