@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+from collections import Counter
 
 from openerp.osv import orm, fields, osv
 from openerp import netsvc, SUPERUSER_ID
@@ -663,7 +664,11 @@ class StockPickingAdapter(BotsCRUDAdapter):
         moves_to_split = []
         order_lines = []
         seq = 1
-        for move in picking.move_lines:
+
+        moves = [move for move in picking.move_lines]
+        bundle_sku_count = Counter([move.sale_parent_line_id.product_id.id for move in moves if move.sale_parent_line_id])
+
+        for move in moves:
             if move.state == 'cancel':
                 moves_to_split.append(move.id)
                 continue
@@ -731,6 +736,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 ordered_qty = move.product_qty
 
             price = currency_obj.round(self.session.cr, self.session.uid, currency, (1 - (discount/100.0)) * price_unit)
+
+            if bundle:
+                # This is to get the correct price for multi-sku bundles where the unit price for each sku has to be
+                # total cost of bundle / number of skus
+                bundle_count = bundle_sku_count[move.sale_parent_line_id.product_id.id]
+                price = (price * 100 // bundle_count) / 100
 
             price_exc_tax = tax_obj.compute_all(self.session.cr, self.session.uid, tax_id, price_unit * (1-(discount or 0.0)/100.0),
                                             1, move.product_id, move.partner_id)['total'] # Use product quantity of 1 as the unit price is being exported
