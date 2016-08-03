@@ -141,6 +141,7 @@ recorddefs = {
             ['customs_free_from', 'C', 64, 'AN'],
             ['customs_free_to', 'C', 64, 'AN'],
             ['customs_commodity_code', 'C', 64, 'AN'],
+            ['bundle', 'C', 64, 'AN'],
           ],
     'attributes':[
             ['BOTSID', 'M', 64, 'AN'],

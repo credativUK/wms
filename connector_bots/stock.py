@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+from collections import Counter
 
 from openerp.osv import orm, fields, osv
 from openerp import netsvc, SUPERUSER_ID
@@ -663,7 +664,11 @@ class StockPickingAdapter(BotsCRUDAdapter):
         moves_to_split = []
         order_lines = []
         seq = 1
-        for move in picking.move_lines:
+
+        moves = [move for move in picking.move_lines]
+        bundle_sku_count = Counter([move.sale_parent_line_id.product_id.id for move in moves if move.sale_parent_line_id])
+
+        for move in moves:
             if move.state == 'cancel':
                 moves_to_split.append(move.id)
                 continue
@@ -684,16 +689,18 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     break
 
             discount = 0
+            bundle = False
             price_unit = move.product_id.standard_price
             currency = default_company.currency_id
             tax_id = []
             if move.sale_line_id:
                 price_unit = move.sale_line_id.price_unit
-                
+
                 # Take the parent line's price if no price on simple product
                 if move.sale_parent_line_id and not price_unit:
                     sale_order_line = move.sale_parent_line_id
                     price_unit = sale_order_line.price_unit
+                    bundle = True
                 
                 currency = move.sale_line_id.order_id.currency_id
                 discount = move.sale_line_id.discount
@@ -730,6 +737,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
 
             price = currency_obj.round(self.session.cr, self.session.uid, currency, (1 - (discount/100.0)) * price_unit)
 
+            if bundle:
+                # This is to get the correct price for multi-sku bundles where the unit price for each sku has to be
+                # total cost of bundle / number of skus
+                bundle_count = bundle_sku_count[move.sale_parent_line_id.product_id.id]
+                price = (price * 100 // bundle_count) / 100
+
             price_exc_tax = tax_obj.compute_all(self.session.cr, self.session.uid, tax_id, price_unit * (1-(discount or 0.0)/100.0),
                                             1, move.product_id, move.partner_id)['total'] # Use product quantity of 1 as the unit price is being exported
 
@@ -751,6 +764,7 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "price_unit": round(price, precision),
                     "price_currency": currency.name,
                     "alternative_description": move.name,
+                    "bundle": bundle
                 }
 
             if move.product_id.volume:
