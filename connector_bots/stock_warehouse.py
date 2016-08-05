@@ -153,11 +153,27 @@ class WarehouseAdapter(BotsCRUDAdapter):
         stock_picking = picking_obj.browse(cr, uid, bots_stock_picking.openerp_id.id, context=context)
         # If there are any cancellations we need to reset them back to confirmed so they are re-procured
         if prod_cancel:
-            # Duplicate the entire picking including moves lines and procurements
-            new_picking_id = picking_obj.copy(cr, uid, stock_picking.id, {'move_lines': []}, context=context)
-            new_picking = picking_obj.browse(cr, uid, new_picking_id, context=context)
-            moves = False
 
+            confirm_moves = False
+
+            if stock_picking.sale_id:
+                search_domain = [('sale_id','=',stock_picking.sale_id.id), ('state','=','confirmed')]
+                pick_ids = picking_obj.search(cr, uid, search_domain, context=context)
+                new_picking_id = pick_ids and pick_ids[0] or False
+
+            if new_picking_id:
+                # The picking's already confirmed, so we'll need to explicitly confirm the move.
+                confirm_moves = True
+            else:
+                # Duplicate the entire picking including moves lines and procurements
+                new_picking_id = picking_obj.copy(cr, uid, stock_picking.id, {'move_lines': []}, context=context)
+
+            new_picking = picking_obj.browse(cr, uid, new_picking_id, context=context)
+            moves = []
+
+            events_orig = stock_picking.wms_disable_events
+            if not events_orig:
+                stock_picking.write({'wms_disable_events': True})
             # For the original picking remove lines which were cancelled
             for move in stock_picking.move_lines:
                 if move.state == 'cancel' and move.product_id.id in prod_cancel: # If we were cancelled in OpenERP already then stay cancelled
@@ -169,7 +185,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                     prod_cancel[move.product_id.id] = prod_cancel[move.product_id.id] - move.product_qty
                     procurement_id = procurement_obj.search(cr, uid, [('move_id', '=', move.id)], context=context)
                     new_move = stock_move_obj.copy(cr, uid, move.id, {'picking_id': new_picking_id}, context=context)
-                    moves = True
+                    moves.append(new_move)
                     if procurement_id:
                         procurement = procurement_obj.browse(cr, uid, procurement_id[0], context=context)
                         cut_off = procurement.purchase_id and getattr(procurement.purchase_id, 'bots_cut_off', False) and procurement.purchase_id.bots_cut_off
@@ -200,7 +216,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                     procurement_obj.write(cr, uid, procurement_id, {'product_qty': reduce_qty, 'product_uos_qty': reduce_qty}, context=context)
 
                     new_move = stock_move_obj.copy(cr, uid, move.id, {'picking_id': new_picking_id, 'product_qty': new_qty, 'product_uos_qty': new_qty}, context=context)
-                    moves = True
+                    moves.append(new_move)
                     if procurement_id:
                         defaults = {'move_id': new_move, 'purchase_id': False, 'product_qty': new_qty, 'product_uos_qty': new_qty}
                         if move.sale_line_id:
@@ -214,13 +230,18 @@ class WarehouseAdapter(BotsCRUDAdapter):
                 else:
                     pass
 
-            if moves:
+            if not events_orig:
+                stock_picking.write({'wms_disable_events': events_orig})
+
+            if moves and confirm_moves:
+                stock_move_obj.action_confirm(cr, uid, moves, context=context)
+            if moves: # Run this anyway if we need to confirm the picking or not, since it is a workflow there is no harm in emitting the signal
                 add_checkpoint(self.session, 'stock.picking', new_picking_id, self.backend_record.id)
                 wf_service.trg_validate(uid, 'stock.picking', new_picking_id, 'button_confirm', cr)
                 if stock_picking.type == 'out' and stock_picking.sale_id:
                     wf_service.trg_validate(uid, 'sale.order', stock_picking.sale_id.id, 'ship_corrected', cr)
                 wf_service.trg_write(uid, 'stock.picking', stock_picking.id, cr)
-            else: # If no moves were backordered then unlink the new picking
+            elif not confirm_moves: # If no moves were backordered and we created a new picking, then unlink it
                 picking_obj.unlink(cr, uid, [new_picking_id], context=context)
 
             return new_picking_id

@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+from collections import Counter
 
 from openerp.osv import orm, fields, osv
 from openerp import netsvc, SUPERUSER_ID
@@ -663,7 +664,11 @@ class StockPickingAdapter(BotsCRUDAdapter):
         moves_to_split = []
         order_lines = []
         seq = 1
-        for move in picking.move_lines:
+
+        moves = [move for move in picking.move_lines]
+        bundle_sku_count = Counter([move.sale_parent_line_id.product_id.id for move in moves if move.sale_parent_line_id])
+
+        for move in moves:
             if move.state == 'cancel':
                 moves_to_split.append(move.id)
                 continue
@@ -685,15 +690,17 @@ class StockPickingAdapter(BotsCRUDAdapter):
 
             discount = 0
             price_unit = 0.0
+            bundle = False
             currency = default_company.currency_id
             tax_id = []
             if move.sale_line_id:
                 price_unit = move.sale_line_id.price_unit
-                
+
                 # Take the parent line's price if no price on simple product
                 if move.sale_parent_line_id and not price_unit:
                     sale_order_line = move.sale_parent_line_id
                     price_unit = sale_order_line.price_unit
+                    bundle = True
                 
                 currency = move.sale_line_id.order_id.currency_id
                 discount = move.sale_line_id.discount
@@ -738,6 +745,15 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 move.product_id, move.partner_id
             )
 
+            if bundle:
+                # This is to get the correct price for multi-sku bundles where the unit price for each sku has to be
+                # total cost of bundle / number of skus
+                bundle_count = bundle_sku_count[move.sale_parent_line_id.product_id.id]
+                price = (price * 100 // bundle_count) / 100
+
+            price_exc_tax = tax_obj.compute_all(self.session.cr, self.session.uid, tax_id, price_unit * (1-(discount or 0.0)/100.0),
+                                            1, move.product_id, move.partner_id)['total'] # Use product quantity of 1 as the unit price is being exported
+
             precision = dp.get_precision('bots')(self.session.cr)
             precision = precision and precision[1] or 2
 
@@ -754,7 +770,10 @@ class StockPickingAdapter(BotsCRUDAdapter):
                     "uos": move.product_uos.name,
                     "price_unit": round(price, precision),
                     "price_currency": currency.name,
+                    "alternative_description": move.name,
+                    "bundle": bundle
                 }
+
             if move.product_id.volume:
                 order_line['volume_net'] = move.product_id.volume
             if move.product_id.weight:
@@ -1010,12 +1029,16 @@ def picking_cancel(session, model_name, record_id, picking_type):
                 and not all([move.state == 'cancel' for move in picking.move_lines]):
             late_pickings.append(picking.name)
             continue
-        if (picking_type == 'bots.stock.picking.out' and picking.backend_id.feat_picking_out_cancel) or \
+        if not picking.bots_id:
+            picking.unlink()
+        elif (picking_type == 'bots.stock.picking.out' and picking.backend_id.feat_picking_out_cancel) or \
             (picking_type == 'bots.stock.picking.in' and picking.backend_id.feat_picking_in_cancel):
             export_picking_cancel.delay(session, picking_type, picking.id)
+        #else:
+        #    raise osv.except_osv(_('Error!'), _('Cancellations are not enabled and this picking has already been exported to the warehouse: %s') % (picking.name,))
 
     if late_pickings:
-        raise osv.except_osv(_('Error!'), _('Could not cancel the following pickings, they might have already been delivered by the warehouse: %s') % ", ".join(late_pickings))
+        raise osv.except_osv(_('Error!'), _('Could not cancel the following pickings, they might have already been delivered by the warehouse: %s') % (", ".join(late_pickings),))
 
 @bots
 class BotsPickingExport(ExportSynchronizer):
