@@ -19,7 +19,7 @@
 ##############################################################################
 
 {'name': 'Connector for Bots EDI server',
- 'version': '7.20160616.0',
+ 'version': '7.20160901.0',
  'category': 'Connector',
  'author': 'credativ Ltd',
  'website': 'http://www.credativ.co.uk',
