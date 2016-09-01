@@ -601,12 +601,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
             MODEL = 'bots.stock.picking.in'
             TYPE = 'in'
             FILENAME = 'picking_in_%s.json'
-            ALLOWED_STATES = ('waiting', 'confirmed', 'assigned', 'done')
+            ALLOWED_STATES = ['waiting', 'confirmed', 'assigned',]
         elif self._picking_type == 'out':
             MODEL = 'bots.stock.picking.out'
             TYPE = 'out'
             FILENAME = 'picking_out_%s.json'
-            ALLOWED_STATES = ('assigned', 'done')
+            ALLOWED_STATES = ['assigned',]
         else:
             raise NotImplementedError('Unable to adapt stock picking of type %s' % (self._picking_type,))
 
@@ -626,6 +626,10 @@ class StockPickingAdapter(BotsCRUDAdapter):
         ctx = (self.session.context or {}).copy()
         ctx.update({'company_id': default_company_id})
         default_company = self.session.pool.get('res.company').browse(self.session.cr, self.session.uid, default_company_id, context=ctx)
+
+        # For exporting pickings, include done moves if exporting once picking done
+        if getattr(picking.backend_id, 'feat_export_picking_out_when_done', False):
+            ALLOWED_STATES.append('done')
 
         picking = bots_picking_obj.browse(self.session.cr, self.session.uid, picking_id, context=ctx)
         if self._picking_type == 'out':
