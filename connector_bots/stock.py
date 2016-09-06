@@ -1063,7 +1063,11 @@ class BotsPickingExport(ExportSynchronizer):
 
 @on_record_create(model_names='bots.stock.picking.out')
 def delay_export_picking_out(session, model_name, record_id, vals):
-    export_picking.delay(session, model_name, record_id)
+    # By default delay for 15 mins (configurable) to allow multiple moves becoming available within a short time to be exported together
+    delay = session.pool.get('ir.config_parameter').get_param(session.cr, session.uid, 'connector.bots.picking_out_delay', default=900)
+    if type(delay) in (str, unicode):
+        delay = delay.isdigit() and int(delay) or 900
+    export_picking.delay(session, model_name, record_id, eta=delay)
 
 @on_record_create(model_names='bots.stock.picking.in')
 def delay_export_picking_in(session, model_name, record_id, vals):
