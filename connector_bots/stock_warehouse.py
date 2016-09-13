@@ -454,9 +454,16 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                                                                 ('state', 'not in', ignore_states),
                                                                                 ], context=ctx)
 
-                                # Match moves from the main picking as a fallback
+                                if picking['type'] == 'in' and main_picking.openerp_id.purchase_id:
+                                    # If a purchase attempt to match all moves from all pickings
+                                    all_picking_ids = [x.id for x in main_picking.openerp_id.purchase_id.picking_ids]
+                                else:
+                                    # If a sale attempt to match all moves from the main picking only
+                                    all_picking_ids = [main_picking.openerp_id.id]
+
+                                # Match moves from the main picking(s) as a fallback
                                 move_ids.extend(move_obj.search(_cr, self.session.uid,
-                                                                [('picking_id', '=', main_picking.openerp_id.id),
+                                                                [('picking_id', 'in', all_picking_ids),
                                                                 ('product_id', '=', product_id),
                                                                 ('state', 'not in', ignore_states),
                                                                 ], context=ctx))
