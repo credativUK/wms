@@ -588,6 +588,29 @@ class BotsStockPickingInBinder(BotsModelBinder):
 class StockPickingAdapter(BotsCRUDAdapter):
     _picking_type = None
 
+    def _get_moves_to_split(self, pick, allowed_states):
+        """ Determine which moves should not be exported to
+            BOTS, and should instead be split out into a
+            new picking.
+        """
+        product_binder = self.get_binder_for_model('bots.product')
+        picking_complete = True
+        moves_to_split = []
+        for move in pick.move_lines:
+            if move.state == 'cancel':
+                moves_to_split.append(move.id)
+                continue
+            elif move.state not in allowed_states:
+                picking_complete = False
+                moves_to_split.append(move.id)
+                continue
+            product_bots_id = move.product_id and product_binder.to_backend(move.product_id.id)
+            if not product_bots_id:
+                picking_complete = False
+                moves_to_split.append(move.id)
+                continue
+        return moves_to_split, picking_complete
+
     def _prepare_create_data(self, picking_id):
         def _find_pricelist_cost(cr, uid, pl_id, prod_id, partner, uom, date, context=None):
             pl_obj = self.session.pool.get('product.pricelist')
@@ -660,28 +683,14 @@ class StockPickingAdapter(BotsCRUDAdapter):
             existing_id = picking_binder.to_openerp(bots_id)
 
         # Select which moves we will ship
-        picking_complete = True
-        moves_to_split = []
+        moves_to_split, picking_complete = self._get_moves_to_split(picking, ALLOWED_STATES)
         order_lines = []
         seq = 1
-
-        moves = [move for move in picking.move_lines]
-        bundle_sku_count = Counter([move.sale_parent_line_id.product_id.id for move in moves if move.sale_parent_line_id])
-
-        for move in moves:
-            if move.state == 'cancel':
-                moves_to_split.append(move.id)
+        for move in picking.move_lines:
+            if move.id in moves_to_split:
                 continue
-            elif move.state not in ALLOWED_STATES:
-                picking_complete = False
-                moves_to_split.append(move.id)
-                continue
+
             product_bots_id = move.product_id and product_binder.to_backend(move.product_id.id)
-            if not product_bots_id:
-                picking_complete = False
-                moves_to_split.append(move.id)
-                continue
-
             product_supplier_sku = product_bots_id
             for supplier in move.product_id.seller_ids:
                 if supplier.product_code and supplier.name.id == move.partner_id.id:
