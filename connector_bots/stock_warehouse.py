@@ -219,7 +219,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                     # Temporarily un-cut-off PO and de-allocate procurement
                     if cut_off:
                         procurement.purchase_id.write({'bots_cut_off': False})
-                    proc_purchase_id = procurement.purchase_id
+                    proc_purchase_id = procurement.purchase_id.id
                     procurement_obj.write(cr, uid, procurement_id, {'purchase_id': False}, context=context)
 
                     move.write({'product_qty': reduce_qty, 'product_uos_qty': reduce_qty})
