@@ -686,7 +686,11 @@ class StockPickingAdapter(BotsCRUDAdapter):
         moves_to_split, picking_complete = self._get_moves_to_split(picking, ALLOWED_STATES)
         order_lines = []
         seq = 1
-        for move in picking.move_lines:
+
+        moves = [move for move in picking.move_lines]
+        bundle_sku_count = Counter([move.sale_parent_line_id.product_id.id for move in moves if move.sale_parent_line_id])
+
+        for move in moves:
             if move.id in moves_to_split:
                 continue
 
