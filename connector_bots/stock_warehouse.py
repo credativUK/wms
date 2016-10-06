@@ -186,6 +186,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                     procurement_id = procurement_obj.search(cr, uid, [('move_id', '=', move.id)], context=context)
                     new_move = stock_move_obj.copy(cr, uid, move.id, {'picking_id': new_picking_id}, context=context)
                     moves.append(new_move)
+                    new_procurement_id = False
                     if procurement_id:
                         procurement = procurement_obj.browse(cr, uid, procurement_id[0], context=context)
                         cut_off = procurement.purchase_id and getattr(procurement.purchase_id, 'bots_cut_off', False) and procurement.purchase_id.bots_cut_off
@@ -197,13 +198,27 @@ class WarehouseAdapter(BotsCRUDAdapter):
                         if move.sale_line_id:
                             defaults['procure_method'] = move.sale_line_id.type
                         new_procurement_id = procurement_obj.copy(cr, uid, procurement_id[0], defaults, context=context)
-                        wf_service.trg_validate(uid, 'procurement.order', new_procurement_id, 'button_confirm', cr)
                         # Update SO lines to use new_procurement_id to avoid workflow moving to exception
                         sol_ids = sale_line_obj.search(cr, uid, [('procurement_id', '=', procurement_id[0])], context=context)
                         if sol_ids:
                             sale_line_obj.write(cr, uid, sol_ids, {'procurement_id': new_procurement_id}, context=context)
 
-                    move.action_cancel()
+                    cr.execute('SAVEPOINT procurement')
+                    try: # Attempt to remove old procurement and allocate new one if there is space.
+                        if new_procurement_id and procurement.purchase_id:
+                            procurement_obj.write(cr, uid, [procurement_id[0]], {'purchase_id': False}, context=context)
+                        move.action_cancel()
+                        if new_procurement_id:
+                            wf_service.trg_validate(uid, 'procurement.order', new_procurement_id, 'button_confirm', cr)
+                            if procurement.purchase_id: # Add the new procurement back into the same PO if it came from one
+                                procurement_obj.write(cr, uid, [new_procurement_id], {'purchase_id': procurement.purchase_id.id}, context=context)
+                                wf_service.trg_validate(uid, 'procurement.order', new_procurement_id, 'button_check', cr)
+                    except osv.except_osv, e: # No space, so we just cancel the old procurement and continue
+                        cr.execute('ROLLBACK TO SAVEPOINT procurement')
+                        move.action_cancel()
+                    finally:
+                        cr.execute('RELEASE SAVEPOINT procurement')
+
                     if procurement_id and cut_off:
                         procurement.purchase_id.write({'bots_cut_off': True})
 
