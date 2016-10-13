@@ -818,7 +818,12 @@ class StockPickingAdapter(BotsCRUDAdapter):
                 else:
                     tax_rate = round(total_rate * 100.0, precision)
 
-                order_line['tax_rate'] = tax_rate or (100 * ((taxes['total_included'] - taxes['total']) / taxes['total']))
+                try:
+                    worked_out_rate = (100 * ((taxes['total_included'] - taxes['total']) / taxes['total']))
+                except ZeroDivisionError:
+                    worked_out_rate = 0.0
+
+                order_line['tax_rate'] = tax_rate or worked_out_rate
 
             order_lines.append(order_line)
             seq += 1
