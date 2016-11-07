@@ -165,6 +165,7 @@ class BotsCRUDAdapter(CRUDAdapter):
         try:
             all = [(f, os.path.join(loc, f), os.path.join(self.bots.location_archive, f)) for f in os.listdir(loc)]
             matching_files = [x for x in all if re.match(pattern, x[0])]
+            matching_files = sorted(matching_files, key=lambda f: os.stat(f[1]).st_mtime)
             file_ids = []
             for file in matching_files:
                 file_id = file_obj.search(_cr, SUPERUSER_ID, [('full_path', '=', file[1])], context=self.session.context)
