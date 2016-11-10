@@ -510,7 +510,7 @@ class BotsStockPickingOut(orm.Model):
     def reexport_order(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
         for id in ids:
-            export_picking.delay(session, self._name, id)
+            export_picking.delay(session, self._name, id, priority=10)
         return True
 
     def reexport_cancel(self, cr, uid, ids, context=None):
@@ -562,7 +562,7 @@ class BotsStockPickingIn(orm.Model):
     def reexport_order(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
         for id in ids:
-            export_picking.delay(session, self._name, id)
+            export_picking.delay(session, self._name, id, priority=10)
         return True
 
     def reexport_cancel(self, cr, uid, ids, context=None):
@@ -1085,11 +1085,11 @@ class BotsPickingExport(ExportSynchronizer):
 
 @on_record_create(model_names='bots.stock.picking.out')
 def delay_export_picking_out(session, model_name, record_id, vals):
-    export_picking.delay(session, model_name, record_id)
+    export_picking.delay(session, model_name, record_id, priority=10)
 
 @on_record_create(model_names='bots.stock.picking.in')
 def delay_export_picking_in(session, model_name, record_id, vals):
-    export_picking.delay(session, model_name, record_id)
+    export_picking.delay(session, model_name, record_id, priority=10)
 
 @job
 def export_picking(session, model_name, record_id):
