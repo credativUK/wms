@@ -53,7 +53,7 @@ class PrismWarehouseAdapter(WarehouseAdapter):
                 if bots_wh_ids:
                     _cr = sql_db.db_connect(cr.dbname).cursor()
                     self.session.cr = _cr
-                    purchase_cutoff.delay(self.session, 'bots.warehouse', bots_wh_ids[0], [purchase.id])
+                    purchase_cutoff.delay(self.session, 'bots.warehouse', bots_wh_ids[0], [purchase.id], priority=10)
                     _cr.commit()
                     _cr.close()
                     self.session.cr = cr
