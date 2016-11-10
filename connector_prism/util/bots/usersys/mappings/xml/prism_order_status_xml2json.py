@@ -61,7 +61,7 @@ def main(inn,out):
             ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)]['DATETIME'] = ORDL_DATETIME
             ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)]['QTY'] = ORDL_QTY
 
-            LINE_INTERNAL_IDS = []
+            LINE_INTERNAL_IDS = ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)].get('LINE_INTERNAL_IDS', [])
             pinn_attr = item.getloop({'BOTSID': 'item'}, {'BOTSID': 'attributes'}, {'BOTSID': 'attribute'})
             for attr in pinn_attr:
                 ATTR_NAME = attr.get({'BOTSID': 'attribute', 'name': None})
