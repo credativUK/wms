@@ -91,7 +91,7 @@ class PrismPickingOutAdapter(StockPickingOutAdapter):
         res = super(PrismPickingOutAdapter, self).create(picking_id)
         picking = self.session.browse('bots.stock.picking.out', picking_id)
         if picking.backend_id.feat_picking_out_crossdock and picking.type == 'out':
-            export_picking_crossdock.delay(self.session, 'bots.stock.picking.out', picking_id)
+            export_picking_crossdock.delay(self.session, 'bots.stock.picking.out', picking_id, priority=10)
         return res
 
     def _prepare_crossdock(self, picking_id):
