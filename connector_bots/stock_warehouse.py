@@ -381,6 +381,28 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
         return tracking_data
 
+    def _check_picking_document(self, cr, uid, picking_document, main_picking,
+                                context=None):
+        allowed_states = {
+            'DONE': ('confirmed', 'assigned'),
+            'CANCELLED': ('confirmed', 'assigned', 'cancel'),
+        }
+
+        line_states = {line.get('status') or 'DONE'
+            for line in picking_document['line']}
+        if len(line_states) != 1:
+            raise NotImplementedError("Picking %s: Processing different "
+                "line types on a single confirmation is not supported" % (
+                    picking['id']))
+
+        confirmation_type = line_states.pop()
+        if main_picking.state not in allowed_states.get(confirmation_type, []):
+            raise JobError("Picking %s in state '%s' does not allow "
+                "messages of type '%s'" % (
+                    picking['id'], main_picking.state, confirmation_type))
+
+        return True
+
     def get_picking_conf(self, picking_types, new_cr=True):
         product_binder = self.get_binder_for_model('bots.product')
         picking_in_binder = self.get_binder_for_model('bots.stock.picking.in')
@@ -429,6 +451,8 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             main_picking = bots_picking_obj.browse(_cr, self.session.uid, main_picking_id, context=ctx)
                             picking_ids = [main_picking.openerp_id.id]
                             ctx.update({'company_id' : main_picking.openerp_id.company_id.id})
+
+                            self._check_picking_document(cr, uid, picking, main_picking, context=context)
 
                             move_dict = {}
                             moves_extra = {}
