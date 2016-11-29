@@ -340,7 +340,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
         self._handle_confirmations(cr, uid, picking_new, prod_confirm, context=None)
         return True
 
-    def _get_tracking(self, cr, uid, picking, contect=None):
+    def _get_tracking(self, cr, uid, picking, context=None):
         carrier_obj = self.session.pool.get('delivery.carrier')
 
         tracking_number = False
@@ -367,7 +367,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
         carrier = picking.get('service_carrier') or picking.get('carrier')
         if carrier:
-            carrier_ids = carrier_obj.search(cr, uid, [('name', 'like', carrier),], context=contect)
+            carrier_ids = carrier_obj.search(cr, uid, [('name', 'like', carrier),], context=context)
             if carrier_ids:
                 carrier_id = carrier_ids[0]
             else:
@@ -445,8 +445,6 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 ignore_states = ('cancel', 'draft', 'done', 'confirmed')
                                 if ptype == 'CANCELLED':
                                     ignore_states = ('draft', 'done')
-                                elif ptype == 'DONE':
-                                    ignore_states = ('cancel', 'draft', 'confirmed')
 
                                 # Attempt to find moves for this line
                                 move_ids = [int(x) for x in line.get('move_ids', '').split(',') if x]
@@ -495,7 +493,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             del move_dict
 
                             # Handle tracking information
-                            tracking_data = self._get_tracking(_cr, self.session.uid, picking, contect=ctx)
+                            tracking_data = self._get_tracking(_cr, self.session.uid, picking, context=ctx)
                             if tracking_data:
                                 picking_obj.write(_cr, self.session.uid, picking_ids, tracking_data, context=ctx)
 
