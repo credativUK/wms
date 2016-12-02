@@ -669,22 +669,25 @@ class StockPickingAdapter(BotsCRUDAdapter):
             incoterm = ""
 
         if picking.bots_id:
-            raise JobError(_('The Bots picking %s already has an external ID. Will not export again.') % (picking.id,))
+            if self.session.context.get('bots_force'):
+                bots_id = picking.bots_id
+            else:
+                raise JobError(_('The Bots picking %s already has an external ID. Will not export again.') % (picking.id,))
+        else:
+            # Get a unique name for the picking
+            BOTS_ID_MAX_LEN = 16
+            bots_id = re.sub(r'[\\/_-]', r'', order_number.upper())[:BOTS_ID_MAX_LEN]
+            # Test if this ID is unique, if not increment it
+            suffix_counter = 0
+            existing_id = picking_binder.to_openerp(bots_id)
+            orig_bots_id = bots_id
+            while existing_id:
+                suffix_counter += 1
+                bots_id = "%sS%s" % (orig_bots_id[:BOTS_ID_MAX_LEN-1-len(str(suffix_counter))], suffix_counter)
+                existing_id = picking_binder.to_openerp(bots_id)
 
         if not address:
             raise MappingError(_('Missing address when attempting to export Bots picking %s.') % (picking_id,))
-
-        # Get a unique name for the picking
-        BOTS_ID_MAX_LEN = 16
-        bots_id = re.sub(r'[\\/_-]', r'', order_number.upper())[:BOTS_ID_MAX_LEN]
-        # Test if this ID is unique, if not increment it
-        suffix_counter = 0
-        existing_id = picking_binder.to_openerp(bots_id)
-        orig_bots_id = bots_id
-        while existing_id:
-            suffix_counter += 1
-            bots_id = "%sS%s" % (orig_bots_id[:BOTS_ID_MAX_LEN-1-len(str(suffix_counter))], suffix_counter)
-            existing_id = picking_binder.to_openerp(bots_id)
 
         # Select which moves we will ship
         moves_to_split, picking_complete = self._get_moves_to_split(picking, ALLOWED_STATES)

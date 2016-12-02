@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    Bots open source edi translator
-#    Copyright (C) 2014 credativ ltd (<http://www.credativ.co.uk>). All Rights Reserved
+#    Copyright (C) 2016 credativ ltd (<http://www.credativ.co.uk>). All Rights Reserved
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -35,12 +35,19 @@ structure = [
     LEVEL:[
         {ID:'header',MIN:0,MAX:1},
         {ID:'pickings',MIN:0,MAX:999999,LEVEL:[
-                {ID:'partner',MIN:0,MAX:1},
-                {ID:'partner_bill',MIN:0,MAX:1},
-                {ID:'line',MIN:0,MAX:999999},
-                {ID:'attributes',MIN:0,MAX:999999},
+            {ID:'partner',MIN:0,MAX:1},
+            {ID:'partner_bill',MIN:0,MAX:1},
+            {ID:'line',MIN:0,MAX:999999,LEVEL:[
+                {ID:'dropship_picking',MIN:0,MAX:1,LEVEL:[
+                    {ID:'partner',MIN:0,MAX:1},
+                    {ID:'partner_bill',MIN:0,MAX:1},
+                    {ID:'line',MIN:1,MAX:1},
+                    {ID:'attributes',MIN:0,MAX:999999},
+                ]}
             ]},
+            {ID:'attributes',MIN:0,MAX:999999},
         ]},
+    ]},
 ]
 
 recorddefs = {
@@ -149,4 +156,4 @@ recorddefs = {
             ['value', 'C', 128, 'AN'],
           ],
      }
-
+recorddefs['dropship_picking'] = recorddefs['pickings']
