@@ -20,6 +20,7 @@
 ##############################################################################
 
 from bots.botsconfig import *
+import copy
 
 syntax = { 
         'indented': True,
@@ -156,4 +157,4 @@ recorddefs = {
             ['value', 'C', 128, 'AN'],
           ],
      }
-recorddefs['dropship_picking'] = recorddefs['pickings']
+recorddefs['dropship_picking'] = copy.deepcopy(recorddefs['pickings'])
