@@ -151,6 +151,7 @@ recorddefs = {
             ['customs_commodity_code', 'C', 64, 'AN'],
             ['bundle', 'C', 64, 'AN'],
             ['alternative_description', 'C', 64, 'AN'],
+            ['barcode', 'C', 64, 'AN'],
           ],
     'attributes':[
             ['BOTSID', 'M', 64, 'AN'],

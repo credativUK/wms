@@ -83,7 +83,8 @@ class PrismPickingOutAdapter(StockPickingOutAdapter):
         for line in data['picking']['pickings'][0].get('line', []):
             if line.get('move_id'):
                 move = move_obj.browse(self.session.cr, self.session.uid, line.get('move_id'))
-                line.update({'customs_commodity_code': move.product_id.magento_commodity_code or '0',})
+                line.update({'customs_commodity_code': move.product_id.magento_commodity_code or '0',
+                             'barcode': move.product_id.magento_barcode or '',})
 
         return data, FILENAME, bots_id
 
