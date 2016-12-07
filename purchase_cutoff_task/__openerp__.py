@@ -4,7 +4,7 @@
 
 {
     'name': 'Enable purchase cutoff',
-    'version': '7.0.1.0.0',
+    'version': '7.20161020.0',
     'category': 'Purchase',
     'author': 'credativ ltd.',
     'license': 'AGPL-3',
