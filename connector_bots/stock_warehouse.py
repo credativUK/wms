@@ -341,7 +341,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
         self._handle_confirmations(cr, uid, picking_new, prod_confirm, context=None)
         return True
 
-    def _get_tracking(self, cr, uid, picking, contect=None):
+    def _get_tracking(self, cr, uid, picking, context=None):
         carrier_obj = self.session.pool.get('delivery.carrier')
 
         tracking_number = False
@@ -368,7 +368,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
         carrier = picking.get('service_carrier') or picking.get('carrier')
         if carrier:
-            carrier_ids = carrier_obj.search(cr, uid, [('name', 'like', carrier),], context=contect)
+            carrier_ids = carrier_obj.search(cr, uid, [('name', 'like', carrier),], context=context)
             if carrier_ids:
                 carrier_id = carrier_ids[0]
             else:
@@ -380,6 +380,28 @@ class WarehouseAdapter(BotsCRUDAdapter):
             tracking_data['carrier_id'] = carrier_id
 
         return tracking_data
+
+    def _check_picking_document(self, cr, uid, picking_document, main_picking,
+                                context=None):
+        allowed_states = {
+            'DONE': ('confirmed', 'assigned'),
+            'CANCELLED': ('confirmed', 'assigned', 'cancel'),
+        }
+
+        line_states = {line.get('status') or 'DONE'
+            for line in picking_document['line']}
+        if len(line_states) != 1:
+            raise NotImplementedError("Picking %s: Processing different "
+                "line types on a single confirmation is not supported" % (
+                    picking_document['id']))
+
+        confirmation_type = line_states.pop()
+        if main_picking.state not in allowed_states.get(confirmation_type, []):
+            raise JobError("Picking %s in state '%s' does not allow "
+                "messages of type '%s'" % (
+                    picking_document['id'], main_picking.state, confirmation_type))
+
+        return True
 
     def get_picking_conf(self, picking_types, new_cr=True):
         product_binder = self.get_binder_for_model('bots.product')
@@ -430,6 +452,8 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             picking_ids = [main_picking.openerp_id.id]
                             ctx.update({'company_id' : main_picking.openerp_id.company_id.id})
 
+                            self._check_picking_document(_cr, self.session.uid, picking, main_picking, context=ctx)
+
                             move_dict = {}
                             moves_extra = {}
                             
@@ -446,8 +470,6 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 ignore_states = ('cancel', 'draft', 'done', 'confirmed')
                                 if ptype == 'CANCELLED':
                                     ignore_states = ('draft', 'done')
-                                elif ptype == 'DONE':
-                                    ignore_states = ('cancel', 'draft', 'confirmed')
 
                                 # Attempt to find moves for this line
                                 move_ids = [int(x) for x in line.get('move_ids', '').split(',') if x]
@@ -496,7 +518,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             del move_dict
 
                             # Handle tracking information
-                            tracking_data = self._get_tracking(_cr, self.session.uid, picking, contect=ctx)
+                            tracking_data = self._get_tracking(_cr, self.session.uid, picking, context=ctx)
                             if tracking_data:
                                 picking_obj.write(_cr, self.session.uid, picking_ids, tracking_data, context=ctx)
 
