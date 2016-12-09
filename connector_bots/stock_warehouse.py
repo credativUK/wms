@@ -393,13 +393,13 @@ class WarehouseAdapter(BotsCRUDAdapter):
         if len(line_states) != 1:
             raise NotImplementedError("Picking %s: Processing different "
                 "line types on a single confirmation is not supported" % (
-                    picking['id']))
+                    picking_document['id']))
 
         confirmation_type = line_states.pop()
         if main_picking.state not in allowed_states.get(confirmation_type, []):
             raise JobError("Picking %s in state '%s' does not allow "
                 "messages of type '%s'" % (
-                    picking['id'], main_picking.state, confirmation_type))
+                    picking_document['id'], main_picking.state, confirmation_type))
 
         return True
 
@@ -452,7 +452,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             picking_ids = [main_picking.openerp_id.id]
                             ctx.update({'company_id' : main_picking.openerp_id.company_id.id})
 
-                            self._check_picking_document(cr, uid, picking, main_picking, context=context)
+                            self._check_picking_document(_cr, self.session.uid, picking, main_picking, context=ctx)
 
                             move_dict = {}
                             moves_extra = {}
