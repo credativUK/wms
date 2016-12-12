@@ -60,11 +60,8 @@ def main(inn,out):
             if ORDL_STATUS == 'DESPATCHED':
                 ORDL_STATUS = 'DONE' # Remap to more standard done
 
-            ORDL_QTY = ORD_PRODUCTS.setdefault((ORDL_PRODUCT, ORDL_STATUS), {}).get('QTY', 0) + 1
-            ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)]['DATETIME'] = ORDL_DATETIME
-            ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)]['QTY'] = ORDL_QTY
+            LINE_INTERNAL_ID = None
 
-            LINE_INTERNAL_IDS = set(ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)].get('LINE_INTERNAL_IDS', []))
             pinn_attr = item.getloop({'BOTSID': 'item'}, {'BOTSID': 'attributes'}, {'BOTSID': 'attribute'})
             for attr in pinn_attr:
                 ATTR_NAME = attr.get({'BOTSID': 'attribute', 'name': None})
@@ -79,23 +76,24 @@ def main(inn,out):
                                 ORD_CARRIER = carrier
                                 break
                 if ATTR_NAME == 'uniqueRecordID' and ATTR_VALUE:
-
                     LINE_INTERNAL_ID = re.match("^[1-9]+0+M?(\d+)$", ATTR_VALUE)
-
                     if LINE_INTERNAL_ID:
-                        LINE_INTERNAL_IDS.add(LINE_INTERNAL_ID.groups()[0])
+                        LINE_INTERNAL_ID = LINE_INTERNAL_ID.groups()[0]
 
-            ORD_PRODUCTS[(ORDL_PRODUCT, ORDL_STATUS)]['LINE_INTERNAL_IDS'] = list(LINE_INTERNAL_IDS)
+            key = (ORDL_PRODUCT, ORDL_STATUS, LINE_INTERNAL_ID)
+            ORDL_QTY = ORD_PRODUCTS.setdefault(key, {}).get('QTY', 0) + 1
+            ORD_PRODUCTS[key]['DATETIME'] = ORDL_DATETIME
+            ORD_PRODUCTS[key]['QTY'] = ORDL_QTY
 
-        for (LINE_PRODUCT, LINE_STATUS), LINE_DATA in ORD_PRODUCTS.iteritems():
+        for (LINE_PRODUCT, LINE_STATUS, LINE_INTERNAL_ID), LINE_DATA in ORD_PRODUCTS.iteritems():
             olout = oout.putloop({'BOTSID': 'shipment'}, {'BOTSID':'line'})
             olout.put({'BOTSID':'line', 'type': 'out'})
             olout.put({'BOTSID':'line', 'status': LINE_STATUS})
             olout.put({'BOTSID':'line', 'datetime': LINE_DATA.get('DATETIME')})
             olout.put({'BOTSID':'line', 'product': LINE_PRODUCT})
             olout.put({'BOTSID':'line', 'qty_real': LINE_DATA.get('QTY')})
-            if LINE_DATA.get('LINE_INTERNAL_IDS'):
-                olout.put({'BOTSID':'line', 'move_ids': ','.join(LINE_DATA.get('LINE_INTERNAL_IDS', []))})
+            if LINE_INTERNAL_ID:
+                olout.put({'BOTSID':'line', 'move_ids': LINE_INTERNAL_ID or ''})
 
         if ORD_TRACKING:
             oout.put({'BOTSID':'shipment', 'tracking_number': ','.join(ORD_TRACKING)})
