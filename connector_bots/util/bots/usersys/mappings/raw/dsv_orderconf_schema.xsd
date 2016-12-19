@@ -537,6 +537,8 @@
             <xs:enumeration value="SO"/>
             <xs:enumeration value="SI"/>
             <xs:enumeration value="ACD"/>
+            <xs:enumeration value="ADE"/>
+            <xs:enumeration value="ATA"/>
         </xs:restriction>
     </xs:simpleType>
 

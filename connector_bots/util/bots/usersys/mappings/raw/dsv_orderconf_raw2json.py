@@ -131,6 +131,8 @@ def main(inn,out):
                 'PO': 'purchase_ref',
                 'SI': 'shipping_ref',
                 'SO': 'sale_ref',
+                'ADE': 'DSV_ADE',
+                'ATA': 'DSV_ATA',
                 }.get(ORDID.get('Reference_qualifier'))
                 ORDID_DATE = ORDID.get('Date')
                 ORDID_TIME = ORDID.get('Time')
