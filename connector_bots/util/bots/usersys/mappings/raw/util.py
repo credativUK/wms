@@ -69,6 +69,8 @@ def get_datetime(date, time):
         return None
     if not time:
         time = "0000"
+    if len(time) == 3:
+        time = "0"+time
     if len(date) == 6:
         date = "20"+date
     return "%s-%s-%s %s:%s:00" % (date[0:4], date[4:6], date[6:8], time[0:2], time[2:4])
