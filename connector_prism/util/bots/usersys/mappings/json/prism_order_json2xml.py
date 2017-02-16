@@ -40,7 +40,9 @@ def main(inn,out):
 
         ORD_ORDER = pick.get({'BOTSID': 'pickings', 'order': None})
         ORD_REMARK = pick.get({'BOTSID': 'pickings', 'desc': None})
-        ORD_DELIVERY_DATE = pick.get({'BOTSID': 'pickings', 'date': None}) + ' 00:00:00'
+
+        ORD_DELIVERY_DATE = pick.get({'BOTSID': 'pickings', 'order_date': None}) + ' 00:00:00'
+
         ORDER_ATTRS = {}
 
         # == PARTNER ==
@@ -129,7 +131,7 @@ def main(inn,out):
                 ORD_CURRENCY = ORD_CURRENCY or LINE_CURRENCY
                 if LINE_CURRENCY != ORD_CURRENCY:
                     raise NotImplementedError('Unable to handle order with multiple currencies')
-                LINE_UUID = "%s0%s" % (itr, LINE_INTERNAL_ID)
+                LINE_UUID = "%s0M%s" % (itr, LINE_INTERNAL_ID)
                 LINE_ATTRS = {
                     'uniqueRecordID': LINE_UUID,
                 }
@@ -155,7 +157,7 @@ def main(inn,out):
         ORDER_POSTAGERATE = order_attrs.get('basicPostageRate') or 0.0
         ORDER_PREFCARRIER = order_attrs.get('preferredCarrier') or ''
         ORDER_PREFSERVICE = order_attrs.get('preferredCarrierService') or ''
-        ORDER_EXPRESS = order_attrs.get('expressDelivery') and 1 or 0
+        ORDER_EXPRESS = order_attrs.get('expressDelivery') # should be 0 or 1, not True or False.
         ORDER_GIFTMSG = order_attrs.get('giftMessage', '') or ''
         ORDER_CARRIERPREMIUM = order_attrs.get('carrier_premium') or 0.00
         ORDER_EXPRESSPREMIUM = order_attrs.get('express_premium') or 0.00
@@ -185,8 +187,8 @@ def main(inn,out):
         #order_out.put({'BOTSID':'order', 'giftWrapPremium': 0.00}) # No Default
         order_out.put({'BOTSID':'order', 'holdToComplete': 0})
         order_out.put({'BOTSID':'order', 'tax': 0.00}) # Prism doesn't use this value on the main order, only the order lines
-        #order_out.put({'BOTSID':'order', 'taxRegion': ''}) # No Default
-        #order_out.put({'BOTSID':'order', 'taxIncluded': 1}) # No Default
+        order_out.put({'BOTSID':'order', 'taxRegion': 'GB'})
+        order_out.put({'BOTSID':'order', 'taxIncluded': 1})
         order_out.put({'BOTSID':'order', 'deliveryInstructions': ORD_REMARK})
 
         # ORDER_ATTRS

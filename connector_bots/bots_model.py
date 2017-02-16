@@ -129,7 +129,9 @@ class BotsBackend(orm.Model):
                 picking_types.append('out')
             if picking_types:
                 session = ConnectorSession(cr, uid, context=context)
-                import_picking_confirmation.delay(session, 'bots.warehouse', warehouse.id, picking_types, new_cr=new_cr)
+                import_picking_confirmation.delay(
+                    session, 'bots.warehouse', warehouse.id, picking_types, new_cr=new_cr, priority=5
+                )
         return True
 
     def datetime_convert(self, cr, uid, ids, dt=None, context=None):

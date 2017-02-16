@@ -73,7 +73,7 @@ recorddefs = {
     'item':[
             ['BOTSID','M',255,'A'],
             ['productCode', 'M', 45, 'A'],
-            ['supplierSKU', 'M', 45, 'A'],
+            ['supplierSKU', 'M', 64, 'A'],
             ['quantity', 'M', 11, 'I'],
             ['unitCost', 'C', 11, 'R'],
             ['totalCost', 'C', 11, 'R'],

@@ -200,7 +200,7 @@ def delay_export_account_invoice(session, model_name, record_id, vals):
     """
     Delay the job to export the bots invoice.
     """
-    export_invoice.delay(session, model_name, record_id)
+    export_invoice.delay(session, model_name, record_id, priority=30)
 
 
 @job

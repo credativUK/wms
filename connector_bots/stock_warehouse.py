@@ -25,7 +25,7 @@ from openerp.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
 
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
-from openerp.addons.connector.exception import JobError, NoExternalId, RetryableJobError
+from openerp.addons.connector.exception import JobError, NoExternalId
 from openerp.addons.connector.unit.synchronizer import ImportSynchronizer
 
 from .unit.binder import BotsModelBinder
@@ -153,14 +153,30 @@ class WarehouseAdapter(BotsCRUDAdapter):
         stock_picking = picking_obj.browse(cr, uid, bots_stock_picking.openerp_id.id, context=context)
         # If there are any cancellations we need to reset them back to confirmed so they are re-procured
         if prod_cancel:
-            # Duplicate the entire picking including moves lines and procurements
-            new_picking_id = picking_obj.copy(cr, uid, stock_picking.id, {'move_lines': []}, context=context)
-            new_picking = picking_obj.browse(cr, uid, new_picking_id, context=context)
-            moves = False
 
+            confirm_moves = False
+
+            if stock_picking.sale_id:
+                search_domain = [('sale_id','=',stock_picking.sale_id.id), ('state','=','confirmed')]
+                pick_ids = picking_obj.search(cr, uid, search_domain, context=context)
+                new_picking_id = pick_ids and pick_ids[0] or False
+
+            if new_picking_id:
+                # The picking's already confirmed, so we'll need to explicitly confirm the move.
+                confirm_moves = True
+            else:
+                # Duplicate the entire picking including moves lines and procurements
+                new_picking_id = picking_obj.copy(cr, uid, stock_picking.id, {'move_lines': []}, context=context)
+
+            new_picking = picking_obj.browse(cr, uid, new_picking_id, context=context)
+            moves = []
+
+            events_orig = stock_picking.wms_disable_events
+            if not events_orig:
+                stock_picking.write({'wms_disable_events': True})
             # For the original picking remove lines which were cancelled
             for move in stock_picking.move_lines:
-                if move.state == 'cancel': # If we were cancelled in OpenERP already then stay cancelled
+                if move.state == 'cancel' and move.product_id.id in prod_cancel: # If we were cancelled in OpenERP already then stay cancelled
                     prod_cancel[move.product_id.id] = prod_cancel[move.product_id.id] - move.product_qty
                     continue
                 elif move.state == 'done': # This move is already completed so cannot be cancelled
@@ -169,7 +185,8 @@ class WarehouseAdapter(BotsCRUDAdapter):
                     prod_cancel[move.product_id.id] = prod_cancel[move.product_id.id] - move.product_qty
                     procurement_id = procurement_obj.search(cr, uid, [('move_id', '=', move.id)], context=context)
                     new_move = stock_move_obj.copy(cr, uid, move.id, {'picking_id': new_picking_id}, context=context)
-                    moves = True
+                    moves.append(new_move)
+                    new_procurement_id = False
                     if procurement_id:
                         procurement = procurement_obj.browse(cr, uid, procurement_id[0], context=context)
                         cut_off = procurement.purchase_id and getattr(procurement.purchase_id, 'bots_cut_off', False) and procurement.purchase_id.bots_cut_off
@@ -181,13 +198,27 @@ class WarehouseAdapter(BotsCRUDAdapter):
                         if move.sale_line_id:
                             defaults['procure_method'] = move.sale_line_id.type
                         new_procurement_id = procurement_obj.copy(cr, uid, procurement_id[0], defaults, context=context)
-                        wf_service.trg_validate(uid, 'procurement.order', new_procurement_id, 'button_confirm', cr)
                         # Update SO lines to use new_procurement_id to avoid workflow moving to exception
                         sol_ids = sale_line_obj.search(cr, uid, [('procurement_id', '=', procurement_id[0])], context=context)
                         if sol_ids:
                             sale_line_obj.write(cr, uid, sol_ids, {'procurement_id': new_procurement_id}, context=context)
 
-                    move.action_cancel()
+                    cr.execute('SAVEPOINT procurement')
+                    try: # Attempt to remove old procurement and allocate new one if there is space.
+                        if new_procurement_id and procurement.purchase_id:
+                            procurement_obj.write(cr, uid, [procurement_id[0]], {'purchase_id': False}, context=context)
+                        move.action_cancel()
+                        if new_procurement_id:
+                            wf_service.trg_validate(uid, 'procurement.order', new_procurement_id, 'button_confirm', cr)
+                            if procurement.purchase_id: # Add the new procurement back into the same PO if it came from one
+                                procurement_obj.write(cr, uid, [new_procurement_id], {'purchase_id': procurement.purchase_id.id}, context=context)
+                                wf_service.trg_validate(uid, 'procurement.order', new_procurement_id, 'button_check', cr)
+                    except osv.except_osv, e: # No space, so we just cancel the old procurement and continue
+                        cr.execute('ROLLBACK TO SAVEPOINT procurement')
+                        move.action_cancel()
+                    finally:
+                        cr.execute('RELEASE SAVEPOINT procurement')
+
                     if procurement_id and cut_off:
                         procurement.purchase_id.write({'bots_cut_off': True})
 
@@ -200,7 +231,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                     procurement_obj.write(cr, uid, procurement_id, {'product_qty': reduce_qty, 'product_uos_qty': reduce_qty}, context=context)
 
                     new_move = stock_move_obj.copy(cr, uid, move.id, {'picking_id': new_picking_id, 'product_qty': new_qty, 'product_uos_qty': new_qty}, context=context)
-                    moves = True
+                    moves.append(new_move)
                     if procurement_id:
                         defaults = {'move_id': new_move, 'purchase_id': False, 'product_qty': new_qty, 'product_uos_qty': new_qty}
                         if move.sale_line_id:
@@ -214,13 +245,18 @@ class WarehouseAdapter(BotsCRUDAdapter):
                 else:
                     pass
 
-            if moves:
+            if not events_orig:
+                stock_picking.write({'wms_disable_events': events_orig})
+
+            if moves and confirm_moves:
+                stock_move_obj.action_confirm(cr, uid, moves, context=context)
+            if moves: # Run this anyway if we need to confirm the picking or not, since it is a workflow there is no harm in emitting the signal
                 add_checkpoint(self.session, 'stock.picking', new_picking_id, self.backend_record.id)
                 wf_service.trg_validate(uid, 'stock.picking', new_picking_id, 'button_confirm', cr)
                 if stock_picking.type == 'out' and stock_picking.sale_id:
                     wf_service.trg_validate(uid, 'sale.order', stock_picking.sale_id.id, 'ship_corrected', cr)
                 wf_service.trg_write(uid, 'stock.picking', stock_picking.id, cr)
-            else: # If no moves were backordered then unlink the new picking
+            elif not confirm_moves: # If no moves were backordered and we created a new picking, then unlink it
                 picking_obj.unlink(cr, uid, [new_picking_id], context=context)
 
             return new_picking_id
@@ -304,7 +340,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
         self._handle_confirmations(cr, uid, picking_new, prod_confirm, context=None)
         return True
 
-    def _get_tracking(self, cr, uid, picking, contect=None):
+    def _get_tracking(self, cr, uid, picking, context=None):
         carrier_obj = self.session.pool.get('delivery.carrier')
 
         tracking_number = False
@@ -331,7 +367,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
         carrier = picking.get('service_carrier') or picking.get('carrier')
         if carrier:
-            carrier_ids = carrier_obj.search(cr, uid, [('name', 'like', carrier),], context=contect)
+            carrier_ids = carrier_obj.search(cr, uid, [('name', 'like', carrier),], context=context)
             if carrier_ids:
                 carrier_id = carrier_ids[0]
             else:
@@ -343,6 +379,28 @@ class WarehouseAdapter(BotsCRUDAdapter):
             tracking_data['carrier_id'] = carrier_id
 
         return tracking_data
+
+    def _check_picking_document(self, cr, uid, picking_document, main_picking,
+                                context=None):
+        allowed_states = {
+            'DONE': ('confirmed', 'assigned', 'done'),
+            'CANCELLED': ('confirmed', 'assigned', 'cancel'),
+        }
+
+        line_states = {line.get('status') or 'DONE'
+            for line in picking_document['line']}
+        if len(line_states) != 1:
+            raise NotImplementedError("Picking %s: Processing different "
+                "line types on a single confirmation is not supported" % (
+                    picking_document['id']))
+
+        confirmation_type = line_states.pop()
+        if main_picking.state not in allowed_states.get(confirmation_type, []):
+            raise JobError("Picking %s in state '%s' does not allow "
+                "messages of type '%s'" % (
+                    picking_document['id'], main_picking.state, confirmation_type))
+
+        return True
 
     def get_picking_conf(self, picking_types, new_cr=True):
         product_binder = self.get_binder_for_model('bots.product')
@@ -356,7 +414,6 @@ class WarehouseAdapter(BotsCRUDAdapter):
         bots_warehouse_obj = self.session.pool.get('bots.warehouse')
         wf_service = netsvc.LocalService("workflow")
         exceptions = []
-        retry = False
 
         FILENAME = r'^picking_conf_.*\.json$'
         file_ids = self._search(FILENAME)
@@ -366,7 +423,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
         for file_id in file_ids:
             try:
-                with file_to_process(self.session, file_id[0], new_cr=new_cr, serialized_cr=False) as f:
+                with file_to_process(self.session, file_id[0], new_cr=new_cr) as f:
                     json_data = json.load(f)
                     _cr = self.session.cr
 
@@ -394,6 +451,8 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             picking_ids = [main_picking.openerp_id.id]
                             ctx.update({'company_id' : main_picking.openerp_id.company_id.id})
 
+                            self._check_picking_document(_cr, self.session.uid, picking, main_picking, context=ctx)
+
                             move_dict = {}
                             moves_extra = {}
                             
@@ -407,11 +466,9 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 qty = int('qty_real' in line and line['qty_real'] or line['uom_qty'])
                                 ptype = line.get('status') or 'DONE'
 
-                                ignore_states = ('cancel', 'draft', 'done')
+                                ignore_states = ('cancel', 'draft', 'done', 'confirmed')
                                 if ptype == 'CANCELLED':
                                     ignore_states = ('draft', 'done')
-                                elif ptype == 'DONE':
-                                    ignore_states = ('cancel', 'draft')
 
                                 # Attempt to find moves for this line
                                 move_ids = [int(x) for x in line.get('move_ids', '').split(',') if x]
@@ -430,7 +487,9 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 if move_ids:
                                     _cr.execute("""select id "id", picking_id "picking_id", product_qty "product_qty", product_id "product_id"
                                                 from stock_move where id in %s """, [tuple(move_ids),])
-                                    for move in _cr.dictfetchall():
+                                    res_dict = dict([(res['id'], res) for res in _cr.dictfetchall()]) # Convert to a dict to read them back in the correct order
+                                    for move_id in move_ids:
+                                        move = res_dict[move_id]
                                         key = (move['id'], move['picking_id'], move['product_id'])
                                         if qty and sum(move_dict.get(key, {}).values()) < move['product_qty']:
                                             qty_to_add = min(move['product_qty'], qty)
@@ -458,7 +517,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             del move_dict
 
                             # Handle tracking information
-                            tracking_data = self._get_tracking(_cr, self.session.uid, picking, contect=ctx)
+                            tracking_data = self._get_tracking(_cr, self.session.uid, picking, context=ctx)
                             if tracking_data:
                                 picking_obj.write(_cr, self.session.uid, picking_ids, tracking_data, context=ctx)
 
@@ -471,6 +530,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                             for (picking_id, ptype), moves_part in type_picking_move_dict.iteritems():
 
                                 # Get the binding ID for this picking
+                                openerp_picking = picking_obj.browse(_cr, self.session.uid, picking_id, context=ctx)
                                 bots_picking_id = bots_picking_obj.search(_cr, self.session.uid, [('openerp_id', '=', picking_id), ('backend_id', '=', self.backend_record.id)], context=ctx)
                                 if bots_picking_id:
                                     bots_picking_id = bots_picking_id[0]
@@ -480,7 +540,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
                                 bots_picking = bots_picking_obj.browse(_cr, self.session.uid, bots_picking_id, context=ctx)
 
                                 if ptype == 'DONE':
-                                    split, old_backorder_id = self._handle_confirmations(_cr, self.session.uid, bots_picking.openerp_id, moves_part, context=ctx)
+                                    split, old_backorder_id = self._handle_confirmations(_cr, self.session.uid, openerp_picking, moves_part, context=ctx)
                                     backorders.append((bots_picking, picking['id'], split, old_backorder_id))
                                 elif ptype == 'CANCELLED':
                                     self._handle_cancellations(_cr, self.session.uid, bots_picking, type_picking_prod_dict.get((picking_id, ptype), {}), context=ctx)
@@ -512,7 +572,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
 
                             # TODO: Handle various opperations for extra stock (Additional done incoming for PO handled above)
                             if moves_extra:
-                                raise NotImplementedError("Unable to process unexpected incoming stock for %s: %s" % (picking['id'], moves_extra,))
+                                raise NotImplementedError("Unable to process unexpected stock for %s: %s" % (picking['id'], moves_extra,))
 
             except OperationalError, e:
                 # file_lock_msg suggests that another job is already handling these files,
@@ -520,22 +580,15 @@ class WarehouseAdapter(BotsCRUDAdapter):
                 if e.message and file_lock_msg in e.message:
                     exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
                     exceptions.append(exception)
-            except RetryableJobError, e:
-                # Log error then continue processing files
-                retry = True
-                exception = "Retryable exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
-                exceptions.append(exception)
             except Exception, e:
                 # Log error then continue processing files
                 exception = "Exception %s when processing file %s: %s" % (e, file_id[1], traceback.format_exc())
                 exceptions.append(exception)
+                pass
 
         # If we hit any errors, fail the job with a list of all errors now
         if exceptions:
-            if retry:
-                raise RetryableJobError('The following exceptions were encountered:\n\n%s\n\nSome are retryable, will re-schedule job.' % ('\n\n'.join(exceptions),))
-            else:
-                raise JobError('The following exceptions were encountered:\n\n%s' % ('\n\n'.join(exceptions),))
+            raise JobError('The following exceptions were encountered:\n\n%s' % ('\n\n'.join(exceptions),))
 
         return res
 

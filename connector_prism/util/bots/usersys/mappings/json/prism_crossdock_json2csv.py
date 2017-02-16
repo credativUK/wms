@@ -19,7 +19,20 @@
 #
 ##############################################################################
 
+import re
+
+def record2string(cls, lex_records):
+    res = cls._orig_record2string(lex_records)
+    # Bots always appends a record sep even for the last record. If we are the last record, remove it.
+    if cls.nrmessagewritten == len(cls.root.children) - 1:
+        strip_end = re.escape(cls.ta_info['record_sep']) + "$\Z"
+        res = re.sub(strip_end, '', res, re.MULTILINE)
+    return res
+
 def main(inn,out):
+    func_type = type(out.record2string)
+    out._orig_record2string = out.record2string
+    out.record2string = func_type(record2string, out, out.__class__)
 
     pinn = inn.getloop({'BOTSID': 'crossdock'}, {'BOTSID': 'crossdock_line'})
     for line in pinn:
@@ -36,7 +49,7 @@ def main(inn,out):
         for dummy in xrange(int(LINE_QTY or 0)):
             itr += 1
             LINE_QTY = 1.0
-            LINE_UUID = "%s0%s" % (itr, LINE_INTERNAL_ID)
+            LINE_UUID = "%s0M%s" % (itr, LINE_INTERNAL_ID)
 
             main_out = out.putloop({'BOTSID': 'LINE'})
             main_out.put({'BOTSID':'LINE', 'itemID': LINE_UUID})

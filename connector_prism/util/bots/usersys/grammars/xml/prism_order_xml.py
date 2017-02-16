@@ -70,7 +70,7 @@ recorddefs = {
             ['BOTSID','M',255,'A'],
             ['orderType', 'C', 13, 'A'],
             ['channel', 'C', 9, 'A'],
-            ['subChannel', 'C', 20, 'A'],
+            ['subChannel', 'C', 70, 'A'],
             ['currency', 'M', 3, 'A'],
             ['sourceCode', 'C', 10, 'A'],
             ['orderDate', 'M', 19, 'A'],
