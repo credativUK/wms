@@ -383,7 +383,7 @@ class WarehouseAdapter(BotsCRUDAdapter):
     def _check_picking_document(self, cr, uid, picking_document, main_picking,
                                 context=None):
         allowed_states = {
-            'DONE': ('confirmed', 'assigned'),
+            'DONE': ('confirmed', 'assigned', 'done'),
             'CANCELLED': ('confirmed', 'assigned', 'cancel'),
         }
 
