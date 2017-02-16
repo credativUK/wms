@@ -19,7 +19,7 @@
 ##############################################################################
 
 {'name': 'Connector for Bots EDI server',
- 'version': '7.20160616.0',
+ 'version': '1.1.0',
  'category': 'Connector',
  'author': 'credativ Ltd',
  'website': 'http://www.credativ.co.uk',
@@ -37,7 +37,6 @@ data format for the external EDI system.
      'connector_wms',
      'delivery',
      'partner_incoterms',
-     'purchase_edit_utils', # https://github.com/credativUK/credativ-addons
  ],
  'data': [
      'bots_model_view.xml',

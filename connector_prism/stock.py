@@ -91,7 +91,7 @@ class PrismPickingOutAdapter(StockPickingOutAdapter):
         res = super(PrismPickingOutAdapter, self).create(picking_id)
         picking = self.session.browse('bots.stock.picking.out', picking_id)
         if picking.backend_id.feat_picking_out_crossdock and picking.type == 'out':
-            export_picking_crossdock.delay(self.session, 'bots.stock.picking.out', picking_id, priority=10)
+            export_picking_crossdock.delay(self.session, 'bots.stock.picking.out', picking_id)
         return res
 
     def _prepare_crossdock(self, picking_id):
@@ -123,8 +123,7 @@ class PrismPickingOutAdapter(StockPickingOutAdapter):
                                                                                ('state', '!=', 'cancel')], context=self.session.context)
                 if move_ids:
                     move_po = move_obj.browse(self.session.cr, self.session.uid, move_ids[0], self.session.context)
-                    # We cannot cross-dock a PO which has already been received into the warehouse, eg "deliver at once" stock
-                    if move_po.picking_id and not move_po.state == 'done':
+                    if move_po.picking_id:
                         po_name = picking_binder.to_backend(move_po.picking_id.id, wrap=True) or ""
                         if not po_name:
                             raise NoExternalId("No PO ID found, try again later")
